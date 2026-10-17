@@ -97,7 +97,14 @@ function render() {
   scheduleDraw();
 }
 function statsSummary() {
+  const stickerCounts = {};
+  records.forEach(function (r) {
+    (r.stickerIds || []).forEach(function (id) {
+      stickerCounts[id] = (stickerCounts[id] || 0) + 1;
+    });
+  });
   return { levels: records.length,
+    stickerCounts: stickerCounts,
     firstTry: records.filter(function (r) { return r.firstCheckPassed; }).length,
     hints: records.filter(function (r) { return r.hintUsed; }).length };
 }
@@ -182,7 +189,8 @@ function check() {
     screen = 'levelPassed';
     if (input) input.cancel();
     records.push({ levelId: level.id, checks: state.checks,
-      firstCheckPassed: state.firstCheckPassed, hintUsed: state.hintUsed });
+      firstCheckPassed: state.firstCheckPassed, hintUsed: state.hintUsed,
+      stickerIds: state.placements.map(function (p) { return p.stickerId; }) });
     feedback = { kind: 'success', text: level.successText };
     audio.play('success');
     bridge.vibrate();

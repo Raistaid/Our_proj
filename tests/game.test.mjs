@@ -49,6 +49,33 @@ test('Обычную идею нельзя заклеить даже после 
     'Обычная записка не меняет фиксированный размер наклейки');
 });
 
+test('На доске нужно закрыть каждый вид личных данных во всех раскладках', function () {
+  for (const index of [1, 4]) {
+    for (let variant = 0; variant <= content.levels[index].layouts.length; variant += 1) {
+      const level = getRuntimeLevel(content, index, variant);
+      assert.deepEqual(new Set(level.secrets.map(s => s.kind)),
+        new Set(['card_number', 'cvc', 'phone', 'school', 'school_class']));
+      for (const sticker of content.stickers) {
+        let state = createLevelState(level);
+        for (const secret of level.secrets) {
+          const [x, y, w, h] = secret.rect;
+          state = placeSticker(level, state, { stickerId: sticker.id, x: x + w / 2, y: y + h / 2 }).state;
+        }
+        assert.equal(evaluateLevel(level, state.placements).passed, true);
+        for (let i = 0; i < level.secrets.length; i += 1) {
+          const report = evaluateLevel(level, state.placements.filter((_, n) => n !== i));
+          assert.equal(report.passed, false);
+          assert.ok(report.missingSecretIds.includes(level.secrets[i].id));
+        }
+        const note = level.keepZones.find(z => z.id === 'weekend_plan');
+        const [x, y, w, h] = note.rect;
+        const blocked = placeSticker(level, state, { stickerId: sticker.id, x: x + w / 2, y: y + h / 2 });
+        assert.ok(evaluateLevel(level, blocked.state.placements).blockedKeepIds.includes(note.id));
+      }
+    }
+  }
+});
+
 test('All characters keep one fixed size on every scene, notes, free space and board edges', function () {
   assert.deepEqual(content.defaultStickerSize, { w: 0.44, h: 0.18 });
   for (let index = 0; index < content.levels.length; index += 1) {

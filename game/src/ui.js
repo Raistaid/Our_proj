@@ -276,10 +276,15 @@ export function mountUI(callbacks) {
       show('poster-placeholder', !vm.posterDataUrl);
       document.getElementById('share-button').disabled = !vm.canShare;
       setText('result-status', vm.resultStatus);
+      const counts = vm.stats && vm.stats.stickerCounts || {};
+      const total = Object.values(counts).reduce(function (sum, n) { return sum + n; }, 0);
+      setText('sticker-summary', 'Всего наклеек: ' + total + '. ' + (vm.stickers || []).map(function (s) {
+        return (s.shortLabel || s.label) + ': ' + (counts[s.id] || 0);
+      }).join(' · '));
       const feed = vm.feed || DEFAULT_FEED;
       const title = agentTitle(feed, vm.stats);
       show('agent-title', Boolean(title) && !vm.isFallback);
-      const rKey = title ? title.title + ':' + (vm.stats ? vm.stats.levels : 0) : '';
+      const rKey = title ? title.title + ':' + (vm.stats ? vm.stats.levels : 0) + ':' + JSON.stringify(counts) : '';
       if (title && rKey !== resultKey) {
         setText('agent-name', title.title);
         setText('agent-text', title.text);

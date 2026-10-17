@@ -448,6 +448,8 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
     assert.equal(poster.exportType, 'image/png');
     assert.equal(byId('poster-image').hidden, false);
     assert.match(byId('poster-image').src, /^data:image\/png;base64,/);
+    const expectedTotal = content.levels.reduce((sum, level) => sum + level.secrets.length, 0);
+    assert.match(byId('sticker-summary').textContent, new RegExp('Всего наклеек: ' + expectedTotal + '\\.'));
   }
 
   click('start');

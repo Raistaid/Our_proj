@@ -31,6 +31,19 @@ export function strangerComment(feed, missingKinds) {
 }
 
 export function agentTitle(feed, stats) {
+  const counts = stats && stats.stickerCounts;
+  if (counts) {
+    const ids = Object.keys(counts).filter(function (id) { return counts[id] > 0; });
+    const total = ids.reduce(function (sum, id) { return sum + counts[id]; }, 0);
+    const max = Math.max(0, ...ids.map(function (id) { return counts[id]; }));
+    const leaders = ids.filter(function (id) { return counts[id] === max; });
+    const names = { sock: 'Мастер носков', cloud: 'Повелитель облаков', cucumber: 'Огуречный ниндзя' };
+    if (total) return {
+      title: leaders.length === 1 ? names[leaders[0]] || 'Мастер наклеек' : 'Мастер стикер-микса',
+      text: leaders.length === 1 ? 'Ты прикрыл секреты ' + max + ' раз!' :
+        'Несколько героев разделили первое место. Отличная команда!'
+    };
+  }
   const titles = (feed || DEFAULT_FEED).titles || DEFAULT_FEED.titles;
   const levels = stats && stats.levels || 0;
   const firstTry = stats && stats.firstTry || 0;

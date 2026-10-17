@@ -57,7 +57,8 @@ function drawNote(ctx, zone) {
   const p = pixels(zone.rect);
   ctx.save();
   ctx.fillStyle = 'rgba(24,33,44,.12)'; ctx.fillRect(p[0] + 2, p[1] + 3, p[2], p[3]);
-  ctx.fillStyle = '#fff9e9'; ctx.strokeStyle = INK; ctx.lineWidth = 1.2;
+  ctx.fillStyle = /^#[0-9a-fA-F]{6}$/.test(zone.color || '') ? zone.color : '#fff9e9';
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.2;
   ctx.fillRect(p[0], p[1], p[2], p[3]); ctx.strokeRect(p[0], p[1], p[2], p[3]);
   ctx.fillStyle = '#b2a3ed'; ctx.fillRect(p[0] + p[2] * 0.37, p[1] - 3, p[2] * 0.26, 6);
   drawLines(ctx, zone.lines, zone.rect, 16, false);
