@@ -39,6 +39,17 @@ jobs:
           node-version: 22
       - run: npm run check:content
 
+  first-screen:
+    name: Первый экран ≤ 3 с
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run check:budget
+
   weight:
     name: Вес игры ≤ 5 МБ
     runs-on: ubuntu-latest
