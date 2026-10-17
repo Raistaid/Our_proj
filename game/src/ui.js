@@ -1,4 +1,6 @@
 const SYMBOLS = { info: '✳', warning: '!', success: '✓' };
+// The sock host's face follows the message: calm, thinking, happy.
+const MOODS = { info: 'calm', warning: 'hmm', success: 'happy' };
 
 export function mountUI(callbacks) {
   const root = document.getElementById('app');
@@ -82,6 +84,14 @@ export function mountUI(callbacks) {
       feedback.dataset.kind = kind;
       // Color is never the only signal: every kind has its own symbol.
       setText('feedback-symbol', SYMBOLS[kind] || SYMBOLS.info);
+      const face = document.getElementById('host-face');
+      const mood = './assets/host/' + (MOODS[kind] || MOODS.info) + '.svg';
+      if (face.getAttribute('src') !== mood) face.setAttribute('src', mood);
+      // A short hop only when the host says something new.
+      if (feedback.dataset.said !== vm.feedback.text) {
+        feedback.dataset.said = vm.feedback.text || '';
+        feedback.classList.remove('talk'); void feedback.offsetWidth; feedback.classList.add('talk');
+      }
       setText('feedback-text', vm.feedback.text);
       // Only on the first frame, and constant within it so buttons never jump under a finger.
       show('gesture-help', vm.levelIndex === 1);

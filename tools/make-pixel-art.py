@@ -1,7 +1,8 @@
 """Generates the game's pixel art: three stickers and three scene backgrounds.
 
 All drawings are our own. Run from the project root:  python3 tools/make-pixel-art.py
-Writes game/assets/stickers/*.svg (128 x 128) and game/assets/scenes/*.svg (360 x 480 board).
+Writes game/assets/stickers/*.svg (128 x 128), game/assets/scenes/*.svg (360 x 480 board)
+and game/assets/host/*.svg (the sock host's three moods).
 
 Scenes are drawn on a 60 x 80 grid (one cell = 6 board units). The main object of every
 scene sits inside its keepZones "hero" rect from game/data/content.json, and the four
@@ -40,11 +41,17 @@ def row_rects(grid):
     return ''.join(out)
 
 
-def sprite(name, rows):
+def sprite(name, rows, folder='stickers'):
     size = len(rows)
     assert all(len(r) == size for r in rows), (name, [len(r) for r in rows])
     grid = [[COLORS[ch] if ch != '.' else None for ch in row] for row in rows]
-    (ROOT / 'stickers' / (name + '.svg')).write_text(svg(size, size, row_rects(grid), 128, 128))
+    (ROOT / folder / (name + '.svg')).write_text(svg(size, size, row_rects(grid), 128, 128))
+
+
+def host(mood, face):
+    """The sock host: the sticker sock with a different face (rows 6-8)."""
+    rows = SOCK[:6] + face + SOCK[9:]
+    sprite(mood, rows, 'host')
 
 
 SOCK = [
@@ -260,12 +267,17 @@ def poster():
 
 
 if __name__ == '__main__':
+    (ROOT / 'host').mkdir(exist_ok=True)
     sprite('sock', SOCK)
     sprite('cloud', CLOUD)
     sprite('cucumber', CUCUMBER)
+    # calm: flat mouth; hmm: round "o" mouth, glasses up; happy: smile
+    host('calm', ['..kmkwkmk.......', '..kwwwwwk.......', '..kwkkkwk.......'])
+    host('hmm', ['..kkkwkkk.......', '..kmkwkmk.......', '..kwwkwwk.......'])
+    host('happy', ['..kmkwkmk.......', '..kkwwwkk.......', '..kwkkkwk.......'])
     room()
     desk()
     poster()
-    for folder in ('stickers', 'scenes'):
+    for folder in ('stickers', 'scenes', 'host'):
         for f in sorted((ROOT / folder).iterdir()):
             print(folder + '/' + f.name, f.stat().st_size)
