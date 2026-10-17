@@ -73,6 +73,9 @@ export function mountUI(callbacks) {
     show('error-screen', vm.screen === 'error');
     root.dataset.screen = vm.screen;
     show('brand', !playing);
+    // Exit appears once the game has started (and on the load error screen, where it is the only way out).
+    const exit = root.querySelector('[data-action=close]');
+    if (exit) exit.hidden = vm.screen === 'start' || vm.screen === 'loading';
     show('level-info', playing);
     // Sound buttons: the small one in the top bar and the big one on the start screen.
     root.querySelectorAll('[data-action=sound]').forEach(function (sound) {
