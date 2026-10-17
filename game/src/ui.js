@@ -111,6 +111,7 @@ export function mountUI(callbacks) {
   function setStickerSize(width, height) {
     palette.style.setProperty('--sticker-width', width + 'px');
     palette.style.setProperty('--sticker-height', height + 'px');
+    if (width > 0 && height > 0) palette.style.setProperty('--sticker-ratio', String(width / height));
   }
   return { canvas: canvas, boardElement: canvas, paletteElement: palette, rootElement: root,
     updateUI: updateUI, setStickerSize: setStickerSize,

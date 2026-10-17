@@ -103,11 +103,13 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .workspace[data-passed=true] .feedback,.workspace[data-passed=true] .controls,.workspace[data-passed=true] .palette-block{display:none}
 .palette-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .count-label{font-size:14px;font-weight:800;color:var(--muted)}
-.palette{display:flex;flex-wrap:wrap;gap:14px;touch-action:none;padding:4px}
-.sticker-choice{flex:0 0 auto;width:var(--sticker-width,158.4px);background:transparent;color:var(--ink);border:0;border-radius:0;box-shadow:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.sticker-thumbnail{display:block;flex:none;width:var(--sticker-width,158.4px);height:var(--sticker-height,86.4px);pointer-events:none}
+.palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;touch-action:none;padding:4px}
+.sticker-choice{width:100%;background:transparent;color:var(--ink);border:0;border-radius:0;box-shadow:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.sticker-thumbnail{display:block;width:100%;max-width:var(--sticker-width,158.4px);height:auto;aspect-ratio:var(--sticker-ratio,1.8333);pointer-events:none}
 .sticker-choice span{font-size:14px;line-height:20px;font-weight:800;pointer-events:none}
 .sticker-choice.selected .sticker-thumbnail{outline:3px solid var(--violet);outline-offset:2px}
+.sticker-choice .sticker-thumbnail{transition:transform .15s ease-out}
+.sticker-choice.selected .sticker-thumbnail{transform:translateY(-2px)}
 .gesture-help{font-size:14px;line-height:1.4;color:var(--muted);margin:10px 0 0}
 .fallback-note{order:5;font-size:14px;line-height:1.5;padding:10px;background:var(--warn-bg);border-radius:8px;margin:0}
 .passed-card{display:flex;gap:12px;align-items:center;background:var(--ok-bg);border:2px solid var(--ink);border-radius:14px;padding:14px;box-shadow:3px 3px 0 var(--ink)}
@@ -167,7 +169,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .feedback-symbol{flex-basis:24px;height:24px;font-size:16px}
  .palette-heading{display:none}
  .palette{gap:12px}
- .sticker-choice span{font-size:14px;white-space:nowrap}
+ .sticker-choice span{display:none}
  .gesture-help{font-size:14px;margin-top:6px}
  .controls{grid-template-columns:1fr 1fr 1.2fr;gap:8px}
  .controls .button{min-height:48px;padding:6px 4px;font-size:14px;border-radius:11px;gap:4px}
