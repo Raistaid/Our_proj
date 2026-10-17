@@ -53,6 +53,78 @@ export function stickerIntersectsRect(placement, rect) {
   return pointInSticker(inset, x, y);
 }
 
+// Vertical cross-section of the opaque backing, clipped to the ordinary note.
+function coveredHeight(placements, rect, x) {
+  const intervals = [];
+  for (const p of placements) {
+    const [left, top, width, height] = p.rect;
+    let inset = 0;
+    if (p.shape === 'circle') {
+      const dx = (x - left - width / 2) / (width / 2);
+      inset = height / 2 * (1 - Math.sqrt(Math.max(0, 1 - dx * dx)));
+    } else if (p.shape === 'rounded-square') {
+      const radius = Math.min(width * 360, height * 480) * .18;
+      const rx = radius / 360, ry = radius / 480;
+      const dx = Math.max(left + rx - x, 0, x - (left + width - rx)) / rx;
+      inset = ry * (1 - Math.sqrt(Math.max(0, 1 - dx * dx)));
+    }
+    const start = Math.max(rect[1], top + inset);
+    const end = Math.min(rect[1] + rect[3], top + height - inset);
+    if (end > start) intervals.push([start, end]);
+  }
+  intervals.sort((a, b) => a[0] - b[0]);
+  let length = 0, end = -Infinity;
+  for (const interval of intervals) {
+    length += Math.max(0, interval[1] - Math.max(end, interval[0]));
+    end = Math.max(end, interval[1]);
+  }
+  return length;
+}
+
+function integrateArea(fn, left, right, tolerance) {
+  const middle = (left + right) / 2;
+  const a = fn(left), b = fn(middle), c = fn(right);
+  const whole = (right - left) * (a + 4 * b + c) / 6;
+  function refine(left, right, a, b, c, whole, tolerance, depth) {
+    const middle = (left + right) / 2;
+    const d = fn((left + middle) / 2), e = fn((middle + right) / 2);
+    const first = (middle - left) * (a + 4 * d + b) / 6;
+    const second = (right - middle) * (b + 4 * e + c) / 6;
+    const delta = first + second - whole;
+    if (!depth || Math.abs(delta) <= 15 * tolerance) return first + second + delta / 15;
+    return refine(left, middle, a, d, b, first, tolerance / 2, depth - 1) +
+      refine(middle, right, b, e, c, second, tolerance / 2, depth - 1);
+  }
+  return refine(left, right, a, b, c, whole, tolerance, 18);
+}
+
+// Integrate the union, so stacked stickers count once and transparent corners never count.
+// Splitting at backing edges makes rectangular coverage exact, including the 20% boundary.
+export function stickerCoverageRatio(placements, rect) {
+  const relevant = placements.filter(p => stickerIntersectsRect(p, rect));
+  if (!relevant.length) return 0;
+  if (relevant.some(p => stickerContainsRect(p, rect))) return 1;
+  const left = rect[0], right = left + rect[2];
+  const edges = [left, right];
+  for (const p of relevant) {
+    const [x, , w, h] = p.rect;
+    const radius = Math.min(w * 360, h * 480) * .18 / 360;
+    const breaks = p.shape === 'circle' ? [x, x + w / 2, x + w] :
+      p.shape === 'rounded-square' ? [x, x + radius, x + w - radius, x + w] : [x, x + w];
+    edges.push(...breaks.filter(x => x > left && x < right));
+  }
+  const sorted = [...new Set(edges)].sort((a, b) => a - b);
+  let area = 0;
+  for (let i = 1; i < sorted.length; i += 1) {
+    const start = sorted[i - 1], end = sorted[i];
+    const active = relevant.filter(p => p.rect[0] < end && p.rect[0] + p.rect[2] > start);
+    if (!active.length) continue;
+    const tolerance = (end - start) * rect[3] * 1e-10;
+    area += integrateArea(x => coveredHeight(active, rect, x), start, end, tolerance);
+  }
+  return Math.max(0, Math.min(1, area / (rect[2] * rect[3])));
+}
+
 // Prove coverage using convex masks. No cell is accepted just from sampled pixels:
 // all four corners must lie in one mask. Overlapping masks may cover different cells.
 // Unresolved boundaries fail conservatively instead of leaking part of a secret.

@@ -59,32 +59,33 @@ test('Обычные записки и подписи нужно оставит�
   assert.deepEqual(frame, before);
 });
 
-test('Заход на край обычной записки до 4 px разрешён, более глубокое перекрытие блокирует успех и экспорт', async () => {
+test('До 20% обычной записки можно закрыть; больше 20% блокирует успех, подсказку и экспорт', async () => {
   const frame = { ...level, keepZones: [{ id: 'idea', rect: [.6, .5, .2, .1], hint: 'Оставь идею видимой.' }] };
   const solved = masks(sensitiveRegions(frame, zone));
   const touching = { stickerId: 'sock', rect: [.4, .5, .2, .1] };
   assert.equal(evaluateLevel(frame, [...solved, touching]).passed, true);
-  for (const offset of [1, 3, 4]) {
-    const slightOverlap = { ...touching, rect: [.4 + offset / 360, .5, .2, .1] };
+  for (const ratio of [.05, .19999, .2]) {
+    const slightOverlap = { ...touching, rect: [.4 + ratio * .2, .5, .2, .1] };
     assert.equal(evaluateLevel(frame, [...solved, slightOverlap]).passed, true);
     assert.deepEqual(getLevelHint(frame, [...solved, slightOverlap]).hintIds, []);
   }
-  const overlapping = { ...touching, rect: [.4 + 5 / 360, .5, .2, .1] };
+  const overlapping = { ...touching, rect: [.4 + .20001 * .2, .5, .2, .1] };
   const placed = [...solved, overlapping];
   assert.deepEqual(evaluateLevel(frame, placed).blockedKeepIds, ['idea']);
+  assert.equal(getLevelHint(frame, placed).text, frame.keepZones[0].hint);
   await assert.rejects(createPoster({ level: frame, placements: placed }), /Сначала подготовь кадр/);
 });
 
-test('Допуск обычной области одинаков на всех сторонах и не отключает защиту маленьких подписей', () => {
+test('Порог 20% одинаков на всех сторонах и защищает маленькие подписи', () => {
   const rect = [.6, .5, .2, .1];
   const frame = { ...level, keepZones: [{ id: 'idea', rect, hint: 'Оставь идею видимой.' }] };
   const solved = masks(sensitiveRegions(frame, zone));
   const [x, y, w, h] = rect;
-  for (const pixels of [4, 5]) {
-    const dx = pixels / 360, dy = pixels / 480;
+  for (const ratio of [.2, .20001]) {
+    const dx = ratio * w, dy = ratio * h;
     for (const strip of [[x, y, dx, h], [x + w - dx, y, dx, h],
       [x, y, w, dy], [x, y + h - dy, w, dy]]) {
-      assert.equal(evaluateLevel(frame, solved.concat(masks([strip]))).passed, pixels === 4);
+      assert.equal(evaluateLevel(frame, solved.concat(masks([strip]))).passed, ratio === .2);
     }
   }
   const tiny = { ...frame, keepZones: [{ id: 'tiny', rect: [.6, .5, 6 / 360, 6 / 480] }] };

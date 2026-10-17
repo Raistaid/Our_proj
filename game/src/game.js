@@ -1,6 +1,6 @@
 import { validRect, centeredRect } from './geometry.js';
 import { sensitiveRegions } from './sensitive-text.js';
-import { stickerShape, stickerSize, pointInSticker, stickersCoverRect, stickerIntersectsRect } from './sticker-shapes.js';
+import { stickerShape, stickerSize, pointInSticker, stickersCoverRect, stickerCoverageRatio } from './sticker-shapes.js';
 
 export function createLevelState(level) {
   return { levelId: level.id, placements: [], history: [], nextId: 1,
@@ -90,14 +90,6 @@ export function undoPlacement(state) {
   });
 }
 
-// Allow a small overlap at the paper edges, in logical 360 × 480 board pixels.
-function protectedKeepRect(zone) {
-  const [x, y, width, height] = zone.rect;
-  const insetX = Math.min(4 / 360, width / 4);
-  const insetY = Math.min(4 / 480, height / 4);
-  return [x + insetX, y + insetY, width - insetX * 2, height - insetY * 2];
-}
-
 export function evaluateLevel(level, placements) {
   const list = Array.isArray(placements) ? placements : [];
   const valid = list.filter(function (p) { return p && validRect(p.rect); })
@@ -109,7 +101,7 @@ export function evaluateLevel(level, placements) {
     return covered.indexOf(s.id) === -1;
   }).map(function (s) { return s.id; });
   const blocked = (level.keepZones || []).filter(function (zone) {
-    return zone.id !== 'hero' && valid.some(function (p) { return stickerIntersectsRect(p, protectedKeepRect(zone)); });
+    return zone.id !== 'hero' && stickerCoverageRatio(valid, zone.rect) > .2 + 1e-8;
   }).map(function (zone) { return zone.id; });
   return { passed: level.secrets.length > 0 && missing.length === 0 &&
     blocked.length === 0 && valid.length === list.length,
