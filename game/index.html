@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f7f4eb">
-  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#0f1a24">
+  <meta name="color-scheme" content="dark">
   <meta name="description" content="Закрой личное смешными наклейками и подготовь кадр, который можно показать.">
   <title>Засвет — наклей всё!</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
@@ -13,6 +13,7 @@
 <body>
   <div id="app" class="app">
     <header class="topbar">
+      <button type="button" class="icon-button close-button" data-action="close" aria-label="Выйти из игры">×</button>
       <div class="brand" id="brand"><span class="brand-spark" aria-hidden="true">✳</span> ЗАСВЕТ<span class="brand-dot">.</span></div>
       <div class="level-info" id="level-info" hidden>
         <div class="level-meta"><span id="level-counter">Кадр 1 / 5</span><div id="progress" class="progress" aria-hidden="true"></div></div>
@@ -20,39 +21,36 @@
       </div>
       <div class="topbar-actions">
         <button type="button" class="icon-button sound-button" data-action="sound" aria-pressed="false" aria-label="Включить звук"><span class="sound-icon" aria-hidden="true">🔇</span><span class="sound-label">Звук выкл.</span></button>
-        <button type="button" class="icon-button close-button" data-action="close" aria-label="Выйти из игры">×</button>
       </div>
     </header>
     <main>
       <section id="loading-screen" class="loading-screen">
-        <div class="loader-spark" aria-hidden="true">✳</div>
+        <div class="pixel-loader" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <p role="status">Готовим кадры и серьёзный носок…</p>
       </section>
-      <section id="start-screen" class="start-screen pixel-theme" hidden>
+      <section id="start-screen" class="start-screen" hidden>
         <div class="intro-copy">
-          <span class="eyebrow pixel-chip">Наклейки на посту</span>
-          <h1 class="pixel-title">
-            <span class="visually-hidden">Личное — за кадром.</span>
-            <img src="./assets/pixel/title-1.svg" alt="" class="title-line" aria-hidden="true">
-            <img src="./assets/pixel/title-2.svg" alt="" class="title-line" aria-hidden="true">
-          </h1>
+          <span class="chip">Наклейки на посту</span>
+          <h1>Личное —<br><span class="marker">за кадром</span></h1>
           <p class="intro-description">Готовишь пост? Найди секреты и прикрой их. Пусть в кадре останется только то, что ты хочешь показать.</p>
-          <div class="intro-tags"><span class="tag-lime">5 кадров</span><span class="tag-lavender">3 наклейки</span><span class="tag-peach">Твой коллаж</span></div>
-          <button type="button" class="button button-primary start-button" data-action="start">ПРИКРЫВАЕМ <span aria-hidden="true">▶</span></button>
-          <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук — по желанию.</p>
+          <div class="intro-tags"><span class="tag-green">5 кадров</span><span class="tag-mint">3 наклейки</span><span class="tag-sun">Твой коллаж</span></div>
         </div>
         <div class="intro-art" aria-hidden="true">
           <div class="cover-caption">пост почти готов</div>
           <div class="cover-picture">
-            <img src="./assets/pixel/cover.svg" alt="" class="cover-background">
+            <img src="./assets/scenes/room.svg" alt="" class="cover-background">
             <div class="cover-note"><i></i><i></i><i></i></div>
-            <div class="cover-sticker"><img src="./assets/pixel/sock.svg" alt=""></div>
+            <div class="cover-sticker"><img src="./assets/stickers/sock.svg" alt=""></div>
           </div>
-          <div class="cover-label">НОСОК ПРИКРОЕТ.</div>
+          <div class="cover-label">Носок прикроет</div>
           <div class="pixel-friends">
-            <img src="./assets/pixel/cloud.svg" alt="">
-            <img src="./assets/pixel/cucumber.svg" alt="">
+            <img src="./assets/stickers/cloud.svg" alt="">
+            <img src="./assets/stickers/cucumber.svg" alt="">
           </div>
+        </div>
+        <div class="start-actions">
+          <button type="button" class="button button-primary start-button" data-action="start">Начать игру <span aria-hidden="true">▶</span></button>
+          <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук — по желанию.</p>
         </div>
       </section>
       <section id="play-screen" class="play-screen" hidden>
@@ -93,8 +91,8 @@
       </section>
       <section id="result-screen" class="result-screen" hidden>
         <div class="result-copy">
-          <span class="eyebrow">Наклейки справились</span>
-          <h2>СЕКРЕТЫ<br><span class="marker">ПРИКРЫТЫ.</span></h2>
+          <span class="chip">Наклейки справились</span>
+          <h2>Секреты<br><span class="marker">прикрыты</span></h2>
           <p id="result-description">Кадры готовы. Твои идеи остались видны, личное — за кадром.</p>
           <button type="button" class="button button-primary" data-action="share" id="share-button" disabled>Поделиться коллажем ↗</button>
           <button type="button" class="button button-secondary" data-action="replay">Ещё один заход ↶</button>
@@ -102,11 +100,11 @@
         </div>
         <div class="poster-frame">
           <img id="poster-image" alt="Твой коллаж: личные сведения закрыты наклейками" hidden>
-          <div id="poster-placeholder" class="poster-placeholder">✳<span>Твой коллаж</span></div>
+          <div id="poster-placeholder" class="poster-placeholder"><div class="pixel-loader" aria-hidden="true"><i></i><i></i><i></i><i></i></div><span>Твой коллаж</span></div>
         </div>
       </section>
       <section id="error-screen" class="error-screen" hidden>
-        <span class="loader-spark" aria-hidden="true">✳</span>
+        <div class="pixel-loader is-still" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <h2>Кадр пока не открылся</h2>
         <p>Попробуем ещё раз?</p>
         <button type="button" class="button button-primary" data-action="reload">Открыть снова ↻</button>
