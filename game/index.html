@@ -32,20 +32,39 @@
         <div class="intro-copy">
           <span class="eyebrow kids-label"><span class="sber-badge sber-badge-small" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span>Игра для СберKids</span>
           <h1>ЛИЧНОЕ —<br><span class="marker">ЗА КАДРОМ.</span></h1>
-          <p class="intro-description">Готовишь пост? Найди секреты и прикрой их. Пусть в кадре останется только то, что ты хочешь показать.</p>
-          <div class="intro-tags"><span>5 кадров</span><span>3 наклейки</span><span>Твой коллаж</span></div>
-          <button type="button" class="button button-primary start-button" data-action="start">ПРИКРЫВАЕМ <span aria-hidden="true">↗</span></button>
-          <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук — по желанию.</p>
+          <p class="intro-description">Готовишь пост? Найди секреты и прикрой их смешными наклейками. Главное оставь на виду.</p>
+          <ol class="how-to" aria-label="Как играть">
+            <li><span class="how-num" aria-hidden="true">1</span><span><b>Читай записки.</b> Код, пароль, адрес — это личное.</span></li>
+            <li><span class="how-num" aria-hidden="true">2</span><span><b>Тяни наклейку</b> на секрет, чтобы закрыть его целиком.</span></li>
+            <li><span class="how-num" aria-hidden="true">3</span><span><b>Жми «Готово».</b> Рюкзак и подпись должны остаться видны.</span></li>
+          </ol>
+          <div class="intro-tags"><span class="tag-lime">5 кадров</span><span class="tag-lavender">3 наклейки</span><span class="tag-peach">Твой коллаж</span></div>
         </div>
         <div class="intro-art" aria-hidden="true">
-          <div class="cover-caption">пост почти готов</div>
-          <div class="cover-picture">
-            <img src="./assets/scenes/room.svg" alt="" class="cover-background">
-            <div class="cover-note">Адрес дома<br>лучше за кадром</div>
-            <div class="cover-sticker"><img src="./assets/stickers/sock.svg" alt=""></div>
+          <div class="cover-caption">смотри, как играть</div>
+          <div class="demo">
+            <div class="demo-picture">
+              <img src="./assets/scenes/room.svg" alt="" class="demo-bg">
+              <div class="demo-note demo-badge"><b>Адрес дома</b>Планета Пример</div>
+              <div class="demo-note demo-phone"><i></i><b>Код получения</b>00 00 00</div>
+              <div class="demo-note demo-public"><b>Идея рисунка</b>Летающий огурец</div>
+              <div class="demo-caption">Рюкзак готов к приключению</div>
+            </div>
+            <div class="demo-sticker demo-sticker-1"><img src="./assets/stickers/sock.svg" alt=""></div>
+            <div class="demo-sticker demo-sticker-2"><img src="./assets/stickers/cloud.svg" alt=""></div>
+            <div class="demo-done">✓ Кадр готов!</div>
+            <div class="demo-palette">
+              <span class="demo-tile tile-sock"><img src="./assets/stickers/sock.svg" alt=""></span>
+              <span class="demo-tile tile-cloud"><img src="./assets/stickers/cloud.svg" alt=""></span>
+              <span class="demo-tile tile-cucumber"><img src="./assets/stickers/cucumber.svg" alt=""></span>
+            </div>
+            <span class="demo-finger"></span>
           </div>
-          <div class="cover-label">НОСОК ПРИКРОЕТ.</div>
           <span class="cover-star">✳</span>
+        </div>
+        <div class="start-actions">
+          <button type="button" class="button button-primary start-button" data-action="start">ПРИКРЫВАЕМ <span aria-hidden="true">↗</span></button>
+          <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук — по желанию.</p>
         </div>
       </section>
       <section id="play-screen" class="play-screen" hidden>
