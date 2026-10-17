@@ -1,5 +1,67 @@
 const SYMBOLS = { info: '✳', warning: '!', success: '✓' };
 
+// "Post feed": after a check the frame is shown as a post in a made-up social feed.
+// Texts come from content.json (feed); these short defaults keep the fallback scene working.
+const DEFAULT_FEED = {
+  author: '@мой_пост', likes: [87],
+  names: ['@kot_v_shapke', '@masha.risuet', '@robo_fan'],
+  fans: { any: ['Классный кадр!', 'Хочу такие же наклейки'] },
+  strangers: { any: { who: '@незнакомец_42', text: 'О, это теперь видят все? 👀' } },
+  titles: [{ minFirstTry: 0, maxHints: 99, title: 'Стажёр секретной службы', text: 'Секреты спрятаны.' }]
+};
+
+function pick(list, index) { return list && list.length ? list[index % list.length] : ''; }
+
+// Fan comments: first one per sticker used in the frame, then a general one. Deterministic,
+// so the same frame always gets the same reactions (no randomness, no lottery).
+export function fanComments(feed, levelIndex, stickerIds, count) {
+  const f = feed || DEFAULT_FEED;
+  const fans = f.fans || DEFAULT_FEED.fans;
+  const seen = [];
+  (stickerIds || []).forEach(function (id) { if (seen.indexOf(id) === -1) seen.push(id); });
+  const texts = seen.map(function (id) { return pick(fans[id], levelIndex); }).filter(Boolean);
+  texts.push(pick(fans.any, levelIndex));
+  return texts.filter(Boolean).slice(0, count).map(function (text, i) {
+    return { who: pick(f.names || DEFAULT_FEED.names, levelIndex * 2 + i), text: text };
+  });
+}
+
+export function strangerComment(feed, missingKinds) {
+  const strangers = (feed || DEFAULT_FEED).strangers || DEFAULT_FEED.strangers;
+  for (const kind of missingKinds || []) if (strangers[kind]) return strangers[kind];
+  return missingKinds && missingKinds.length ? strangers.any || DEFAULT_FEED.strangers.any : null;
+}
+
+export function agentTitle(feed, stats) {
+  const titles = (feed || DEFAULT_FEED).titles || DEFAULT_FEED.titles;
+  const levels = stats && stats.levels || 0;
+  const firstTry = stats && stats.firstTry || 0;
+  const hints = stats && stats.hints || 0;
+  // minFirstTry is out of 5 frames; scale it if the set has another length.
+  return titles.find(function (t) {
+    return firstTry >= Math.min(levels, t.minFirstTry * levels / 5) && hints <= t.maxHints;
+  }) || titles[titles.length - 1];
+}
+
+function reduceMotion() {
+  return typeof window === 'undefined' || !window.matchMedia ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// Counts likes up once; with reduced motion (or no animation frames) shows the number at once.
+function countUp(element, target) {
+  const raf = typeof window !== 'undefined' && window.requestAnimationFrame;
+  if (!raf || reduceMotion()) { element.textContent = '♥ ' + target; return; }
+  const start = Date.now();
+  // Frames may be paused (hidden WebView); the final number must still appear.
+  setTimeout(function () { element.textContent = '♥ ' + target; }, 1000);
+  (function step() {
+    const k = Math.min(1, (Date.now() - start) / 900);
+    element.textContent = '♥ ' + Math.round(target * (1 - Math.pow(1 - k, 3)));
+    if (k < 1) raf(step);
+  })();
+}
+
 export function mountUI(callbacks) {
   const root = document.getElementById('app');
   const canvas = document.getElementById('board');
@@ -7,6 +69,8 @@ export function mountUI(callbacks) {
   let paletteKey = '';
   let stickerCanvases = [];
   let lastUsed = 0;
+  let postKey = '';
+  let resultKey = '';
   const actions = { start: 'onStart', close: 'onClose', sound: 'onSoundToggle',
     undo: 'onUndo', hint: 'onHint', check: 'onCheck', next: 'onNext',
     replay: 'onReplay', share: 'onShare', reload: 'onReload' };
@@ -86,8 +150,21 @@ export function mountUI(callbacks) {
       // Color is never the only signal: every kind has its own symbol.
       setText('feedback-symbol', SYMBOLS[kind] || SYMBOLS.info);
       setText('feedback-text', vm.feedback.text);
+      // After a failed check, a made-up "stranger" reacts to the secret that is still visible.
+      const stranger = kind === 'warning' && vm.post ? strangerComment(vm.feed, vm.post.missingKinds) : null;
+      const strangerLine = document.getElementById('stranger');
+      strangerLine.hidden = !stranger;
+      if (stranger) {
+        strangerLine.textContent = '';
+        const who = document.createElement('b');
+        who.textContent = stranger.who + ' ';
+        strangerLine.appendChild(who);
+        const said = document.createElement('span');
+        said.textContent = stranger.text;
+        strangerLine.appendChild(said);
+      }
       // Only on the first frame, and constant within it so buttons never jump under a finger.
-      show('gesture-help', vm.levelIndex === 1);
+      show('gesture-help', vm.levelIndex === 1 && !(kind === 'warning' && vm.post && vm.post.missingKinds.length));
       const passed = vm.screen === 'levelPassed';
       show('passed-notice', passed);
       root.querySelector('.workspace').dataset.passed = String(passed);
@@ -99,6 +176,26 @@ export function mountUI(callbacks) {
       }
       lastUsed = vm.usedStickers;
       setText('success-text', vm.successText);
+      // The passed frame becomes a post: likes count up, fans comment on the stickers.
+      const feedKey = passed ? vm.levelIndex + ':' + (vm.post ? vm.post.stickerIds.join(',') : '') : '';
+      if (passed && feedKey !== postKey) {
+        const feed = vm.feed || DEFAULT_FEED;
+        setText('post-author', feed.author || DEFAULT_FEED.author);
+        const list = document.getElementById('post-comments');
+        list.textContent = '';
+        fanComments(feed, vm.levelIndex - 1, vm.post ? vm.post.stickerIds : [], 2).forEach(function (c) {
+          const item = document.createElement('li');
+          const who = document.createElement('b');
+          who.textContent = c.who + ' ';
+          item.appendChild(who);
+          const said = document.createElement('span');
+          said.textContent = c.text;
+          item.appendChild(said);
+          list.appendChild(item);
+        });
+        countUp(document.getElementById('post-likes'), pick(feed.likes || DEFAULT_FEED.likes, vm.levelIndex - 1));
+      }
+      postKey = feedKey;
       setText('next-button', vm.levelIndex === vm.levelCount ? 'Мой коллаж ↗' : 'Следующий кадр ↗');
       show('fallback-note', vm.isFallback);
     }
@@ -109,6 +206,18 @@ export function mountUI(callbacks) {
       show('poster-placeholder', !vm.posterDataUrl);
       document.getElementById('share-button').disabled = !vm.canShare;
       setText('result-status', vm.resultStatus);
+      const feed = vm.feed || DEFAULT_FEED;
+      const title = agentTitle(feed, vm.stats);
+      show('agent-title', Boolean(title) && !vm.isFallback);
+      const rKey = title ? title.title + ':' + (vm.stats ? vm.stats.levels : 0) : '';
+      if (title && rKey !== resultKey) {
+        setText('agent-name', title.title);
+        setText('agent-text', title.text);
+        const likes = (feed.likes || []).slice(0, vm.stats ? vm.stats.levels : 0)
+          .reduce(function (sum, n) { return sum + n; }, 0);
+        setText('agent-likes', likes ? 'Твои посты собрали ♥ ' + likes : '');
+      }
+      resultKey = rKey;
       setText('result-description', vm.isFallback ?
         'Пробный кадр готов. Попробуй открыть игру снова, чтобы получить основной набор.' :
         'Кадры готовы. Твои идеи остались видны, личное — за кадром.');
