@@ -310,6 +310,18 @@ export function renderStickerCard(options) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.setTransform(canvas.width / (rect[2] * 360), 0, 0,
     canvas.height / (rect[3] * 480), 0, 0);
+  if (options.bare) {
+    // Palette card: only the artwork, same size and position as on the board; the card itself
+    // is the button's background.
+    const sticker = options.assets.stickers[options.stickerId] || {};
+    const img = options.assets.images[sticker.src];
+    const p = pixels([0, 0, rect[2], rect[3]]);
+    if (img) {
+      const size = Math.min(p[2] * 0.82, p[3] * 0.9);
+      ctx.drawImage(img, (p[2] - size) / 2, (p[3] - size) / 2, size, size);
+    }
+    return;
+  }
   drawSticker(ctx, { stickerId: options.stickerId, rect: [0, 0, rect[2], rect[3]] }, options.assets, false);
 }
 
