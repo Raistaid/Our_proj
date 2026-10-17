@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createLevelState, placeSticker, undoPlacement, evaluateLevel, checkLevel, useHint } from '../game/src/game.js';
+import { createLevelState, placeSticker, moveSticker, removeSticker, hitTestSticker, undoPlacement, evaluateLevel, checkLevel, useHint, getLevelHint } from '../game/src/game.js';
 import { validateContent, getRuntimeLevel, loadContent } from '../game/src/content.js';
 import { validRect, containsRect, intersectsRect } from '../game/src/geometry.js';
 import { createBridge } from '../game/src/bridge.js';
@@ -45,8 +45,64 @@ test('Обычную идею нельзя заклеить даже после 
   const report = evaluateLevel(level, result.state.placements);
   assert.equal(report.passed, false);
   assert.ok(report.blockedKeepIds.includes('public_note'));
-  assert.ok(containsRect(result.state.placements.at(-1).rect, r),
-    'Обычная записка подстраивает наклейку так же, как секретная');
+  assert.deepEqual(result.state.placements.at(-1).rect.slice(2), [0.44, 0.18],
+    'Обычная записка не меняет фиксированный размер наклейки');
+});
+
+test('All characters keep one fixed size on every scene, notes, free space and board edges', function () {
+  assert.deepEqual(content.defaultStickerSize, { w: 0.44, h: 0.18 });
+  for (let index = 0; index < content.levels.length; index += 1) {
+    const level = getRuntimeLevel(content, index);
+    const notes = level.secrets.concat(level.keepZones.filter(function (zone) { return zone.style === 'note'; }));
+    const points = notes.map(function (note) {
+      return { x: note.rect[0] + note.rect[2] / 2, y: note.rect[1] + note.rect[3] / 2 };
+    }).concat([
+      { x: 0.5, y: 0.05 }, { x: 0.5, y: 0.5 },
+      { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 },
+      { x: 0, y: 0.5 }, { x: 1, y: 0.5 }, { x: 0.5, y: 0 }, { x: 0.5, y: 1 }
+    ]);
+    for (const sticker of content.stickers) {
+      for (const point of points) {
+        const placed = placeSticker(level, createLevelState(level), { stickerId: sticker.id, ...point });
+        assert.equal(placed.accepted, true);
+        const rect = placed.state.placements[0].rect;
+        assert.deepEqual(rect.slice(2), [0.44, 0.18], level.id + '/' + sticker.id + ': size changed');
+        assert.ok(validRect(rect), level.id + '/' + sticker.id + ': edge placement must stay inside the board');
+      }
+    }
+  }
+});
+
+test('Crossing any note boundary moves the fixed rectangle continuously without snapping', function () {
+  const epsilon = 0.00001;
+  for (let index = 0; index < content.levels.length; index += 1) {
+    const level = getRuntimeLevel(content, index);
+    const notes = level.secrets.concat(level.keepZones.filter(function (zone) { return zone.style === 'note'; }));
+    for (const note of notes) {
+      const [x, y, w, h] = note.rect;
+      const boundaries = [
+        [{ x: x - epsilon, y: y + h / 2 }, { x: x + epsilon, y: y + h / 2 }],
+        [{ x: x + w - epsilon, y: y + h / 2 }, { x: x + w + epsilon, y: y + h / 2 }],
+        [{ x: x + w / 2, y: y - epsilon }, { x: x + w / 2, y: y + epsilon }],
+        [{ x: x + w / 2, y: y + h - epsilon }, { x: x + w / 2, y: y + h + epsilon }]
+      ];
+      for (const sticker of content.stickers) {
+        for (const pair of boundaries) {
+          const rects = pair.map(function (point) {
+            const result = placeSticker(level, createLevelState(level), { stickerId: sticker.id, ...point });
+            assert.equal(result.accepted, true);
+            return result.state.placements[0].rect;
+          });
+          assert.deepEqual(rects[0].slice(2), [0.44, 0.18]);
+          assert.deepEqual(rects[1].slice(2), [0.44, 0.18]);
+          assert.ok(Math.abs(rects[1][0] - rects[0][0]) <= 2 * epsilon + 1e-12,
+            level.id + '/' + note.id + ': horizontal snap');
+          assert.ok(Math.abs(rects[1][1] - rects[0][1]) <= 2 * epsilon + 1e-12,
+            level.id + '/' + note.id + ': vertical snap');
+        }
+      }
+    }
+  }
 });
 test('Частично закрытый секрет не засчитывается', function () {
   const level = getRuntimeLevel(content, 0);
@@ -79,6 +135,175 @@ test('Лимит, неизвестная наклейка и выход за к�
   assert.equal(placeSticker(level, state, { stickerId: 'sock', x: -0.1, y: 0.5 }).reason, 'outside');
   assert.equal(placeSticker(level, state, { stickerId: 'unknown', x: 0.5, y: 0.5 }).reason, 'unknown');
 });
+
+test('Moving an existing sticker at the placement limit preserves identity, size, count and layer order', function () {
+  const level = getRuntimeLevel(content, 0);
+  let state = createLevelState(level);
+  for (let index = 0; index < level.maxStickers; index += 1) {
+    state = placeSticker(level, state, { stickerId: 'sock', x: 0.5, y: 0.5 }).state;
+  }
+  const before = structuredClone(state);
+  const target = state.placements[0];
+  const moved = moveSticker({ ...level, defaultStickerSize: { w: 0.1, h: 0.1 } }, state, {
+    placementId: target.id, x: 0, y: 1
+  });
+  assert.equal(moved.accepted, true);
+  assert.equal(moved.reason, null);
+  assert.deepEqual(state, before, 'Moving must not mutate the prior state');
+  assert.notEqual(moved.state, state);
+  assert.notEqual(moved.state.placements[0], target);
+  assert.equal(moved.state.placements.length, level.maxStickers);
+  assert.equal(moved.state.nextId, before.nextId);
+  assert.deepEqual(moved.state.placements.map(function (p) { return p.id; }), before.placements.map(function (p) { return p.id; }));
+  assert.equal(moved.state.placements[0].stickerId, target.stickerId);
+  assert.deepEqual(moved.state.placements[0].rect, [0, 1 - target.rect[3], target.rect[2], target.rect[3]]);
+  assert.ok(validRect(moved.state.placements[0].rect));
+  assert.deepEqual(moved.state.placements.slice(1), before.placements.slice(1));
+  assert.equal(moved.state.history.length, before.history.length + 1);
+  assert.deepEqual(moved.state.history.at(-1), before.placements);
+  assert.notEqual(moved.state.history.at(-1)[0].rect, target.rect, 'Undo must keep its own rectangle snapshot');
+  assert.deepEqual(undoPlacement(moved.state), before);
+  assert.equal(undoPlacement(undoPlacement(moved.state)).placements.length, level.maxStickers - 1);
+});
+
+test('Moving a sticker off a normal note updates evaluation and undo restores the original position', function () {
+  const level = getRuntimeLevel(content, 0);
+  const note = level.keepZones.find(function (zone) { return zone.style === 'note'; });
+  const placed = placeSticker(level, createLevelState(level), {
+    stickerId: 'sock', x: note.rect[0] + note.rect[2] / 2, y: note.rect[1] + note.rect[3] / 2
+  }).state;
+  assert.ok(evaluateLevel(level, placed.placements).blockedKeepIds.includes(note.id));
+  const secret = level.secrets[0];
+  const moved = moveSticker(level, placed, {
+    placementId: placed.placements[0].id,
+    x: secret.rect[0] + secret.rect[2] / 2, y: secret.rect[1] + secret.rect[3] / 2
+  });
+  assert.equal(moved.accepted, true);
+  const report = evaluateLevel(level, moved.state.placements);
+  assert.equal(report.blockedKeepIds.includes(note.id), false);
+  assert.ok(report.coveredSecretIds.includes(secret.id));
+  assert.deepEqual(undoPlacement(moved.state), placed);
+});
+
+test('Locked, missing, invalid and unchanged moves keep the original state and history', function () {
+  const level = getRuntimeLevel(content, 0);
+  const state = placeSticker(level, createLevelState(level), { stickerId: 'sock', x: 0.5, y: 0.5 }).state;
+  const id = state.placements[0].id;
+  const before = structuredClone(state);
+  for (const point of [
+    { x: -0.1, y: 0.5 }, { x: 0.5, y: 1.1 }, { x: NaN, y: 0.5 },
+    { x: 0.5, y: Infinity }, { x: '0.5', y: 0.5 }, { x: 0.5 }
+  ]) {
+    assert.deepEqual(moveSticker(level, state, { placementId: id, ...point }), {
+      state: state, accepted: false, reason: 'outside'
+    });
+  }
+  for (const drop of [null, {}, { placementId: 'missing', x: 0.5, y: 0.5 }]) {
+    const result = moveSticker(level, state, drop);
+    assert.equal(result.reason, 'unknown');
+    assert.equal(result.accepted, false);
+    assert.equal(result.state, state);
+  }
+  const unchanged = moveSticker(level, state, { placementId: id, x: 0.5, y: 0.5 });
+  assert.deepEqual(unchanged, { state: state, accepted: false, reason: 'unchanged' });
+  const clamped = moveSticker(level, state, { placementId: id, x: 0, y: 0 }).state;
+  assert.deepEqual(moveSticker(level, clamped, { placementId: id, x: 0.01, y: 0.01 }), {
+    state: clamped, accepted: false, reason: 'unchanged'
+  });
+  const locked = checkLevel(level, solve(level)).state;
+  const result = moveSticker(level, locked, { placementId: locked.placements[0].id, x: 0.5, y: 0.5 });
+  assert.deepEqual(result, { state: locked, accepted: false, reason: 'locked' });
+  assert.equal(result.state, locked);
+  assert.deepEqual(state, before);
+});
+
+test('Hit testing selects the topmost containing sticker and respects edges and invalid points', function () {
+  const bottom = { id: 'bottom', stickerId: 'sock', rect: [0.1, 0.1, 0.5, 0.5] };
+  const top = { id: 'top', stickerId: 'cloud', rect: [0.3, 0.3, 0.2, 0.2] };
+  const placements = [bottom, top];
+  assert.equal(hitTestSticker(placements, { x: 0.4, y: 0.4 }), top);
+  assert.equal(hitTestSticker(placements, { x: 0.2, y: 0.2 }), bottom);
+  assert.equal(hitTestSticker(placements, { x: 0.3, y: 0.3 }), top);
+  assert.equal(hitTestSticker(placements, { x: 0.5, y: 0.5 }), top);
+  assert.equal(hitTestSticker(placements, { x: 0.9, y: 0.9 }), null);
+  assert.equal(hitTestSticker([], { x: 0.4, y: 0.4 }), null);
+  for (const point of [null, {}, { x: NaN, y: 0.4 }, { x: 0.4, y: Infinity }, { x: '0.4', y: 0.4 }]) {
+    assert.equal(hitTestSticker(placements, point), null);
+  }
+  assert.deepEqual(placements, [bottom, top]);
+});
+
+for (const layer of ['top', 'underneath']) {
+  test('Removing the ' + layer + ' sticker at the limit frees capacity and undo restores its exact layer', function () {
+    const level = getRuntimeLevel(content, 0);
+    let state = useHint(checkLevel(level, createLevelState(level)).state);
+    for (let index = 0; index < level.maxStickers; index += 1) {
+      state = placeSticker(level, state, {
+        stickerId: content.stickers[index % content.stickers.length].id, x: 0.5, y: 0.5
+      }).state;
+    }
+    const before = structuredClone(state);
+    const index = layer === 'top' ? state.placements.length - 1 : 0;
+    const target = state.placements[index];
+    const removed = removeSticker(state, target.id);
+    assert.equal(removed.accepted, true);
+    assert.equal(removed.reason, null);
+    assert.notEqual(removed.state, state);
+    assert.deepEqual(state, before, 'Removal must not mutate its input');
+    assert.equal(removed.state.placements.length, level.maxStickers - 1);
+    assert.deepEqual(removed.state.placements, before.placements.filter(function (p) { return p.id !== target.id; }));
+    assert.equal(removed.state.nextId, before.nextId);
+    assert.equal(removed.state.checks, before.checks);
+    assert.equal(removed.state.firstCheckPassed, before.firstCheckPassed);
+    assert.equal(removed.state.hintUsed, before.hintUsed);
+    assert.equal(removed.state.locked, before.locked);
+    assert.equal(removed.state.history.length, before.history.length + 1);
+    assert.deepEqual(removed.state.history.at(-1), before.placements);
+    assert.notEqual(removed.state.history.at(-1)[index].rect, target.rect);
+    const undone = undoPlacement(removed.state);
+    assert.deepEqual(undone, before, 'Undo must restore the ID, rectangle and draw order');
+    assert.equal(undone.placements[index].id, target.id);
+    assert.equal(hitTestSticker(undone.placements, { x: 0.5, y: 0.5 }).id, before.placements.at(-1).id);
+
+    const readded = placeSticker(level, removed.state, { stickerId: 'sock', x: 0.2, y: 0.2 });
+    assert.equal(readded.accepted, true, 'Deleting a sticker must free a placement slot');
+    assert.equal(readded.state.placements.length, level.maxStickers);
+    assert.equal(readded.state.placements.at(-1).id, 'p' + before.nextId);
+    assert.equal(readded.state.placements.some(function (p) { return p.id === target.id; }), false);
+    const undoAdded = undoPlacement(readded.state);
+    assert.deepEqual(undoAdded.placements, removed.state.placements);
+    assert.deepEqual(undoPlacement(undoAdded).placements, before.placements);
+  });
+}
+
+test('Removing the last sticker clears the board and remains reversible', function () {
+  const level = getRuntimeLevel(content, 0);
+  const state = placeSticker(level, createLevelState(level), { stickerId: 'sock', x: 0.2, y: 0.2 }).state;
+  const result = removeSticker(state, state.placements[0].id);
+  assert.equal(result.accepted, true);
+  assert.deepEqual(result.state.placements, []);
+  assert.deepEqual(undoPlacement(result.state), state);
+});
+
+test('Unknown IDs and locked frames reject removal without changing state or history', function () {
+  const level = getRuntimeLevel(content, 0);
+  const state = placeSticker(level, createLevelState(level), { stickerId: 'sock', x: 0.2, y: 0.2 }).state;
+  const before = structuredClone(state);
+  for (const id of [undefined, null, '', 1, {}, 'missing']) {
+    const result = removeSticker(state, id);
+    assert.equal(result.accepted, false);
+    assert.equal(result.reason, 'unknown');
+    assert.equal(result.state, state);
+  }
+  assert.deepEqual(state, before);
+  const locked = checkLevel(level, solve(level)).state;
+  const lockedBefore = structuredClone(locked);
+  const result = removeSticker(locked, locked.placements[0].id);
+  assert.equal(result.accepted, false);
+  assert.equal(result.reason, 'locked');
+  assert.equal(result.state, locked);
+  assert.deepEqual(locked, lockedBefore);
+});
 test('После успеха нельзя изменить готовый кадр', function () {
   const level = getRuntimeLevel(content, 0);
   const state = checkLevel(level, solve(level)).state;
@@ -94,6 +319,26 @@ test('Неудачная первая попытка и подсказка со�
   assert.equal(state.checks, 2);
   assert.equal(state.firstCheckPassed, false);
   assert.equal(state.hintUsed, true);
+});
+
+test('Подсказка сначала просит освободить обычную записку и не выделяет другой секрет', function () {
+  const level = getRuntimeLevel(content, 0);
+  const note = level.keepZones.find(function (zone) { return zone.style === 'note'; });
+  const placed = placeSticker(level, createLevelState(level), {
+    stickerId: 'sock', x: note.rect[0] + note.rect[2] / 2, y: note.rect[1] + note.rect[3] / 2
+  }).state;
+  assert.deepEqual(getLevelHint(level, placed.placements), { hintIds: [], text: note.hint });
+  const undone = undoPlacement(placed);
+  assert.deepEqual(getLevelHint(level, undone.placements), {
+    hintIds: [level.secrets[0].id], text: level.secrets[0].why
+  });
+});
+
+test('После закрытия секретов подсказка предлагает проверку без подсветки', function () {
+  const level = getRuntimeLevel(content, 0);
+  assert.deepEqual(getLevelHint(level, solve(level).placements), {
+    hintIds: [], text: 'Личное уже закрыто. Можно нажать «Готово».'
+  });
 });
 test('Касание границ разрешено; пересечение положительной площади запрещено', function () {
   assert.equal(intersectsRect([0, 0, 0.5, 0.5], [0.5, 0, 0.5, 0.5]), false);
@@ -117,6 +362,16 @@ test('Сломанные данные, внешний ресурс и прозр
     assert.equal(validateContent(candidate).ok, false);
   });
   assert.equal(validateContent(null).ok, false);
+});
+
+test('A finite fixed sticker size that cannot cover the secrets is rejected', function () {
+  for (const size of [{ w: 0.30, h: 0.18 }, { w: 0.44, h: 0.10 }]) {
+    const candidate = fresh();
+    candidate.defaultStickerSize = size;
+    const result = validateContent(candidate);
+    assert.equal(result.ok, false, JSON.stringify(size) + ' must not create an impossible game');
+    assert.ok(result.errors.some(function (error) { return error.includes('секрет не помещается'); }));
+  }
 });
 test('Мост завершает задание один раз на открытие, включая повторную игру', function () {
   const sent = [];
@@ -156,5 +411,8 @@ test('При недоступном JSON загружается отдельны
     assert.equal(fallback.isFallback, true);
     assert.equal(fallback.levels.length, 1);
     assert.equal(validateContent(fallback).ok, true);
+    const level = getRuntimeLevel(fallback, 0);
+    assert.deepEqual(fallback.defaultStickerSize, { w: 0.44, h: 0.18 });
+    assert.equal(evaluateLevel(level, solve(level).placements).passed, true);
   } finally { globalThis.fetch = originalFetch; console.warn = originalWarn; }
 });

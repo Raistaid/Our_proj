@@ -1,6 +1,6 @@
 import { loadContent, getRuntimeLevel } from './content.js';
-import { createLevelState, placeSticker, undoPlacement, checkLevel, evaluateLevel, useHint } from './game.js';
-import { renderBoard, fitCanvas, loadAssets } from './renderer.js';
+import { createLevelState, placeSticker, moveSticker, removeSticker, hitTestSticker, undoPlacement, checkLevel, evaluateLevel, useHint, getLevelHint } from './game.js';
+import { renderBoard, renderStickerCard, fitCanvas, loadAssets } from './renderer.js';
 import { mountUI } from './ui.js';
 import { bindInput } from './input.js';
 import { createBridge } from './bridge.js';
@@ -52,8 +52,17 @@ function redraw() {
   frameRequest = 0;
   if (!state || !assets || (screen !== 'playing' && screen !== 'levelPassed')) return;
   if (!fitCanvas(ui.canvas)) return;
-  renderBoard({ canvas: ui.canvas, level: currentLevel(), placements: state.placements,
-    assets: assets, hintIds: hintIds, preview: preview });
+  const level = currentLevel();
+  const bounds = ui.canvas.getBoundingClientRect();
+  ui.setStickerSize(bounds.width * level.defaultStickerSize.w, bounds.height * level.defaultStickerSize.h);
+  ui.getStickerCanvases().forEach(function (card) {
+    if (fitCanvas(card.canvas)) renderStickerCard({ canvas: card.canvas, stickerId: card.stickerId,
+      level: level, assets: assets });
+  });
+  const drawn = renderBoard({ canvas: ui.canvas, level: level, placements: state.placements,
+    assets: assets, hintIds: hintIds, preview: preview, animate: true });
+  // Notes play a short entrance animation; keep drawing the current state until it ends.
+  if (drawn && drawn.animating) scheduleDraw();
 }
 function scheduleDraw() {
   if (!frameRequest) frameRequest = window.requestAnimationFrame(redraw);
@@ -67,7 +76,8 @@ function render() {
     stickers: content ? content.stickers : [], selectedStickerId: selectedStickerId,
     usedStickers: state ? state.placements.length : 0, maxStickers: level ? level.maxStickers : 0,
     canUndo: playing() && state.history.length > 0, canHint: canHint(),
-    hintLocked: playing() && !canHint(), feedback: feedback,
+    hintLocked: playing() && !canHint(), feedback: preview && preview.removing ?
+      { kind: 'warning', text: 'Отпусти за кадром, чтобы убрать наклейку.' } : feedback,
     successText: level ? level.successText : '',
     posterDataUrl: posterDataUrl, canShare: screen === 'result' && Boolean(posterDataUrl),
     resultStatus: resultStatus
@@ -117,26 +127,23 @@ function drop(item) {
 }
 function undo() {
   if (!playing()) return;
+  if (input) input.cancel();
   state = undoPlacement(state);
   hintIds = [];
-  feedback = { kind: 'info', text: 'Последняя наклейка убрана. Можно попробовать другое место.' };
+  feedback = { kind: 'info', text: 'Последнее действие отменено. Можно попробовать другое место.' };
   render();
 }
 function hint() {
   if (!canHint()) return;
   state = useHint(state);
-  const report = evaluateLevel(currentLevel(), state.placements);
-  hintIds = report.missingSecretIds.slice(0, 1);
-  const blocked = currentLevel().keepZones.find(function (zone) {
-    return report.blockedKeepIds.indexOf(zone.id) !== -1;
-  });
-  const missing = currentLevel().secrets.find(function (zone) { return zone.id === hintIds[0]; });
-  feedback = { kind: 'info', text: blocked ? blocked.hint :
-    missing ? missing.why : 'Личное уже закрыто. Можно нажать «Готово».' };
+  const help = getLevelHint(currentLevel(), state.placements);
+  hintIds = help.hintIds;
+  feedback = { kind: 'info', text: help.text };
   render();
 }
 function check() {
   if (!playing()) return;
+  if (input) input.cancel();
   const level = currentLevel();
   const result = checkLevel(level, state);
   state = result.state;
@@ -161,25 +168,49 @@ function check() {
   }
   render();
 }
+function move(item) {
+  if (!playing()) return;
+  const result = moveSticker(currentLevel(), state, item);
+  if (!result.accepted) return;
+  state = result.state;
+  hintIds = [];
+  feedback = { kind: 'info', text: 'Наклейка перенесена. Проверь, что личное закрыто, а идея осталась видимой.' };
+  audio.play('place');
+  render();
+}
 function next() {
   if (screen !== 'levelPassed') return;
   if (levelIndex + 1 < content.levels.length) { startLevel(levelIndex + 1); return; }
   showResult();
 }
-async function showResult() {
+function remove(item) {
+  if (!playing()) return;
+  const result = removeSticker(state, item.placementId);
+  if (!result.accepted) return;
+  state = result.state;
+  hintIds = [];
+  feedback = { kind: 'info', text: 'Наклейка убрана. Если передумал, нажми «Отменить».' };
+  render();
+}
+function showResult() {
+  if (!evaluateLevel(currentLevel(), state.placements).passed) return;
+  screen = 'result';
+  preview = null;
+  hintIds = [];
+  // A fallback frame never awards completion of the main task.
+  if (!content.isFallback && records.length === content.levels.length) bridge.completeOnce();
+  bridge.finishOnce();
+  refreshPoster();
+}
+async function refreshPoster() {
   const level = currentLevel();
   const placements = state.placements.map(function (p) {
     return { id: p.id, stickerId: p.stickerId, rect: p.rect.slice() };
   });
   if (!evaluateLevel(level, placements).passed) return;
-  screen = 'result';
-  preview = null;
-  hintIds = [];
   const nonce = ++exportNonce;
+  posterDataUrl = '';
   resultStatus = 'Готовим твой коллаж…';
-  // A fallback frame never awards completion of the main task.
-  if (!content.isFallback && records.length === content.levels.length) bridge.completeOnce();
-  bridge.finishOnce();
   render();
   try {
     const image = await createPoster({ level: level, placements: placements, assets: assets });
@@ -220,9 +251,17 @@ async function toggleSound() {
 input = bindInput({
   rootElement: ui.rootElement, canvas: ui.canvas, enabled: playing,
   selectedSticker: function () { return selectedStickerId; },
+  hitTest: function (point) { return state ? hitTestSticker(state.placements, point) : null; },
   onSelect: selectSticker,
-  onPreview: function (point) { preview = point; scheduleDraw(); },
-  onDrop: drop
+  onPreview: function (point) {
+    const removalChanged = Boolean(point && point.removing) !== Boolean(preview && preview.removing);
+    preview = point;
+    if (removalChanged) render();
+    else scheduleDraw();
+  },
+  onDrop: drop,
+  onMove: move,
+  onRemove: remove
 });
 function resized() { input.cancel(); scheduleDraw(); }
 window.addEventListener('resize', resized);
@@ -233,7 +272,12 @@ async function init() {
   render();
   try {
     content = await loadContent();
-    assets = await loadAssets(content);
+    assets = await loadAssets(content, function () {
+      if (!assets) return;
+      // Late images replace fallback artwork in the board and the exported PNG.
+      if (screen === 'result') refreshPoster();
+      else scheduleDraw();
+    });
     selectedStickerId = content.stickers[0].id;
     screen = 'start';
   } catch (error) {

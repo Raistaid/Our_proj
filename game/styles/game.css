@@ -3,7 +3,7 @@
  --muted:#59635f;--line:#d5d7ce;--warn-bg:#fff0bd;--ok-bg:#eaf8c8;
  --gutter:16px;--topbar:64px;
  /* Vertical space taken by everything around the board on the play screen (phone layout). */
- --play-chrome:350px;
+ --play-chrome:385px;
  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--paper);font-synthesis:none;
  -webkit-text-size-adjust:100%;text-size-adjust:100%
 }
@@ -22,6 +22,12 @@ h1,h2,p{overflow-wrap:break-word}
 .topbar{display:flex;justify-content:space-between;align-items:center;min-height:88px;border-bottom:1px solid var(--line);gap:12px}
 .brand{font-size:28px;font-weight:900;letter-spacing:-1.5px;display:flex;align-items:center;gap:7px}
 .brand-spark{font-size:35px;line-height:1;color:var(--violet)}.brand-dot{color:var(--violet);margin-left:-7px}
+/* Sber mark as a round sticker: ink outline and offset shadow like the rest of the UI. */
+.sber-badge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex-shrink:0;border:2px solid var(--ink);border-radius:50%;background:#fff;box-shadow:2px 2px 0 var(--ink)}
+.sber-badge img{width:30px;height:30px;display:block}
+.sber-badge-small{width:28px;height:28px;border-width:1.5px;box-shadow:1.5px 1.5px 0 var(--ink)}
+.sber-badge-small img{width:19px;height:19px}
+.kids-label{display:inline-flex;align-items:center;gap:9px}
 .level-info{min-width:0;flex:1}
 .level-meta{display:flex;align-items:center;gap:12px;font-size:12px;text-transform:uppercase;letter-spacing:1.2px;font-weight:800}
 .level-info h2{font-size:24px;letter-spacing:-.6px;line-height:1.15;margin:4px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -62,40 +68,8 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .cover-sticker{position:absolute;left:8%;top:13%;width:45%;background:var(--lime);border:2px solid var(--ink);transform:rotate(-13deg);border-radius:4px;padding:5px;animation:sticker-in .5s .3s both ease-out}
 .cover-sticker img{width:100%;display:block}
 .cover-label{position:absolute;bottom:19px;right:-5px;background:var(--ink);color:var(--paper);padding:14px 17px;font-weight:900;font-size:17px;letter-spacing:-.5px;transform:rotate(-5deg)}
+.cover-star{position:absolute;right:-6px;top:10px;font-size:83px;line-height:1;color:var(--violet);transform:rotate(12deg)}
 @keyframes sticker-in{from{transform:rotate(-13deg) scale(.6);opacity:0}70%{transform:rotate(-13deg) scale(1.06);opacity:1}to{transform:rotate(-13deg) scale(1)}}
-
-/* ---------- Start: own blocky pixel style ---------- */
-.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.pixel-theme{position:relative;isolation:isolate}
-.pixel-theme:before{content:"";position:absolute;inset:0 calc(-1 * var(--page-gutter,36px));z-index:-1;
- background:repeating-conic-gradient(#f2eee2 0 25%,var(--paper) 0 50%) 0 0/24px 24px}
-.pixel-theme img{image-rendering:pixelated;image-rendering:crisp-edges}
-.pixel-chip{display:inline-block;background:var(--ink);color:var(--lime);padding:7px 10px;box-shadow:4px 4px 0 var(--violet)}
-.pixel-title{margin:24px 0 26px;display:flex;flex-direction:column;gap:6px;max-width:480px}
-.pixel-title .title-line{display:block;height:auto}
-.pixel-title .title-line:first-of-type{width:82%}
-.pixel-title .title-line:last-of-type{width:100%}
-.pixel-theme .intro-description{background:var(--paper);border:3px solid var(--ink);padding:14px 16px;box-shadow:6px 6px 0 var(--lavender)}
-.pixel-theme .intro-tags span{border-radius:0;border:3px solid var(--ink);font-weight:800;padding:7px 11px;box-shadow:inset -3px -3px 0 rgba(24,33,44,.18),inset 3px 3px 0 rgba(255,255,255,.6)}
-.pixel-theme .tag-lime{background:var(--lime)}.pixel-theme .tag-lavender{background:var(--lavender)}.pixel-theme .tag-peach{background:var(--pink)}
-.pixel-theme .start-button{border-radius:0;border:4px solid var(--ink);letter-spacing:1px;
- box-shadow:inset -5px -5px 0 #0a0f15,inset 5px 5px 0 #3b4756,6px 6px 0 var(--violet);transition:transform .06s,box-shadow .06s}
-.pixel-theme .start-button:hover:not(:disabled){transform:translate(-1px,-1px);background:#26313d;box-shadow:inset -5px -5px 0 #0a0f15,inset 5px 5px 0 #3b4756,7px 7px 0 var(--violet)}
-.pixel-theme .start-button:active:not(:disabled){transform:translate(5px,5px);box-shadow:inset 5px 5px 0 #0a0f15,inset -5px -5px 0 #3b4756,1px 1px 0 var(--violet)}
-.pixel-theme .start-button span{font-size:18px;color:var(--lime)}
-.pixel-theme .small-note{background:var(--paper);display:inline-block;padding:2px 4px}
-.pixel-theme .cover-picture{border-radius:0;border:4px solid var(--ink);transform:rotate(3deg);box-shadow:8px 8px 0 var(--lavender),16px 16px 0 rgba(118,99,175,.35)}
-.pixel-theme .cover-note{top:8%;left:6%;width:44%;height:20%;padding:9% 8%;border:3px solid var(--ink);display:flex;flex-direction:column;justify-content:center;gap:9%}
-.pixel-theme .cover-note i{display:block;height:4px;background:var(--ink)}
-.pixel-theme .cover-note i:nth-child(2){width:80%}.pixel-theme .cover-note i:nth-child(3){width:45%}
-.pixel-theme .cover-sticker{left:3%;top:4%;width:50%;border:4px solid var(--ink);border-radius:0;padding:6px;box-shadow:4px 4px 0 var(--ink)}
-.pixel-theme .cover-caption,.pixel-theme .cover-label{border-radius:0;box-shadow:4px 4px 0 var(--ink)}
-.pixel-theme .cover-caption{border-width:3px}
-.pixel-theme .cover-label{box-shadow:4px 4px 0 var(--violet)}
-.pixel-friends{position:absolute;left:0;bottom:-6px;display:flex;gap:6px}
-.pixel-friends img{width:52px;height:52px;animation:hop 1.6s steps(2) infinite}
-.pixel-friends img:last-child{animation-delay:.8s}
-@keyframes hop{50%{transform:translateY(-6px)}}
 
 /* ---------- Loading / error ---------- */
 .loading-screen,.error-screen{min-height:580px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;font-size:17px}
@@ -129,13 +103,16 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .workspace[data-passed=true] .feedback,.workspace[data-passed=true] .controls,.workspace[data-passed=true] .palette-block{display:none}
 .palette-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .count-label{font-size:14px;font-weight:800;color:var(--muted)}
-.palette{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;touch-action:none}
-.sticker-choice{border:2px solid var(--line);background:#fffaf1;border-radius:13px;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:4px;touch-action:none;min-width:0;min-height:48px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .12s,background .12s}
-.sticker-choice img{width:62px;height:62px;max-width:100%;pointer-events:none}
-.sticker-choice span{font-size:14px;font-weight:800;pointer-events:none}
-.sticker-choice.selected{border-color:var(--ink);background:var(--lime);box-shadow:2px 2px 0 var(--ink);transform:translate(-1px,-1px)}
-.sticker-choice.selected img{animation:wiggle .26s ease-out}
-@keyframes wiggle{40%{transform:rotate(-8deg) scale(1.08)}80%{transform:rotate(4deg)}}
+/* Three cards in one row. Each card is the real sticker scaled down: same drawing, same proportions. */
+.palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;touch-action:none;padding:4px}
+.sticker-choice{width:100%;background:transparent;color:var(--ink);border:0;border-radius:0;box-shadow:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.sticker-thumbnail{display:block;width:100%;max-width:var(--sticker-width,158.4px);height:auto;aspect-ratio:var(--sticker-ratio,1.8333);pointer-events:none}
+.sticker-choice span{font-size:14px;line-height:20px;font-weight:800;pointer-events:none}
+.sticker-choice.selected .sticker-thumbnail{outline:3px solid var(--violet);outline-offset:2px}
+.sticker-choice .sticker-thumbnail{transition:transform .15s ease-out}
+.sticker-choice.selected .sticker-thumbnail{transform:translateY(-2px)}
+.board-frame.just-placed{animation:placed .26s ease-out}
+@keyframes placed{0%{box-shadow:0 0 0 5px var(--lime)}100%{box-shadow:6px 6px 0 #ded9ea}}
 .gesture-help{font-size:14px;line-height:1.4;color:var(--muted);margin:10px 0 0}
 .fallback-note{order:5;font-size:14px;line-height:1.5;padding:10px;background:var(--warn-bg);border-radius:8px;margin:0}
 .passed-card{display:flex;gap:12px;align-items:center;background:var(--ok-bg);border:2px solid var(--ink);border-radius:14px;padding:14px;box-shadow:3px 3px 0 var(--ink)}
@@ -162,6 +139,8 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .app{padding-left:max(var(--gutter),env(safe-area-inset-left));padding-right:max(var(--gutter),env(safe-area-inset-right))}
  .topbar{min-height:var(--topbar)}
  .brand{font-size:24px}.brand-spark{font-size:29px}
+ .sber-badge{width:38px;height:38px}.sber-badge img{width:26px;height:26px}
+ .sber-badge-small{width:26px;height:26px}.sber-badge-small img{width:17px;height:17px}
  .level-meta{font-size:11px;gap:10px}
  .level-info h2{font-size:18px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
  .sound-label{display:none}
@@ -175,10 +154,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .start-button{width:100%;min-height:56px}
  .intro-art{max-width:310px;width:100%;margin:auto;padding:25px 20px 35px}
  .cover-picture{max-width:220px}.cover-caption{font-size:12px;padding:8px 11px}
- .cover-label{font-size:15px;right:0;bottom:15px}
- .pixel-theme:before{inset:0 calc(-1 * var(--gutter))}
- .pixel-title{margin:16px 0 20px}
- .pixel-friends img{width:48px;height:48px}
+ .cover-star{font-size:64px}.cover-label{font-size:15px;right:0;bottom:15px}
  .footer{font-size:12px;padding:13px 0;flex-wrap:wrap}
  .app[data-screen=playing] .footer,.app[data-screen=levelPassed] .footer{display:none}
 
@@ -195,10 +171,9 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .feedback p{font-size:15px;line-height:1.35}
  .feedback-symbol{flex-basis:24px;height:24px;font-size:16px}
  .palette-heading{display:none}
- .palette{gap:8px}
- .sticker-choice{padding:4px 2px;flex-direction:row;justify-content:center;gap:4px;border-radius:11px;min-height:52px}
- .sticker-choice img{width:32px;height:32px;flex-shrink:0}
- .sticker-choice span{font-size:14px;white-space:nowrap}
+ .palette{gap:12px}
+ /* On phones the card itself shows the sticker; its name stays in aria-label. */
+ .sticker-choice span{display:none}
  .gesture-help{font-size:14px;margin-top:6px}
  .controls{grid-template-columns:1fr 1fr 1.2fr;gap:8px}
  .controls .button{min-height:48px;padding:6px 4px;font-size:14px;border-radius:11px;gap:4px}
@@ -215,7 +190,6 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 /* Very narrow phones: the counter and three buttons still fit. */
 @media(max-width:350px){
  .controls .button{font-size:13px}
- .sticker-choice img{width:26px;height:26px}
  .sticker-choice span{font-size:13px}
  .progress{display:none}
 }
@@ -239,8 +213,6 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .feedback{order:0;padding:8px 10px;min-height:0}
  .feedback p{font-size:14px}
  .palette-heading{display:none}
- .sticker-choice{flex-direction:row;padding:4px;min-height:48px;gap:4px}
- .sticker-choice img{width:32px;height:32px}
  .sticker-choice span{font-size:13px}
  .gesture-help{display:none}
  .controls{grid-template-columns:1fr 1fr 1.2fr;gap:6px}

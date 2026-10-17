@@ -13,7 +13,7 @@
 <body>
   <div id="app" class="app">
     <header class="topbar">
-      <div class="brand" id="brand"><span class="brand-spark" aria-hidden="true">✳</span> ЗАСВЕТ<span class="brand-dot">.</span></div>
+      <div class="brand" id="brand"><span class="sber-badge" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span> ЗАСВЕТ<span class="brand-dot">.</span></div>
       <div class="level-info" id="level-info" hidden>
         <div class="level-meta"><span id="level-counter">Кадр 1 / 5</span><div id="progress" class="progress" aria-hidden="true"></div></div>
         <h2 id="level-title">Кадр</h2>
@@ -28,31 +28,24 @@
         <div class="loader-spark" aria-hidden="true">✳</div>
         <p role="status">Готовим кадры и серьёзный носок…</p>
       </section>
-      <section id="start-screen" class="start-screen pixel-theme" hidden>
+      <section id="start-screen" class="start-screen" hidden>
         <div class="intro-copy">
-          <span class="eyebrow pixel-chip">Наклейки на посту</span>
-          <h1 class="pixel-title">
-            <span class="visually-hidden">Личное — за кадром.</span>
-            <img src="./assets/pixel/title-1.svg" alt="" class="title-line" aria-hidden="true">
-            <img src="./assets/pixel/title-2.svg" alt="" class="title-line" aria-hidden="true">
-          </h1>
+          <span class="eyebrow kids-label"><span class="sber-badge sber-badge-small" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span>Игра для СберKids</span>
+          <h1>ЛИЧНОЕ —<br><span class="marker">ЗА КАДРОМ.</span></h1>
           <p class="intro-description">Готовишь пост? Найди секреты и прикрой их. Пусть в кадре останется только то, что ты хочешь показать.</p>
-          <div class="intro-tags"><span class="tag-lime">5 кадров</span><span class="tag-lavender">3 наклейки</span><span class="tag-peach">Твой коллаж</span></div>
-          <button type="button" class="button button-primary start-button" data-action="start">ПРИКРЫВАЕМ <span aria-hidden="true">▶</span></button>
+          <div class="intro-tags"><span>5 кадров</span><span>3 наклейки</span><span>Твой коллаж</span></div>
+          <button type="button" class="button button-primary start-button" data-action="start">ПРИКРЫВАЕМ <span aria-hidden="true">↗</span></button>
           <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук — по желанию.</p>
         </div>
         <div class="intro-art" aria-hidden="true">
           <div class="cover-caption">пост почти готов</div>
           <div class="cover-picture">
-            <img src="./assets/pixel/cover.svg" alt="" class="cover-background">
-            <div class="cover-note"><i></i><i></i><i></i></div>
-            <div class="cover-sticker"><img src="./assets/pixel/sock.svg" alt=""></div>
+            <img src="./assets/scenes/room.svg" alt="" class="cover-background">
+            <div class="cover-note">Адрес дома<br>лучше за кадром</div>
+            <div class="cover-sticker"><img src="./assets/stickers/sock.svg" alt=""></div>
           </div>
           <div class="cover-label">НОСОК ПРИКРОЕТ.</div>
-          <div class="pixel-friends">
-            <img src="./assets/pixel/cloud.svg" alt="">
-            <img src="./assets/pixel/cucumber.svg" alt="">
-          </div>
+          <span class="cover-star">✳</span>
         </div>
       </section>
       <section id="play-screen" class="play-screen" hidden>
@@ -70,7 +63,7 @@
             <div class="palette-block">
               <div class="palette-heading"><span class="eyebrow">Кто прикрывает?</span><span id="sticker-count" class="count-label">0 / 4</span></div>
               <div id="palette" class="palette" role="group" aria-label="Выбери наклейку"></div>
-              <p class="gesture-help" id="gesture-help">Перетащи на кадр или выбери и коснись кадра.</p>
+              <p class="gesture-help" id="gesture-help">Перетащи на кадр или коснись его. Наклейку можно двигать, а за край кадра — убрать.</p>
             </div>
             <div class="controls">
               <button type="button" class="button button-secondary" data-action="undo" id="undo-button" disabled><span aria-hidden="true">↶</span> Отменить</button>

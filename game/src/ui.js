@@ -5,6 +5,8 @@ export function mountUI(callbacks) {
   const canvas = document.getElementById('board');
   const palette = document.getElementById('palette');
   let paletteKey = '';
+  let stickerCanvases = [];
+  let lastUsed = 0;
   const actions = { start: 'onStart', close: 'onClose', sound: 'onSoundToggle',
     undo: 'onUndo', hint: 'onHint', check: 'onCheck', next: 'onNext',
     replay: 'onReplay', share: 'onShare', reload: 'onReload' };
@@ -51,17 +53,19 @@ export function mountUI(callbacks) {
       const key = vm.stickers.map(function (s) { return s.id; }).join('|');
       if (paletteKey !== key) {
         palette.textContent = '';
+        stickerCanvases = [];
         vm.stickers.forEach(function (sticker) {
           const button = document.createElement('button');
           button.type = 'button'; button.className = 'sticker-choice';
           button.dataset.stickerId = sticker.id;
           button.setAttribute('aria-label', sticker.label);
-          const image = document.createElement('img');
-          image.src = sticker.src; image.alt = ''; image.draggable = false;
-          image.onerror = function () { image.hidden = true; };
+          const thumbnail = document.createElement('canvas');
+          thumbnail.className = 'sticker-thumbnail';
+          thumbnail.setAttribute('aria-hidden', 'true');
+          stickerCanvases.push({ canvas: thumbnail, stickerId: sticker.id });
           const label = document.createElement('span');
           label.textContent = sticker.shortLabel || sticker.label;
-          button.appendChild(image); button.appendChild(label); palette.appendChild(button);
+          button.appendChild(thumbnail); button.appendChild(label); palette.appendChild(button);
         });
         paletteKey = key;
       }
@@ -88,7 +92,13 @@ export function mountUI(callbacks) {
       const passed = vm.screen === 'levelPassed';
       show('passed-notice', passed);
       root.querySelector('.workspace').dataset.passed = String(passed);
-      document.getElementById('board-frame').classList.toggle('passed', passed);
+      const frame = document.getElementById('board-frame');
+      frame.classList.toggle('passed', passed);
+      // Micro-reaction to a new placement: only the frame glows; the canvas, its size and input stay untouched.
+      if (vm.screen === 'playing' && vm.usedStickers > lastUsed) {
+        frame.classList.remove('just-placed'); void frame.offsetWidth; frame.classList.add('just-placed');
+      }
+      lastUsed = vm.usedStickers;
       setText('success-text', vm.successText);
       setText('next-button', vm.levelIndex === vm.levelCount ? 'Мой коллаж ↗' : 'Следующий кадр ↗');
       show('fallback-note', vm.isFallback);
@@ -105,6 +115,13 @@ export function mountUI(callbacks) {
         'Кадры готовы. Твои идеи остались видны, личное — за кадром.');
     }
   }
+  function setStickerSize(width, height) {
+    palette.style.setProperty('--sticker-width', width + 'px');
+    palette.style.setProperty('--sticker-height', height + 'px');
+    // Cards may be drawn smaller than the real sticker, but keep its exact proportions.
+    if (width > 0 && height > 0) palette.style.setProperty('--sticker-ratio', String(width / height));
+  }
   return { canvas: canvas, boardElement: canvas, paletteElement: palette, rootElement: root,
-    updateUI: updateUI };
+    updateUI: updateUI, setStickerSize: setStickerSize,
+    getStickerCanvases: function () { return stickerCanvases.slice(); } };
 }
