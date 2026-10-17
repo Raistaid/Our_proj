@@ -74,11 +74,17 @@ export function mountUI(callbacks) {
     root.dataset.screen = vm.screen;
     show('brand', !playing);
     show('level-info', playing);
-    const sound = root.querySelector('[data-action=sound]');
-    sound.querySelector('.sound-icon').textContent = vm.soundOn ? '🔊' : '🔇';
-    sound.querySelector('.sound-label').textContent = vm.soundOn ? 'Звук вкл.' : 'Звук выкл.';
-    sound.setAttribute('aria-pressed', String(Boolean(vm.soundOn)));
-    sound.setAttribute('aria-label', vm.soundOn ? 'Выключить звук' : 'Включить звук');
+    // Sound buttons: the small one in the top bar and the big one on the start screen.
+    root.querySelectorAll('[data-action=sound]').forEach(function (sound) {
+      const icon = sound.querySelector('.sound-icon');
+      const label = sound.querySelector('.sound-label');
+      const textLabel = sound.querySelector('.sound-text');
+      if (icon) icon.textContent = vm.soundOn ? '🔊' : '🔇';
+      if (label) label.textContent = vm.soundOn ? 'Звук вкл.' : 'Звук выкл.';
+      if (textLabel) textLabel.textContent = vm.soundOn ? 'Звук и музыка включены' : 'Включить звук и музыку';
+      sound.setAttribute('aria-pressed', String(Boolean(vm.soundOn)));
+      sound.setAttribute('aria-label', vm.soundOn ? 'Выключить звук' : 'Включить звук');
+    });
     setText('start-note', vm.isFallback ?
       'Основные кадры не загрузились. Можно попробовать один и открыть игру снова.' :
       'Все данные в сценах вымышленные. Звук — по желанию.');
