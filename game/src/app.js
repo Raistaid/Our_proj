@@ -80,9 +80,24 @@ function render() {
       { kind: 'warning', text: 'Отпусти за кадром, чтобы убрать наклейку.' } : feedback,
     successText: level ? level.successText : '',
     posterDataUrl: posterDataUrl, canShare: screen === 'result' && Boolean(posterDataUrl),
-    resultStatus: resultStatus
+    resultStatus: resultStatus,
+    // For the "post feed" view (role 2): read-only facts, the UI never decides the result.
+    post: postInfo(level), feed: content ? content.feed || null : null,
+    stats: { levels: records.length,
+      firstTry: records.filter(function (r) { return r.firstCheckPassed; }).length,
+      hints: records.filter(function (r) { return r.hintUsed; }).length }
   });
   scheduleDraw();
+}
+function postInfo(level) {
+  if (!level || !state) return null;
+  const report = evaluateLevel(level, state.placements);
+  return {
+    missingKinds: level.secrets.filter(function (s) {
+      return report.missingSecretIds.indexOf(s.id) !== -1;
+    }).map(function (s) { return s.kind; }),
+    stickerIds: state.placements.map(function (p) { return p.stickerId; })
+  };
 }
 function selectSticker(id) {
   if (!playing() || !content.stickers.some(function (s) { return s.id === id; })) return;
