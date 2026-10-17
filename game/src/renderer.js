@@ -1,17 +1,6 @@
 import { centeredRect } from './geometry.js';
 
-const INK = '#0f1a24';
-// Size of one "pixel" of the frames, in board units (the board is 360 x 480).
-const U = 3;
-
-// Pixel frame: a U-thick border whose corners stay empty (notched), drawn inside the rect.
-function pixelFrame(ctx, x, y, w, h, color) {
-  ctx.fillStyle = color;
-  ctx.fillRect(x + U, y, w - U * 2, U);
-  ctx.fillRect(x + U, y + h - U, w - U * 2, U);
-  ctx.fillRect(x, y + U, U, h - U * 2);
-  ctx.fillRect(x + w - U, y + U, U, h - U * 2);
-}
+const INK = '#18212c';
 export function roundedRect(ctx, x, y, w, h, radius) {
   const r = Math.min(radius, w / 2, h / 2);
   ctx.beginPath();
@@ -84,15 +73,10 @@ function drawLines(ctx, lines, rect, maxFont, bold) {
 function drawNote(ctx, zone) {
   const p = pixels(zone.rect);
   ctx.save();
-  // Stepped shadow, paper with notched corners, pixel tape. Private and ordinary notes look alike.
-  ctx.fillStyle = 'rgba(15,26,36,.22)';
-  ctx.fillRect(p[0] + U * 2, p[1] + p[3], p[2] - U, U);
-  ctx.fillRect(p[0] + p[2], p[1] + U * 2, U, p[3] - U);
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(p[0] + U, p[1] + U, p[2] - U * 2, p[3] - U * 2);
-  pixelFrame(ctx, p[0], p[1], p[2], p[3], INK);
-  ctx.fillStyle = '#42e3b4';
-  ctx.fillRect(p[0] + p[2] * 0.37, p[1] - U, p[2] * 0.26, U * 2);
+  ctx.fillStyle = 'rgba(24,33,44,.12)'; ctx.fillRect(p[0] + 2, p[1] + 3, p[2], p[3]);
+  ctx.fillStyle = '#fff9e9'; ctx.strokeStyle = INK; ctx.lineWidth = 1.2;
+  ctx.fillRect(p[0], p[1], p[2], p[3]); ctx.strokeRect(p[0], p[1], p[2], p[3]);
+  ctx.fillStyle = '#b2a3ed'; ctx.fillRect(p[0] + p[2] * 0.37, p[1] - 3, p[2] * 0.26, 6);
   drawLines(ctx, zone.lines, zone.rect, 16, false);
   ctx.restore();
 }
@@ -100,8 +84,7 @@ function drawNote(ctx, zone) {
 function drawCaption(ctx, zone) {
   const p = pixels(zone.rect);
   ctx.save();
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(p[0], p[1], p[2], p[3]);
-  ctx.fillStyle = '#21a038'; ctx.fillRect(p[0], p[1], U, p[3]);
+  ctx.fillStyle = '#fff9e9'; ctx.fillRect(p[0], p[1], p[2], p[3]);
   drawLines(ctx, zone.lines, zone.rect, 15, true);
   ctx.restore();
 }
@@ -144,10 +127,8 @@ function drawSticker(ctx, placement, assets, preview, scale) {
   ctx.globalAlpha = preview ? 0.65 : 1;
   ctx.fillStyle = sticker.color || '#e4ff69';
   ctx.fillRect(p[0], p[1], p[2], p[3]);
-  // The whole rect stays filled; the pixel frame sits inside it, so notched corners hide nothing.
-  pixelFrame(ctx, p[0], p[1], p[2], p[3], INK);
-  ctx.fillStyle = 'rgba(15,26,36,.14)';
-  ctx.fillRect(p[0] + U, p[1] + p[3] - U * 2, p[2] - U * 2, U);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.8;
+  ctx.strokeRect(p[0], p[1], p[2], p[3]);
   // Artwork stays inside the backing even while it bounces.
   ctx.beginPath(); ctx.rect(p[0], p[1], p[2], p[3]); ctx.clip();
   const img = assets.images[sticker.src];
