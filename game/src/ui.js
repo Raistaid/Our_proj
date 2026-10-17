@@ -81,7 +81,7 @@ export function mountUI(callbacks) {
       const textLabel = sound.querySelector('.sound-text');
       if (icon) icon.textContent = vm.soundOn ? '🔊' : '🔇';
       if (label) label.textContent = vm.soundOn ? 'Звук вкл.' : 'Звук выкл.';
-      if (textLabel) textLabel.textContent = vm.soundOn ? 'Звук включён' : 'Включить звук';
+      if (textLabel) textLabel.textContent = vm.soundOn ? 'Звук и музыка включены' : 'Включить звук и музыку';
       sound.setAttribute('aria-pressed', String(Boolean(vm.soundOn)));
       sound.setAttribute('aria-label', vm.soundOn ? 'Выключить звук' : 'Включить звук');
     });

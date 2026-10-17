@@ -1,13 +1,20 @@
 // Own short sounds, synthesized in code (no audio files, nothing to download).
 // Off until the player turns sound on: browsers and the sandbox also require a tap first.
+// The same switch turns on a quiet background tune.
 // Phone speakers are small: the designed volumes are doubled.
 const LOUD = 2;
+// Background music level relative to the game sounds.
+const MUSIC_VOLUME = 0.35;
 
 export function createAudio() {
   let context = null;
   let master = null;
   let enabled = false;
   let keepAlive = null;
+  let musicGain = null;
+  let musicTimer = 0;
+  let musicStep = 0;
+  let nextStepAt = 0;
 
   // A tiny silent WAV made in code. Playing it through an <audio> element moves iOS to the
   // "playback" audio session, so Web Audio is heard even when the ring/silent switch is on silent.
@@ -75,6 +82,80 @@ export function createAudio() {
     source.start(at);
   }
 
+  // ---------- Background music: our own short tune, synthesized, looped ----------
+  // C major, 112 bpm, eighth-note steps; chords C – Am – F – G, two 4-bar phrases.
+  const STEP = 60 / 112 / 2;
+  const NOTE = { G4: 392, A4: 440, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880, C6: 1046.5 };
+  const MELODY = [
+    'E5', 'G5', 'C6', 'G5', 'E5', '', 'D5', 'E5',
+    'C5', 'E5', 'A5', 'E5', 'C5', '', 'B4', 'C5',
+    'A4', 'C5', 'F5', 'C5', 'A4', '', 'G4', 'A4',
+    'B4', 'D5', 'G5', 'F5', 'E5', 'D5', 'C5', 'B4',
+    'G5', '', 'E5', '', 'C5', 'D5', 'E5', '',
+    'A5', '', 'E5', '', 'C5', 'D5', 'E5', '',
+    'F5', 'E5', 'D5', 'C5', 'A4', 'C5', 'F5', '',
+    'G5', 'F5', 'E5', 'D5', 'B4', '', 'G4', ''
+  ];
+  const BASS = [130.81, 110, 87.31, 98]; // C3, A2, F2, G2: one chord per bar
+
+  function pluck(freq, at, duration, volume, type) {
+    const osc = context.createOscillator();
+    const gain = context.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, at);
+    gain.gain.setValueAtTime(0.0001, at);
+    gain.gain.exponentialRampToValueAtTime(volume, at + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
+    osc.connect(gain); gain.connect(musicGain);
+    osc.start(at); osc.stop(at + duration + 0.02);
+  }
+
+  function scheduleMusic() {
+    // Look a little ahead so notes stay on time even if the page is busy.
+    while (nextStepAt < context.currentTime + 0.25) {
+      const step = musicStep % MELODY.length;
+      const note = MELODY[step];
+      if (note) pluck(NOTE[note], nextStepAt, 0.32, 0.05, 'triangle');
+      if (step % 4 === 0) pluck(BASS[Math.floor(step / 8) % BASS.length], nextStepAt, 0.5, 0.07, 'sine');
+      // A soft off-beat "tick" keeps it bouncy.
+      if (step % 2 === 1) pluck(2093, nextStepAt, 0.03, 0.006, 'square');
+      nextStepAt += STEP;
+      musicStep += 1;
+    }
+  }
+
+  function startMusic() {
+    if (!context || musicTimer) return;
+    if (!musicGain) {
+      musicGain = context.createGain();
+      musicGain.connect(master);
+    }
+    // Quiet: background music must never cover the game sounds.
+    musicGain.gain.cancelScheduledValues(context.currentTime);
+    musicGain.gain.setValueAtTime(0.0001, context.currentTime);
+    musicGain.gain.exponentialRampToValueAtTime(MUSIC_VOLUME, context.currentTime + 1.2);
+    nextStepAt = context.currentTime + 0.1;
+    scheduleMusic();
+    musicTimer = setInterval(scheduleMusic, 100);
+  }
+
+  function stopMusic() {
+    if (musicTimer) { clearInterval(musicTimer); musicTimer = 0; }
+    if (musicGain && context) {
+      musicGain.gain.cancelScheduledValues(context.currentTime);
+      musicGain.gain.setValueAtTime(musicGain.gain.value, context.currentTime);
+      musicGain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.3);
+    }
+  }
+
+  // Music pauses while the game is hidden (app in the background) and returns with it.
+  if (typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('visibilitychange', function () {
+      if (!enabled) return;
+      if (document.hidden) stopMusic(); else startMusic();
+    });
+  }
+
   const SOUNDS = {
     // A sticker lands: a soft thump with a little paper "shh".
     place: function (t) {
@@ -104,6 +185,7 @@ export function createAudio() {
     toggle: async function () {
       if (enabled) {
         enabled = false;
+        stopMusic();
         if (keepAlive) keepAlive.pause();
         return false;
       }
@@ -123,6 +205,7 @@ export function createAudio() {
         enabled = true;
         await resumed;
         SOUNDS.place(context.currentTime + 0.01);
+        startMusic();
       } catch (error) { enabled = false; }
       return enabled;
     },
@@ -135,7 +218,18 @@ export function createAudio() {
         if (resumed && resumed.catch) resumed.catch(function () {});
       }
       const sound = SOUNDS[kind] || SOUNDS.place;
-      try { sound(context.currentTime + 0.01); } catch (error) { /* a missed sound must never break the game */ }
+      try {
+        if (kind === 'fanfare' && musicGain) {
+          // The final fanfare sounds alone, then the tune comes back.
+          const now = context.currentTime;
+          musicGain.gain.cancelScheduledValues(now);
+          musicGain.gain.setValueAtTime(Math.max(musicGain.gain.value, 0.0001), now);
+          musicGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+          musicGain.gain.setValueAtTime(0.0001, now + 1.2);
+          musicGain.gain.exponentialRampToValueAtTime(MUSIC_VOLUME, now + 2.5);
+        }
+        sound(context.currentTime + 0.01);
+      } catch (error) { /* a missed sound must never break the game */ }
     }
   };
 }
