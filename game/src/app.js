@@ -57,7 +57,7 @@ function redraw() {
   ui.setStickerSize(bounds.width * level.defaultStickerSize.w, bounds.height * level.defaultStickerSize.h);
   ui.getStickerCanvases().forEach(function (card) {
     if (fitCanvas(card.canvas)) renderStickerCard({ canvas: card.canvas, stickerId: card.stickerId,
-      level: level, assets: assets });
+      level: level, assets: assets, bare: true });
   });
   const drawn = renderBoard({ canvas: ui.canvas, level: level, placements: state.placements,
     assets: assets, hintIds: hintIds, preview: preview, animate: true });
@@ -83,6 +83,7 @@ function render() {
     resultStatus: resultStatus,
     // For the "post feed" view (role 2): read-only facts, the UI never decides the result.
     post: postInfo(level), feed: content ? content.feed || null : null,
+    scene: level ? level.background : '',
     stats: statsSummary()
   });
   scheduleDraw();
