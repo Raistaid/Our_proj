@@ -13,7 +13,10 @@ if (!validation.ok) {
   process.exitCode = 1;
 } else {
   for (let i = 0; i < content.levels.length; i += 1) {
-    const level = getRuntimeLevel(content, i);
+   // Every replay layout must be solvable too.
+   const variants = 1 + (Array.isArray(content.levels[i].layouts) ? content.levels[i].layouts.length : 0);
+   for (let v = 0; v < variants; v += 1) {
+    const level = getRuntimeLevel(content, i, v);
     let state = createLevelState(level);
     for (const secret of level.secrets) {
       const r = secret.rect;
@@ -21,11 +24,12 @@ if (!validation.ok) {
         stickerId: content.stickers[i % content.stickers.length].id,
         x: r[0] + r[2] / 2, y: r[1] + r[3] / 2
       });
-      if (!result.accepted) throw new Error(level.id + ': нельзя поставить наклейку');
+      if (!result.accepted) throw new Error(level.id + ' v' + v + ': нельзя поставить наклейку');
       state = result.state;
     }
-    if (!evaluateLevel(level, state.placements).passed) throw new Error(level.id + ': нет решения');
-    console.log('OK ' + level.id + ': ' + level.secrets.length + ' секретов, решение найдено');
+    if (!evaluateLevel(level, state.placements).passed) throw new Error(level.id + ' v' + v + ': нет решения');
+    console.log('OK ' + level.id + (v ? ' (раскладка ' + v + ')' : '') + ': ' + level.secrets.length + ' секретов, решение найдено');
+   }
   }
   const paths = new Set(content.stickers.map(function (s) { return s.src; }));
   content.levels.forEach(function (level) { paths.add(level.background); });

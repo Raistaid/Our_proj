@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { applyLayout } from '../game/src/content.js';
 
 // This harness exercises the real app, UI, input, renderer, export and bridge.
 // Canvas drawing is recorded, not rasterized: device rendering and native sharing
@@ -288,9 +289,10 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
   assert.ok(loadedImages.every(url => url.startsWith(document.baseURI + 'assets/')),
     'images resolve relative to a deployed subfolder');
 
-  async function playSession(exerciseMistakes) {
+  // variant: which replay layout the app shows (0 = original, 1 = first replay…).
+  async function playSession(exerciseMistakes, variant = 0) {
     for (let index = 0; index < content.levels.length; index += 1) {
-      const level = content.levels[index];
+      const level = applyLayout(content.levels[index], variant);
       assert.equal(root.dataset.screen, 'playing');
       assert.equal(byId('level-title').textContent, level.title);
       assertPaletteMatches();
@@ -327,7 +329,8 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers,
           'tapping an existing sticker does not add another sticker');
         const secret = level.secrets[0].rect;
-        const destination = { x: 0.24, y: secret[1] + secret[3] / 2 };
+        // Aim at the secret's own centre so the test follows the scene data, not a fixed spot.
+        const destination = { x: secret[0] + secret[2] / 2, y: secret[1] + secret[3] / 2 };
         pointer('pointerdown', grab.x, grab.y);
         pointer('pointermove', destination.x + 0.04, destination.y + 0.02);
         board.calls.length = 0;
@@ -470,7 +473,12 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
   assert.equal(messages.find(message => message.type === 'SHARING_EVENT').image, byId('poster-image').src);
 
   click('replay');
-  await playSession(false);
+  // A replay moves the notes, so it has to be read again rather than remembered.
+  assert.ok(content.levels.some(function (level) {
+    return JSON.stringify(applyLayout(level, 1).secrets.map(s => s.rect)) !==
+      JSON.stringify(level.secrets.map(s => s.rect));
+  }), 'replay uses another layout of the notes');
+  await playSession(false, 1);
   assert.equal(count('COMPLETED_EVENT'), 1, 'replay must not award completion again');
   assert.equal(count('FINISH_EVENT'), 1, 'replay must not send FINISH_EVENT again');
   assert.equal(count('VIBRATION_EVENT'), 10);

@@ -24,6 +24,8 @@ let soundBusy = false;
 let posterDataUrl = '';
 let resultStatus = '';
 let records = [];
+let sessionsStarted = 0;
+let layoutVariant = 0;
 let exportNonce = 0;
 let frameRequest = 0;
 let input = null;
@@ -42,7 +44,7 @@ const ui = mountUI({
   onReload: function () { window.location.reload(); }
 });
 
-function currentLevel() { return content ? getRuntimeLevel(content, levelIndex) : null; }
+function currentLevel() { return content ? getRuntimeLevel(content, levelIndex, layoutVariant) : null; }
 function playing() { return screen === 'playing'; }
 function canHint() {
   const level = currentLevel();
@@ -57,7 +59,7 @@ function redraw() {
   ui.setStickerSize(bounds.width * level.defaultStickerSize.w, bounds.height * level.defaultStickerSize.h);
   ui.getStickerCanvases().forEach(function (card) {
     if (fitCanvas(card.canvas)) renderStickerCard({ canvas: card.canvas, stickerId: card.stickerId,
-      level: level, assets: assets });
+      level: level, assets: assets, bare: true });
   });
   const drawn = renderBoard({ canvas: ui.canvas, level: level, placements: state.placements,
     assets: assets, hintIds: hintIds, preview: preview, animate: true });
@@ -80,9 +82,29 @@ function render() {
       { kind: 'warning', text: 'Отпусти за кадром, чтобы убрать наклейку.' } : feedback,
     successText: level ? level.successText : '',
     posterDataUrl: posterDataUrl, canShare: screen === 'result' && Boolean(posterDataUrl),
-    resultStatus: resultStatus
+    resultStatus: resultStatus,
+    // For the "post feed" view (role 2): read-only facts, the UI never decides the result.
+    post: postInfo(level), feed: content ? content.feed || null : null,
+    scene: level ? level.background : '',
+    scenes: content ? content.scenes || null : null,
+    stats: statsSummary()
   });
   scheduleDraw();
+}
+function statsSummary() {
+  return { levels: records.length,
+    firstTry: records.filter(function (r) { return r.firstCheckPassed; }).length,
+    hints: records.filter(function (r) { return r.hintUsed; }).length };
+}
+function postInfo(level) {
+  if (!level || !state) return null;
+  const report = evaluateLevel(level, state.placements);
+  return {
+    missingKinds: level.secrets.filter(function (s) {
+      return report.missingSecretIds.indexOf(s.id) !== -1;
+    }).map(function (s) { return s.kind; }),
+    stickerIds: state.placements.map(function (p) { return p.stickerId; })
+  };
 }
 function selectSticker(id) {
   if (!playing() || !content.stickers.some(function (s) { return s.id === id; })) return;
@@ -103,6 +125,9 @@ function startLevel(index) {
 }
 function startSession() {
   if (!content || !assets) return;
+  // The first game uses the original layout; every replay moves the notes (content layouts).
+  layoutVariant = sessionsStarted;
+  sessionsStarted += 1;
   exportNonce += 1;
   records = [];
   posterDataUrl = '';
@@ -165,6 +190,7 @@ function check() {
     });
     feedback = { kind: 'warning', text: blocked ? blocked.hint :
       missing ? missing.why : 'Проверь расположение наклеек и попробуй ещё раз.' };
+    audio.play('warning');
   }
   render();
 }
@@ -195,6 +221,7 @@ function remove(item) {
 function showResult() {
   if (!evaluateLevel(currentLevel(), state.placements).passed) return;
   screen = 'result';
+  audio.play('fanfare');
   preview = null;
   hintIds = [];
   // A fallback frame never awards completion of the main task.
@@ -213,7 +240,8 @@ async function refreshPoster() {
   resultStatus = 'Готовим твой коллаж…';
   render();
   try {
-    const image = await createPoster({ level: level, placements: placements, assets: assets });
+    const image = await createPoster({ level: level, placements: placements, assets: assets,
+      feed: content.feed || null, stats: statsSummary() });
     if (nonce !== exportNonce || screen !== 'result') return;
     posterDataUrl = image;
     resultStatus = 'Можно показать коллаж. Все личные записки на нём закрыты.';

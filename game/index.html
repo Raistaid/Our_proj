@@ -30,35 +30,62 @@
       </section>
       <section id="start-screen" class="start-screen" hidden>
         <div class="intro-copy">
-          <span class="eyebrow kids-label"><span class="sber-badge sber-badge-small" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span>Игра для СберKids</span>
           <h1>ЛИЧНОЕ —<br><span class="marker">ЗА КАДРОМ.</span></h1>
-          <p class="intro-description">Готовишь пост? Найди секреты и прикрой их. Пусть в кадре останется только то, что ты хочешь показать.</p>
-          <div class="intro-tags"><span>5 кадров</span><span>3 наклейки</span><span>Твой коллаж</span></div>
-          <button type="button" class="button button-primary start-button" data-action="start">ПРИКРЫВАЕМ <span aria-hidden="true">↗</span></button>
-          <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук — по желанию.</p>
+          <p class="intro-description">Готовишь пост? Найди секреты и прикрой их смешными наклейками. Главное оставь на виду.</p>
+          <ol class="how-to" aria-label="Как играть">
+            <li><span class="how-num" aria-hidden="true">1</span><span><b>Читай записки.</b> Код, пароль, адрес — это личное.</span></li>
+            <li><span class="how-num" aria-hidden="true">2</span><span><b>Тяни наклейку</b> на секрет, чтобы закрыть его целиком.</span></li>
+            <li><span class="how-num" aria-hidden="true">3</span><span><b>Жми «Готово».</b> Рюкзак и подпись должны остаться видны.</span></li>
+          </ol>
+          <div class="intro-tags"><span class="tag-lime">5 кадров</span><span class="tag-lavender">3 наклейки</span><span class="tag-peach">Твой коллаж</span></div>
         </div>
         <div class="intro-art" aria-hidden="true">
-          <div class="cover-caption">пост почти готов</div>
-          <div class="cover-picture">
-            <img src="./assets/scenes/room.svg" alt="" class="cover-background">
-            <div class="cover-note">Адрес дома<br>лучше за кадром</div>
-            <div class="cover-sticker"><img src="./assets/stickers/sock.svg" alt=""></div>
+          <div class="cover-caption">смотри, как играть</div>
+          <div class="demo">
+            <div class="demo-picture">
+              <img src="./assets/scenes/room.svg" alt="" class="demo-bg">
+              <div class="demo-note demo-badge"><b>Адрес дома</b>Планета Пример</div>
+              <div class="demo-note demo-phone"><i></i><b>Код получения</b>00 00 00</div>
+              <div class="demo-note demo-public"><b>Идея рисунка</b>Летающий огурец</div>
+              <div class="demo-caption">Рюкзак готов к приключению</div>
+            </div>
+            <div class="demo-sticker demo-sticker-1"><img src="./assets/stickers/sock.svg" alt=""></div>
+            <div class="demo-sticker demo-sticker-2"><img src="./assets/stickers/cloud.svg" alt=""></div>
+            <div class="demo-done">✓ Кадр готов!</div>
+            <div class="demo-palette">
+              <span class="demo-tile tile-sock"><img src="./assets/stickers/sock.svg" alt=""></span>
+              <span class="demo-tile tile-cloud"><img src="./assets/stickers/cloud.svg" alt=""></span>
+              <span class="demo-tile tile-cucumber"><img src="./assets/stickers/cucumber.svg" alt=""></span>
+            </div>
+            <span class="demo-finger"></span>
           </div>
-          <div class="cover-label">НОСОК ПРИКРОЕТ.</div>
-          <span class="cover-star">✳</span>
+          <svg class="cover-star" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50.0,8.0 61.2,36.6 91.8,38.4 68.1,57.9 75.9,87.6 50.0,71.0 24.1,87.6 31.9,57.9 8.2,38.4 38.8,36.6" transform="translate(5 5)" fill="#18212c"/><polygon points="50.0,8.0 61.2,36.6 91.8,38.4 68.1,57.9 75.9,87.6 50.0,71.0 24.1,87.6 31.9,57.9 8.2,38.4 38.8,36.6" fill="#c9bdff" stroke="#18212c" stroke-width="5" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="start-actions">
+          <button type="button" class="button button-primary start-button" data-action="start">ПРИКРЫВАЕМ <span aria-hidden="true">↗</span></button>
+          <button type="button" class="sound-start" data-action="sound" aria-pressed="false"><span class="sound-icon" aria-hidden="true">🔇</span><span class="sound-text">Включить звук и музыку</span></button>
+          <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук — по желанию.</p>
         </div>
       </section>
       <section id="play-screen" class="play-screen" hidden>
         <p id="task" class="task"></p>
         <div class="game-layout" id="game-layout">
+          <span class="tutorial-hand" id="tutorial-hand" aria-hidden="true" hidden><span>👆</span></span>
           <div class="board-stage">
             <div class="board-frame" id="board-frame">
               <canvas id="board" width="360" height="480" role="img" aria-label="Кадр с записками. Закрой личные сведения, оставь главный предмет и обычные идеи видимыми."></canvas>
+              <!-- Live layer over the frame: decoration only, never in the poster, never catches taps. -->
+              <div class="scene-fx" id="scene-fx" aria-hidden="true">
+                <div class="fx-room"><span class="fx-clock-hand"></span><span class="fx-sun"></span><span class="fx-dust d1"></span><span class="fx-dust d2"></span><span class="fx-dust d3"></span></div>
+                <div class="fx-desk"><span class="fx-lid l1"></span><span class="fx-lid l2"></span><span class="fx-lamp"></span><span class="fx-steam s1"></span><span class="fx-steam s2"></span></div>
+                <div class="fx-poster"><span class="fx-puff p1"></span><span class="fx-puff p2"></span><span class="fx-puff p3"></span><span class="fx-bulb b1"></span><span class="fx-bulb b2"></span><span class="fx-bulb b3"></span><span class="fx-bulb b4"></span><span class="fx-bulb b5"></span><span class="fx-bulb b6"></span><span class="fx-bulb b7"></span><span class="fx-bulb b8"></span></div>
+                <div class="fx-confetti"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
             </div>
           </div>
           <aside class="workspace">
             <div id="feedback" class="feedback" role="status" aria-live="polite">
-              <span class="feedback-symbol" id="feedback-symbol" aria-hidden="true">✳</span><p id="feedback-text">Секреты прикрываем. Обычные идеи оставляем.</p>
+              <span class="feedback-symbol" id="feedback-symbol" aria-hidden="true">✳</span><div class="feedback-body"><p id="feedback-text">Секреты прикрываем. Обычные идеи оставляем.</p><p class="stranger" id="stranger" hidden></p></div>
             </div>
             <div class="palette-block">
               <div class="palette-heading"><span class="eyebrow">Кто прикрывает?</span><span id="sticker-count" class="count-label">0 / 4</span></div>
@@ -78,6 +105,10 @@
                   <p id="success-text"></p>
                 </div>
               </div>
+              <div class="post" id="post" aria-label="Реакции на твой пост">
+                <div class="post-head"><span class="post-avatar" aria-hidden="true">✳</span><b id="post-author">@мой_пост</b><span class="post-time">· сейчас</span><span class="post-likes" id="post-likes">♥ 0</span></div>
+                <ul class="post-comments" id="post-comments"></ul>
+              </div>
               <button type="button" class="button button-primary next-button" data-action="next" id="next-button">Следующий кадр ↗</button>
             </div>
             <p class="fallback-note" id="fallback-note" hidden>Основные кадры не загрузились. Пока можно попробовать один.</p>
@@ -88,6 +119,12 @@
         <div class="result-copy">
           <span class="eyebrow">Наклейки справились</span>
           <h2>СЕКРЕТЫ<br><span class="marker">ПРИКРЫТЫ.</span></h2>
+          <div class="agent-title" id="agent-title" hidden>
+            <span class="agent-label">Твоё звание</span>
+            <b id="agent-name"></b>
+            <span id="agent-text"></span>
+            <span class="agent-likes" id="agent-likes"></span>
+          </div>
           <p id="result-description">Кадры готовы. Твои идеи остались видны, личное — за кадром.</p>
           <button type="button" class="button button-primary" data-action="share" id="share-button" disabled>Поделиться коллажем ↗</button>
           <button type="button" class="button button-secondary" data-action="replay">Ещё один заход ↶</button>

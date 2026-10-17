@@ -3,7 +3,7 @@
  --muted:#59635f;--line:#d5d7ce;--warn-bg:#fff0bd;--ok-bg:#eaf8c8;
  --gutter:16px;--topbar:64px;
  /* Vertical space taken by everything around the board on the play screen (phone layout). */
- --play-chrome:385px;
+ --play-chrome:392px;
  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--paper);font-synthesis:none;
  -webkit-text-size-adjust:100%;text-size-adjust:100%
 }
@@ -25,9 +25,7 @@ h1,h2,p{overflow-wrap:break-word}
 /* Sber mark as a round sticker: ink outline and offset shadow like the rest of the UI. */
 .sber-badge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex-shrink:0;border:2px solid var(--ink);border-radius:50%;background:#fff;box-shadow:2px 2px 0 var(--ink)}
 .sber-badge img{width:30px;height:30px;display:block}
-.sber-badge-small{width:28px;height:28px;border-width:1.5px;box-shadow:1.5px 1.5px 0 var(--ink)}
-.sber-badge-small img{width:19px;height:19px}
-.kids-label{display:inline-flex;align-items:center;gap:9px}
+
 .level-info{min-width:0;flex:1}
 .level-meta{display:flex;align-items:center;gap:12px;font-size:12px;text-transform:uppercase;letter-spacing:1.2px;font-weight:800}
 .level-info h2{font-size:24px;letter-spacing:-.6px;line-height:1.15;margin:4px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -50,7 +48,8 @@ h1,h2,p{overflow-wrap:break-word}
 .button-secondary:hover:not(:disabled){background:#eeebe4}
 
 /* ---------- Start ---------- */
-.start-screen{display:grid;grid-template-columns:1.18fr 1fr;gap:40px;align-items:center;min-height:650px;padding:46px 0 50px}
+.start-screen{display:grid;grid-template-columns:1.18fr 1fr;grid-template-areas:"copy art" "actions art";column-gap:40px;align-items:center;min-height:650px;padding:46px 0 50px}
+.intro-copy{grid-area:copy;align-self:end}.intro-art{grid-area:art}.start-actions{grid-area:actions;align-self:start}
 h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:22px 0 28px;font-weight:900}
 .marker{position:relative;isolation:isolate;white-space:nowrap}
 .marker:before{content:"";position:absolute;z-index:-1;inset:8% -3% 0;background:var(--lime);transform:rotate(-2deg)}
@@ -59,17 +58,59 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .intro-tags span{border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700}
 .start-button{min-width:244px;justify-content:space-between;font-size:17px;min-height:56px}
 .start-button span{font-size:24px}
+.sound-start{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;min-height:44px;padding:8px 14px;border:2px solid var(--ink);border-radius:999px;background:#fffaf1;font-size:15px;font-weight:800}
+.sound-start .sound-icon{font-size:18px}
+.sound-start[aria-pressed=true]{background:var(--lime);box-shadow:2px 2px 0 var(--ink)}
 .small-note{font-size:14px;line-height:1.5;color:var(--muted);margin:18px 0 0;max-width:380px}
-.intro-art{position:relative;padding:35px 15px 40px}
-.cover-picture{position:relative;background:#e9e6ff;aspect-ratio:3/4;max-width:300px;margin:auto;border:3px solid var(--ink);border-radius:10px;transform:rotate(4deg);box-shadow:11px 11px 0 var(--lavender);overflow:hidden}
-.cover-background{display:block;width:100%;height:auto}
+.intro-art{position:relative;padding:35px 15px 40px;isolation:isolate;overflow:hidden}
+/* Bright slowly turning rays behind the demo. */
+.intro-art:before{content:"";position:absolute;z-index:-1;left:50%;top:50%;width:118%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+ background:repeating-conic-gradient(from 0deg,#e4ff69 0 12deg,#f7f4eb 12deg 24deg,#c9bdff 24deg 36deg,#f7f4eb 36deg 48deg);opacity:.55;
+ -webkit-mask:radial-gradient(circle,#000 35%,transparent 70%);mask:radial-gradient(circle,#000 35%,transparent 70%);animation:rays 40s linear infinite}
+@keyframes rays{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+/* How to play */
+.how-to{list-style:none;margin:0 0 22px;padding:0;display:grid;gap:10px;max-width:440px}
+.how-to li{display:flex;gap:12px;align-items:flex-start;background:#fffaf1;border:2px solid var(--ink);border-radius:14px;padding:10px 12px;box-shadow:3px 3px 0 var(--ink);font-size:15px;line-height:1.35}
+.how-num{flex:0 0 28px;height:28px;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px}
+.how-to li:nth-child(1) .how-num{background:var(--lime)}
+.how-to li:nth-child(2) .how-num{background:var(--lavender)}
+.how-to li:nth-child(3) .how-num{background:var(--pink)}
+.intro-tags .tag-lime{background:var(--lime)}.intro-tags .tag-lavender{background:var(--lavender)}.intro-tags .tag-peach{background:var(--pink)}
+.intro-tags span{border-color:var(--ink)}
+
+/* Demo: a looping 7 s "how to play" on the first scene.
+   Base styles are the final state, so with reduced motion the finished frame is shown. */
+.demo{position:relative;width:100%;max-width:290px;margin:auto;aspect-ratio:290/474;container-type:inline-size;transform:rotate(2deg)}
+.demo-picture{position:absolute;left:0;top:0;width:100%;aspect-ratio:3/4;border:3px solid var(--ink);border-radius:12px;overflow:hidden;background:#ece8ff;box-shadow:9px 9px 0 var(--lavender)}
+.demo-bg{display:block;width:100%;height:100%}
+.demo-note{position:absolute;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:0 3%;font-size:10px;font-size:3.3cqw;line-height:1.2;color:var(--ink);overflow:hidden}
+.demo-note b{font-weight:800}
+.demo-badge{left:33%;top:57%;width:34%;height:15%;background:#fff3b0;border:1.5px solid var(--ink);border-radius:8px;outline:1.5px dashed #c99a3c;outline-offset:-5px;transform:rotate(-2deg);padding-left:4%;animation:demo-badge 7s infinite}
+.demo-phone{left:64%;top:74%;width:32%;height:15%;background:#fff;border:1.5px solid var(--ink);border-radius:9px;padding-top:4%;animation:demo-phone 7s infinite}
+.demo-phone i{position:absolute;left:5%;top:9%;width:11%;aspect-ratio:1;border-radius:3px;background:var(--sber,#21a038)}
+.demo-public{left:4%;top:74%;width:39%;height:14%;background:#f6d58a;border:1.5px solid var(--ink);border-radius:3px 12px 12px 3px}
+.demo-caption{position:absolute;left:6%;top:93%;width:88%;height:4.5%;background:#fff9e9;font-weight:800;font-size:9px;font-size:3cqw;display:flex;align-items:center;padding-left:2%;color:var(--ink)}
+.demo-sticker{position:absolute;z-index:3;width:44%;height:14.7%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 rgba(24,33,44,.25)}
+.demo-sticker img{height:90%;width:auto}
+.demo-sticker-1{left:28%;top:45.3%;background:var(--lime);animation:demo-s1 7s infinite}
+.demo-sticker-2{left:56%;top:59.2%;background:var(--lavender);animation:demo-s2 7s infinite}
+.demo-done{position:absolute;z-index:4;left:50%;top:30%;transform:translate(-50%,-50%);white-space:nowrap;background:var(--lime);border:2px solid var(--ink);border-radius:999px;padding:6px 12px;font-weight:900;font-size:13px;font-size:4.6cqw;box-shadow:3px 3px 0 var(--ink);animation:demo-done 7s infinite}
+.demo-palette{position:absolute;left:0;top:84.5%;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4%}
+.demo-tile{aspect-ratio:1.83;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center}
+.demo-tile{min-width:0}.demo-tile img{height:84%;max-width:100%}
+.tile-sock{background:var(--lime);outline:3px solid var(--violet);outline-offset:2px}.tile-cloud{background:var(--lavender)}.tile-cucumber{background:var(--pink)}
+.demo-finger{position:absolute;z-index:5;left:50%;top:30%;width:11%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.75);border:3px solid var(--ink);transform:translate(-50%,-50%);opacity:0;animation:demo-finger 7s infinite;pointer-events:none}
+@keyframes demo-phone{0%{opacity:0;transform:translateY(-40%)}6%{opacity:1;transform:translateY(4%)}8%{transform:none}9%,11%{transform:translateX(-3%)}10%,12%{transform:translateX(3%)}13%,100%{transform:none}}
+@keyframes demo-badge{0%,2%{opacity:0;transform:rotate(-14deg) scale(.6)}8%{opacity:1;transform:rotate(-1deg) scale(1.06)}11%,100%{transform:rotate(-2deg) scale(1)}}
+@keyframes demo-s1{0%,13%{opacity:0;left:-6.7%;top:82.4%;transform:scale(.62)}14%{opacity:1;left:-6.7%;top:82.4%;transform:scale(.68)}32%{left:28%;top:45.3%;transform:scale(1.08)}35%,90%{opacity:1;left:28%;top:45.3%;transform:scale(1)}96%,100%{opacity:0;left:28%;top:45.3%}}
+@keyframes demo-s2{0%,43%{opacity:0;left:28%;top:82.4%;transform:scale(.62)}44%{opacity:1;left:28%;top:82.4%;transform:scale(.68)}60%{left:56%;top:59.2%;transform:scale(1.08)}63%,90%{opacity:1;left:56%;top:59.2%;transform:scale(1)}96%,100%{opacity:0;left:56%;top:59.2%}}
+@keyframes demo-finger{0%,9%{opacity:0;left:15.3%;top:96%}12%{opacity:1;left:15.3%;top:89.7%}14%{left:15.3%;top:89.7%;transform:translate(-50%,-50%) scale(.82)}32%{left:50%;top:52.6%;transform:translate(-50%,-50%) scale(.82)}36%{left:50%;top:52.6%;transform:translate(-50%,-50%) scale(1)}40%{left:50%;top:89.7%;transform:translate(-50%,-50%) scale(1)}44%{left:50%;top:89.7%;transform:translate(-50%,-50%) scale(.82)}60%{left:78%;top:66.5%;transform:translate(-50%,-50%) scale(.82)}64%{left:78%;top:66.5%;transform:translate(-50%,-50%) scale(1);opacity:1}70%,100%{opacity:0;left:78%;top:66.5%}}
+@keyframes demo-done{0%,68%{opacity:0;transform:translate(-50%,-50%) scale(.4)}72%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}75%,90%{opacity:1;transform:translate(-50%,-50%) scale(1)}96%,100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
 .cover-caption{position:absolute;z-index:2;background:var(--pink);border:2px solid var(--ink);padding:10px 17px;transform:rotate(-8deg);font-weight:700;font-size:13px;left:0;top:10px}
-.cover-note{position:absolute;top:7%;left:4%;padding:12px;background:#fff9e9;border:1px solid var(--ink);font-size:12px;line-height:1.4}
-.cover-sticker{position:absolute;left:8%;top:13%;width:45%;background:var(--lime);border:2px solid var(--ink);transform:rotate(-13deg);border-radius:4px;padding:5px;animation:sticker-in .5s .3s both ease-out}
-.cover-sticker img{width:100%;display:block}
 .cover-label{position:absolute;bottom:19px;right:-5px;background:var(--ink);color:var(--paper);padding:14px 17px;font-weight:900;font-size:17px;letter-spacing:-.5px;transform:rotate(-5deg)}
-.cover-star{position:absolute;right:-6px;top:10px;font-size:83px;line-height:1;color:var(--violet);transform:rotate(12deg)}
-@keyframes sticker-in{from{transform:rotate(-13deg) scale(.6);opacity:0}70%{transform:rotate(-13deg) scale(1.06);opacity:1}to{transform:rotate(-13deg) scale(1)}}
+.cover-star{position:absolute;right:-4px;top:6px;width:76px;height:76px;transform:rotate(12deg);animation:star-sway 3.2s ease-in-out infinite}
+@keyframes star-sway{0%,100%{transform:rotate(12deg)}50%{transform:rotate(-6deg) scale(1.06)}}
 
 /* ---------- Loading / error ---------- */
 .loading-screen,.error-screen{min-height:580px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;font-size:17px}
@@ -105,9 +146,15 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .count-label{font-size:14px;font-weight:800;color:var(--muted)}
 /* Three cards in one row. Each card is the real sticker scaled down: same drawing, same proportions. */
 .palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;touch-action:none;padding:4px}
-.sticker-choice{width:100%;background:transparent;color:var(--ink);border:0;border-radius:0;box-shadow:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.sticker-choice{width:100%;background:#fffaf1;color:var(--ink);border:2px solid var(--line);border-radius:14px;box-shadow:none;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:background .12s,border-color .12s,transform .12s,box-shadow .12s}
 .sticker-thumbnail{display:block;width:100%;max-width:var(--sticker-width,158.4px);height:auto;aspect-ratio:var(--sticker-ratio,1.8333);pointer-events:none}
 .sticker-choice span{font-size:14px;line-height:20px;font-weight:800;pointer-events:none}
+/* The chosen sticker is visible (ТЗ: «явное выбранное состояние»). Driven by aria-pressed,
+   which the UI already sets, so no extra class is needed. */
+.sticker-choice[aria-pressed=true]{background:var(--lime);border-color:var(--ink);box-shadow:3px 3px 0 var(--ink);transform:translate(-1px,-1px)}
+.sticker-choice:hover:not([aria-pressed=true]){background:#fff4dc}
+.sticker-choice[aria-pressed=true]::after{content:"✓";position:absolute;top:-6px;right:-4px;width:22px;height:22px;border-radius:50%;background:var(--violet);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--paper)}
+.sticker-choice{position:relative}
 .board-frame.just-placed{animation:placed .26s ease-out}
 @keyframes placed{0%{box-shadow:0 0 0 5px var(--lime)}100%{box-shadow:6px 6px 0 #ded9ea}}
 .gesture-help{font-size:14px;line-height:1.4;color:var(--muted);margin:10px 0 0}
@@ -118,6 +165,78 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .passed-copy p{font-size:16px;line-height:1.35;margin:3px 0 0}
 .next-button{width:100%;min-height:52px;font-size:17px}
 @keyframes appear{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+
+
+/* First-frame tutorial finger (positions are set by ui.js) */
+.game-layout{position:relative}
+.tutorial-hand{position:absolute;left:0;top:0;z-index:6;width:46px;height:46px;margin:-8px 0 0 -14px;pointer-events:none;font-size:34px;line-height:1;filter:drop-shadow(2px 3px 0 rgba(24,33,44,.35));animation:hand-drag 2.6s ease-in-out infinite}
+.tutorial-hand span{display:block;transform:rotate(-12deg)}
+.tutorial-hand:before{content:"";position:absolute;left:4px;top:-4px;width:26px;height:26px;border-radius:50%;border:3px solid var(--violet);opacity:0;animation:hand-press 2.6s ease-in-out infinite}
+@keyframes hand-drag{0%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(1)}10%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(1)}18%{transform:translate(var(--sx),var(--sy)) scale(.86)}62%{opacity:1;transform:translate(var(--ex),var(--ey)) scale(.86)}70%{transform:translate(var(--ex),var(--ey)) scale(1)}85%,100%{opacity:0;transform:translate(var(--ex),var(--ey)) scale(1)}}
+@keyframes hand-press{10%,62%{opacity:0}18%,70%{opacity:.8}26%,78%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.tutorial-hand{opacity:1;transform:translate(var(--sx),var(--sy))}}
+
+/* ---------- Live scene layer over the frame ----------
+   Positions are scene coordinates (360 x 480) in %. Decoration only: pointer-events none,
+   not part of the poster PNG. Each scene shows its own group. */
+.scene-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.scene-fx>div{position:absolute;inset:0;display:none}
+.board-frame[data-scene=room] .fx-room,.board-frame[data-scene=desk] .fx-desk,.board-frame[data-scene=poster] .fx-poster{display:block}
+.scene-fx span{position:absolute;display:block}
+/* room: clock, sun, dust in the window light */
+.fx-clock-hand{left:calc(13.889% - 1px);top:6.667%;width:2px;height:3.75%;background:#d2366a;border-radius:2px;transform-origin:50% 100%;animation:fx-tick 6s steps(60) infinite}
+.fx-sun{left:89.72%;top:7.71%;width:5%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);animation:fx-sun 2.4s ease-in-out infinite}
+.fx-dust{width:4px;height:4px;border-radius:50%;background:#fff3b0;box-shadow:0 0 4px #ffe17a;opacity:0;animation:fx-dust 5s linear infinite}
+.fx-dust.d1{left:80%;top:20%}.fx-dust.d2{left:86%;top:22%;animation-delay:1.7s}.fx-dust.d3{left:76%;top:24%;animation-delay:3.3s}
+@keyframes fx-tick{to{transform:rotate(360deg)}}
+@keyframes fx-sun{0%,100%{box-shadow:0 0 0 0 rgba(255,225,122,.85)}50%{box-shadow:0 0 0 9px rgba(255,225,122,0)}}
+@keyframes fx-dust{0%{opacity:0;transform:none}15%{opacity:.9}100%{opacity:0;transform:translate(-46px,70px)}}
+/* desk: the robot blinks, the lamp glows, the mug steams */
+.fx-lid{top:41.875%;width:6.67%;aspect-ratio:1;border-radius:50%;background:#b2a3ed;border-bottom:2px solid #18212c;transform:translate(-50%,-50%) scaleY(0);animation:fx-blink 4.6s infinite}
+.fx-lid.l1{left:41.94%}.fx-lid.l2{left:55.28%}
+.fx-lamp{left:19.44%;top:41.67%;width:16%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,243,176,.9),rgba(255,243,176,0) 65%);animation:fx-glow 3s ease-in-out infinite}
+.fx-steam{left:87%;top:60%;width:3px;height:5%;border-radius:3px;background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.9));opacity:0;animation:fx-rise 2.6s ease-out infinite}
+.fx-steam.s2{left:90%;animation-delay:1.3s}
+@keyframes fx-blink{0%,90%,96%,100%{transform:translate(-50%,-50%) scaleY(0)}92%,94%{transform:translate(-50%,-50%) scaleY(1)}}
+@keyframes fx-glow{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes fx-rise{0%{opacity:0;transform:translateY(0) scaleX(1)}25%{opacity:.9}100%{opacity:0;transform:translateY(-26px) scaleX(2.2)}}
+/* poster: steam from the teapot, twinkling garland */
+.fx-puff{left:49.7%;top:36.5%;width:3.4%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.95);border:1.5px solid rgba(24,33,44,.25);opacity:0;animation:fx-puff 3s ease-out infinite}
+.fx-puff.p2{animation-delay:1s;left:48%}.fx-puff.p3{animation-delay:2s;left:51.5%}
+.fx-bulb{width:4.2%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,250,200,.95),rgba(255,250,200,0) 70%);animation:fx-twinkle 1.6s ease-in-out infinite alternate}
+.fx-bulb.b1{left:7.78%;top:23.75%}.fx-bulb.b2{left:20%;top:25.21%;animation-delay:.4s}.fx-bulb.b3{left:32.22%;top:25.63%;animation-delay:.8s}.fx-bulb.b4{left:44.44%;top:25%;animation-delay:1.2s}
+.fx-bulb.b5{left:55.56%;top:25%;animation-delay:.2s}.fx-bulb.b6{left:67.78%;top:25.63%;animation-delay:.6s}.fx-bulb.b7{left:80%;top:25.21%;animation-delay:1s}.fx-bulb.b8{left:92.22%;top:23.75%;animation-delay:1.4s}
+@keyframes fx-puff{0%{opacity:0;transform:translate(-50%,0) scale(.5)}20%{opacity:.8}100%{opacity:0;transform:translate(-50%,-14px) scale(1.5)}}
+@keyframes fx-twinkle{from{opacity:.15}to{opacity:1}}
+/* Switched off in content.json (scenes) and speed of the loops (--fx-speed) */
+.scene-fx[data-off~=clock] .fx-clock-hand,.scene-fx[data-off~=sun] .fx-sun,.scene-fx[data-off~=dust] .fx-dust,
+.scene-fx[data-off~=blink] .fx-lid,.scene-fx[data-off~=lamp] .fx-lamp,.scene-fx[data-off~=steam] .fx-steam,
+.scene-fx[data-off~=steam] .fx-puff,.scene-fx[data-off~=garland] .fx-bulb,.scene-fx[data-off~=confetti] .fx-confetti{display:none!important}
+.fx-clock-hand{animation-duration:calc(6s / var(--fx-speed,1))}
+.fx-sun{animation-duration:calc(2.4s / var(--fx-speed,1))}
+.fx-dust{animation-duration:calc(5s / var(--fx-speed,1))}
+.fx-lid{animation-duration:calc(4.6s / var(--fx-speed,1))}
+.fx-lamp{animation-duration:calc(3s / var(--fx-speed,1))}
+.fx-steam{animation-duration:calc(2.6s / var(--fx-speed,1))}
+.fx-puff{animation-duration:calc(3s / var(--fx-speed,1))}
+.fx-bulb{animation-duration:calc(1.6s / var(--fx-speed,1))}
+/* Reactions to a new sticker: the scene answers the player */
+.scene-fx.react .fx-clock-hand{animation:fx-spin .6s ease-out}
+.scene-fx.react .fx-sun{animation:fx-wink .6s ease-out}
+.scene-fx.react .fx-lid{animation:fx-surprise .7s ease-out}
+.scene-fx.react .fx-puff{animation:fx-burst .8s ease-out}
+.scene-fx.react .fx-puff.p2{animation-delay:.1s}.scene-fx.react .fx-puff.p3{animation-delay:.2s}
+@keyframes fx-spin{to{transform:rotate(720deg)}}
+@keyframes fx-wink{0%,100%{box-shadow:0 0 0 0 rgba(255,225,122,0)}40%{box-shadow:0 0 0 14px rgba(255,225,122,.9)}}
+@keyframes fx-surprise{0%,30%,60%,100%{transform:translate(-50%,-50%) scaleY(0)}15%,45%{transform:translate(-50%,-50%) scaleY(1)}}
+@keyframes fx-burst{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:.85}100%{opacity:0;transform:translate(-50%,-16px) scale(2.2)}}
+/* Frame passed: a short confetti shower */
+.fx-confetti i{position:absolute;top:-6%;width:2.4%;height:1.6%;border-radius:2px;opacity:0}
+.scene-fx.party .fx-confetti{display:block}
+.scene-fx.party .fx-confetti i{animation:fx-fall 1.5s ease-in forwards}
+.fx-confetti i:nth-child(4n+1){background:#e4ff69}.fx-confetti i:nth-child(4n+2){background:#c9bdff}.fx-confetti i:nth-child(4n+3){background:#ffc4b5}.fx-confetti i:nth-child(4n){background:#21a038}
+.fx-confetti i:nth-child(1){left:4.0%;animation-delay:0.00s!important}.fx-confetti i:nth-child(2){left:10.8%;animation-delay:0.05s!important}.fx-confetti i:nth-child(3){left:17.6%;animation-delay:0.10s!important}.fx-confetti i:nth-child(4){left:24.4%;animation-delay:0.15s!important}.fx-confetti i:nth-child(5){left:31.2%;animation-delay:0.20s!important}.fx-confetti i:nth-child(6){left:38.0%;animation-delay:0.25s!important}.fx-confetti i:nth-child(7){left:44.8%;animation-delay:0.30s!important}.fx-confetti i:nth-child(8){left:51.6%;animation-delay:0.35s!important}.fx-confetti i:nth-child(9){left:58.4%;animation-delay:0.40s!important}.fx-confetti i:nth-child(10){left:65.2%;animation-delay:0.00s!important}.fx-confetti i:nth-child(11){left:72.0%;animation-delay:0.05s!important}.fx-confetti i:nth-child(12){left:78.8%;animation-delay:0.10s!important}.fx-confetti i:nth-child(13){left:85.6%;animation-delay:0.15s!important}.fx-confetti i:nth-child(14){left:92.4%;animation-delay:0.20s!important}
+@keyframes fx-fall{0%{opacity:1;top:-6%;transform:rotate(0)}85%{opacity:1}100%{opacity:0;top:104%;transform:rotate(540deg)}}
 
 /* ---------- Result ---------- */
 .result-screen{display:grid;grid-template-columns:1fr 320px;gap:55px;align-items:center;max-width:800px;margin:0 auto;padding:50px 0}
@@ -132,26 +251,52 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .poster-placeholder span{font-size:15px;font-weight:700;color:var(--ink)}
 
 /* ---------- Phone portrait ---------- */
+
+/* Post feed: reactions to the prepared frame */
+.feedback-body{display:flex;flex-direction:column;gap:6px;min-width:0}
+.stranger{margin:0;padding:6px 9px;border-radius:10px;background:#fff;border:1.5px dashed #c9a13a;font-size:14px!important;line-height:1.35!important;animation:appear .25s ease-out}
+.stranger b{font-weight:800;color:#9b5a12}
+.post{border:2px solid var(--ink);border-radius:14px;background:#fff;padding:10px 12px;box-shadow:3px 3px 0 var(--ink)}
+.post-head{display:flex;align-items:center;gap:6px;font-size:14px}
+.post-avatar{width:24px;height:24px;border-radius:50%;background:var(--lime);border:1.5px solid var(--ink);display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:var(--violet)}
+.post-time{color:var(--muted)}
+.post-likes{margin-left:auto;font-weight:900;color:#d2366a;font-variant-numeric:tabular-nums}
+.post-comments{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.post-comments li{font-size:14px;line-height:1.35;padding:6px 9px;background:#f4f1ff;border-radius:10px;opacity:0;animation:comment-in .3s ease-out forwards}
+.post-comments li:nth-child(1){animation-delay:.35s}.post-comments li:nth-child(2){animation-delay:.9s}
+.post-comments b{font-weight:800}
+@keyframes comment-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.agent-title{display:grid;gap:3px;margin:0 0 20px;padding:12px 14px;border:2px solid var(--ink);border-radius:14px;background:var(--lime);box-shadow:4px 4px 0 var(--ink);animation:stamp .35s ease-out}
+.agent-label{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;font-weight:800}
+.agent-title b{font-size:24px;font-weight:900;letter-spacing:-.5px}
+.agent-title span{font-size:15px;line-height:1.35}
+.agent-likes{font-weight:800;color:#d2366a}
+@media(prefers-reduced-motion:reduce){.post-comments li{opacity:1}}
+
 @media(max-width:760px){
  .app{padding-left:max(var(--gutter),env(safe-area-inset-left));padding-right:max(var(--gutter),env(safe-area-inset-right))}
  .topbar{min-height:var(--topbar)}
  .brand{font-size:24px}.brand-spark{font-size:29px}
  .sber-badge{width:38px;height:38px}.sber-badge img{width:26px;height:26px}
- .sber-badge-small{width:26px;height:26px}.sber-badge-small img{width:17px;height:17px}
+
  .level-meta{font-size:11px;gap:10px}
  .level-info h2{font-size:18px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
  .sound-label{display:none}
  .sound-button{min-width:44px;padding:0;font-size:18px}
  .icon-button{padding:0 12px;font-size:12px}
- .start-screen{grid-template-columns:1fr;gap:10px;min-height:0;padding:26px 0 30px}
+ .start-screen{grid-template-columns:1fr;grid-template-areas:"copy" "art" "actions";gap:10px;min-height:0;padding:26px 0 0}
  .intro-copy{max-width:480px;margin:auto;width:100%}
  h1{font-size:clamp(39px,11vw,64px);letter-spacing:-2px;margin:18px 0 22px}
  .intro-description{font-size:17px;max-width:410px;margin-bottom:18px}
  .intro-tags{margin-bottom:20px}
  .start-button{width:100%;min-height:56px}
  .intro-art{max-width:310px;width:100%;margin:auto;padding:25px 20px 35px}
- .cover-picture{max-width:220px}.cover-caption{font-size:12px;padding:8px 11px}
- .cover-star{font-size:64px}.cover-label{font-size:15px;right:0;bottom:15px}
+ .demo{max-width:250px}.cover-caption{font-size:12px;padding:8px 11px}
+ .how-to li{font-size:15px;padding:9px 11px}
+ /* The start button stays reachable while the steps and the demo scroll by. */
+ .start-actions{position:sticky;bottom:0;z-index:5;margin:0 calc(-1 * var(--gutter));padding:12px var(--gutter) calc(12px + env(safe-area-inset-bottom));background:linear-gradient(rgba(247,244,235,0),var(--paper) 30%)}
+ .start-actions .small-note{margin-top:8px;font-size:13px}
+ .cover-star{width:58px;height:58px}.cover-label{font-size:15px;right:0;bottom:15px}
  .footer{font-size:12px;padding:13px 0;flex-wrap:wrap}
  .app[data-screen=playing] .footer,.app[data-screen=levelPassed] .footer{display:none}
 
@@ -171,11 +316,21 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .palette{gap:12px}
  /* On phones the card itself shows the sticker; its name stays in aria-label. */
  .sticker-choice span{display:none}
+ .sticker-choice{padding:4px;border-radius:12px}
  .gesture-help{font-size:14px;margin-top:6px}
  .controls{grid-template-columns:1fr 1fr 1.2fr;gap:8px}
  .controls .button{min-height:48px;padding:6px 4px;font-size:14px;border-radius:11px;gap:4px}
  .controls .check-button{grid-column:auto;font-size:16px}
- .passed-card{padding:12px}
+ .passed-card{padding:9px 12px}
+ .passed-card .passed-mark{flex-basis:30px;height:30px;font-size:18px}
+ .post{padding:8px 10px}
+ .post-comments{margin-top:5px;gap:4px}
+ .post-comments li{font-size:13px;padding:5px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ /* On phones the success card is one line; the post below carries the reactions. */
+ .passed-copy p{display:none}
+ .passed-notice{gap:8px}
+ .stranger{font-size:13px!important;line-height:1.3!important;padding:4px 8px}
+ .feedback[data-kind=warning] #feedback-text{font-size:14px;line-height:1.3}
  .passed-copy strong{font-size:18px}
  .passed-copy p{font-size:15px}
 
@@ -197,7 +352,8 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .topbar{min-height:56px}
  .level-info h2{font-size:18px}
  .footer,.intro-art{display:none}
- .start-screen{grid-template-columns:1fr;min-height:0;padding:20px 0}
+ .start-screen{grid-template-columns:1fr;grid-template-areas:"copy" "actions";min-height:0;padding:20px 0}
+ .how-to{display:none}
  h1{font-size:40px;margin:12px 0 16px}
  /* The task moves to the right column so the board gets the full height. */
  .play-screen{padding:8px 0;display:grid;grid-template-columns:auto minmax(220px,360px);grid-template-areas:"board task" "board work";column-gap:20px;justify-content:center;align-items:start}

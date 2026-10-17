@@ -70,6 +70,9 @@ function drawNote(ctx, zone) {
 // so the child has to read the text. Every form stays inside its rect, so a sticker
 // covers the whole note, even while it animates.
 const FORMS = ['phone', 'tag', 'paper'];
+// A badge glued onto an object of the picture; only used when the data asks for it (zone.form).
+const EXTRA_FORMS = ['badge'];
+const BADGE_STICK = 520;
 const KIND_FORM = { code: 'phone', private_location: 'phone', address: 'tag', password: 'paper' };
 const PHONE_IN = 420;
 const PHONE_BUZZ = 480;
@@ -83,7 +86,7 @@ function hash(text) {
 }
 
 export function noteForm(level, zone) {
-  if (FORMS.indexOf(zone.form) !== -1) return zone.form;
+  if (FORMS.indexOf(zone.form) !== -1 || EXTRA_FORMS.indexOf(zone.form) !== -1) return zone.form;
   if (zone.kind && KIND_FORM[zone.kind]) return KIND_FORM[zone.kind];
   return FORMS[hash(level.id + ':' + zone.id) % FORMS.length];
 }
@@ -126,26 +129,35 @@ function drawPhone(ctx, zone, p, t) {
   ctx.restore();
 }
 
-function tagGeometry(level, p) {
-  const hero = level.keepZones.find(function (zone) { return !zone.lines; });
-  const h = hero ? pixels(hero.rect) : [120, 160, 120, 160];
-  const holeRight = p[0] + p[2] / 2 < h[0] + h[2] / 2;
-  const hole = [holeRight ? p[0] + p[2] - 8 : p[0] + 8, p[1] + p[3] / 2];
-  const above = hole[1] < h[1];
-  // The string is tied near the top of the main object (its handle), on the tag's side.
-  const anchor = [Math.max(h[0] + h[2] * 0.3, Math.min(h[0] + h[2] * 0.7, hole[0])),
-    above ? h[1] + h[3] * 0.06 : h[1] + h[3] * 0.94];
-  return { holeRight: holeRight, hole: hole, anchor: anchor };
+// zone.anchor ([x, y] in board fractions) ties the tag to a point of the picture, e.g. a zipper.
+// Without it the string goes to the main object. A tag right below its anchor hangs by its top.
+function tagGeometry(level, zone, p) {
+  let anchor;
+  if (Array.isArray(zone.anchor) && zone.anchor.length === 2 && zone.anchor.every(Number.isFinite)) {
+    anchor = [zone.anchor[0] * 360, zone.anchor[1] * 480];
+  } else {
+    const hero = level.keepZones.find(function (k) { return !k.lines; });
+    const h = hero ? pixels(hero.rect) : [120, 160, 120, 160];
+    const toward = p[0] + p[2] / 2 < h[0] + h[2] / 2 ? p[0] + p[2] : p[0];
+    anchor = [Math.max(h[0] + h[2] * 0.3, Math.min(h[0] + h[2] * 0.7, toward)),
+      p[1] + p[3] / 2 < h[1] ? h[1] + h[3] * 0.06 : h[1] + h[3] * 0.94];
+  }
+  const side = anchor[1] <= p[1] && anchor[0] >= p[0] && anchor[0] <= p[0] + p[2] ? 'top' :
+    anchor[0] > p[0] + p[2] / 2 ? 'right' : 'left';
+  const hole = side === 'top' ? [p[0] + p[2] / 2, p[1] + 9] :
+    [side === 'right' ? p[0] + p[2] - 8 : p[0] + 8, p[1] + p[3] / 2];
+  return { side: side, hole: hole, anchor: anchor };
 }
 
 function drawTagString(ctx, level, zone) {
   const p = pixels(zone.rect);
-  const g = tagGeometry(level, p);
+  const g = tagGeometry(level, zone, p);
   ctx.save();
   ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
   ctx.beginPath();
   ctx.moveTo(g.hole[0], g.hole[1]);
-  ctx.quadraticCurveTo((g.hole[0] + g.anchor[0]) / 2, Math.max(g.hole[1], g.anchor[1]) + 16, g.anchor[0], g.anchor[1]);
+  const sag = g.side === 'top' ? 0 : 16;
+  ctx.quadraticCurveTo((g.hole[0] + g.anchor[0]) / 2, Math.max(g.hole[1], g.anchor[1]) + sag, g.anchor[0], g.anchor[1]);
   ctx.stroke();
   ctx.beginPath(); ctx.arc(g.anchor[0], g.anchor[1], 3, 0, Math.PI * 2);
   ctx.fillStyle = INK; ctx.fill();
@@ -153,7 +165,7 @@ function drawTagString(ctx, level, zone) {
 }
 
 function drawTag(ctx, level, zone, p, t) {
-  const g = tagGeometry(level, p);
+  const g = tagGeometry(level, zone, p);
   const angle = t === null || t < 0 ? 0 : 0.1 * Math.exp(-t / 450) * Math.sin(t / 110);
   const x0 = p[0] + 1; const y0 = p[1] + 1; const x1 = p[0] + p[2] - 1; const y1 = p[1] + p[3] - 1;
   const cut = Math.min(13, p[3] / 3);
@@ -161,7 +173,10 @@ function drawTag(ctx, level, zone, p, t) {
   clipTo(ctx, p);
   ctx.translate(g.hole[0], g.hole[1]); ctx.rotate(angle); ctx.translate(-g.hole[0], -g.hole[1]);
   ctx.beginPath();
-  if (g.holeRight) {
+  if (g.side === 'top') {
+    ctx.moveTo(x0, y0 + cut); ctx.lineTo(x0 + cut, y0); ctx.lineTo(x1 - cut, y0);
+    ctx.lineTo(x1, y0 + cut); ctx.lineTo(x1, y1); ctx.lineTo(x0, y1);
+  } else if (g.side === 'right') {
     ctx.moveTo(x0, y0); ctx.lineTo(x1 - cut, y0); ctx.lineTo(x1, y0 + cut);
     ctx.lineTo(x1, y1 - cut); ctx.lineTo(x1 - cut, y1); ctx.lineTo(x0, y1);
   } else {
@@ -175,8 +190,35 @@ function drawTag(ctx, level, zone, p, t) {
   ctx.strokeStyle = '#c99a3c'; ctx.lineWidth = 2; ctx.stroke();
   ctx.beginPath(); ctx.arc(g.hole[0], g.hole[1], 3.2, 0, Math.PI * 2);
   ctx.fillStyle = '#fff9e9'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
-  const box = g.holeRight ? [p[0] + 2, p[1] + 2, p[2] - 18, p[3] - 4] : [p[0] + 16, p[1] + 2, p[2] - 18, p[3] - 4];
+  const box = g.side === 'top' ? [p[0] + 2, p[1] + 16, p[2] - 4, p[3] - 18] :
+    g.side === 'right' ? [p[0] + 2, p[1] + 2, p[2] - 18, p[3] - 4] : [p[0] + 16, p[1] + 2, p[2] - 18, p[3] - 4];
   drawText(ctx, zone.lines, box, 15, { boldFirst: true });
+  ctx.restore();
+}
+
+// Badge glued onto the picture: it pops on and settles, always inside its rect.
+function drawBadge(ctx, zone, p, t) {
+  let scale = 1;
+  let angle = -0.04;
+  if (t !== null) {
+    if (t < 0) return;
+    const k = Math.min(1, t / BADGE_STICK);
+    scale = 0.6 + 0.4 * easeOutBack(k);
+    angle = -0.04 - 0.12 * (1 - k);
+  }
+  const cx = p[0] + p[2] / 2;
+  const cy = p[1] + p[3] / 2;
+  ctx.save();
+  clipTo(ctx, p);
+  ctx.translate(cx, cy); ctx.rotate(angle); ctx.scale(scale, scale); ctx.translate(-cx, -cy);
+  roundedRect(ctx, p[0] + 3, p[1] + 3, p[2] - 6, p[3] - 6, 10);
+  ctx.fillStyle = '#fff3b0'; ctx.fill();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.6; ctx.stroke();
+  // Stitched edge: it is sewn / glued onto the backpack.
+  roundedRect(ctx, p[0] + 7, p[1] + 7, p[2] - 14, p[3] - 14, 7);
+  ctx.setLineDash([4, 3]); ctx.strokeStyle = '#c99a3c'; ctx.lineWidth = 1.4; ctx.stroke();
+  ctx.setLineDash([]);
+  drawText(ctx, zone.lines, [p[0] + 8, p[1] + 8, p[2] - 16, p[3] - 16], 15, { boldFirst: true });
   ctx.restore();
 }
 
@@ -202,6 +244,9 @@ function drawNotes(ctx, level, now) {
     } else if (form === 'tag') {
       drawTag(ctx, level, zone, p, t);
       if (t !== null && t < TAG_SWING) animating = true;
+    } else if (form === 'badge') {
+      drawBadge(ctx, zone, p, t);
+      if (t !== null && t < BADGE_STICK) animating = true;
     } else {
       drawNote(ctx, zone);
     }
@@ -265,6 +310,18 @@ export function renderStickerCard(options) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.setTransform(canvas.width / (rect[2] * 360), 0, 0,
     canvas.height / (rect[3] * 480), 0, 0);
+  if (options.bare) {
+    // Palette card: only the artwork, same size and position as on the board; the card itself
+    // is the button's background.
+    const sticker = options.assets.stickers[options.stickerId] || {};
+    const img = options.assets.images[sticker.src];
+    const p = pixels([0, 0, rect[2], rect[3]]);
+    if (img) {
+      const size = Math.min(p[2] * 0.82, p[3] * 0.9);
+      ctx.drawImage(img, (p[2] - size) / 2, (p[3] - size) / 2, size, size);
+    }
+    return;
+  }
   drawSticker(ctx, { stickerId: options.stickerId, rect: [0, 0, rect[2], rect[3]] }, options.assets, false);
 }
 
@@ -293,9 +350,15 @@ export function renderBoard(options) {
   const assets = options.assets;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas недоступен');
+  // options.area = [x, y, width, height] in canvas pixels draws the frame into a part of the
+  // canvas (the poster); by default the frame fills the whole canvas.
+  const area = Array.isArray(options.area) && options.area.length === 4 ? options.area :
+    [0, 0, canvas.width, canvas.height];
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.setTransform(canvas.width / 360, 0, 0, canvas.height / 480, 0, 0);
+  ctx.clearRect(area[0], area[1], area[2], area[3]);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(area[0], area[1], area[2], area[3]); ctx.clip();
+  ctx.setTransform(area[2] / 360, 0, 0, area[3] / 480, area[0], area[1]);
   ctx.globalAlpha = 1;
   ctx.fillStyle = '#e9e6ff'; ctx.fillRect(0, 0, 360, 480);
   const background = assets.images[level.background];
@@ -331,6 +394,7 @@ export function renderBoard(options) {
     ctx.strokeRect(p[0] - 4, p[1] - 4, p[2] + 8, p[3] + 8); ctx.restore();
   });
   if (previewPlacement && !options.preview.placementId) drawSticker(ctx, previewPlacement, assets, true);
+  ctx.restore();
   return { animating: animating };
 }
 
