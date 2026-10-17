@@ -145,6 +145,13 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .sticker-choice{width:100%;background:transparent;color:var(--ink);border:0;border-radius:0;box-shadow:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .sticker-thumbnail{display:block;width:100%;max-width:var(--sticker-width,158.4px);height:auto;aspect-ratio:var(--sticker-ratio,1.8333);pointer-events:none}
 .sticker-choice span{font-size:14px;line-height:20px;font-weight:800;pointer-events:none}
+/* The chosen sticker is visible (ТЗ: «явное выбранное состояние»). Driven by aria-pressed,
+   which the UI already sets, so no extra class is needed. */
+.sticker-choice .sticker-thumbnail{transition:transform .15s ease-out,box-shadow .15s ease-out}
+.sticker-choice[aria-pressed=true] .sticker-thumbnail{transform:translateY(-3px);box-shadow:0 0 0 3px var(--paper),0 0 0 6px var(--violet),3px 6px 0 6px rgba(118,99,175,.35)}
+.sticker-choice[aria-pressed=true] span{color:var(--violet)}
+.sticker-choice[aria-pressed=true]::after{content:"✓";position:absolute;top:-6px;right:-4px;width:22px;height:22px;border-radius:50%;background:var(--violet);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--paper)}
+.sticker-choice{position:relative}
 .board-frame.just-placed{animation:placed .26s ease-out}
 @keyframes placed{0%{box-shadow:0 0 0 5px var(--lime)}100%{box-shadow:6px 6px 0 #ded9ea}}
 .gesture-help{font-size:14px;line-height:1.4;color:var(--muted);margin:10px 0 0}
