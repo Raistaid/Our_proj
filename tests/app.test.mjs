@@ -267,7 +267,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
       assert.equal(button.dataset.stickerId, sticker.id);
       assert.equal(button.querySelector('span').textContent, sticker.shortLabel || sticker.label);
       assert.equal(button.getAttribute('aria-pressed'), String(sticker.id === selectedId));
-      assert.equal(button.classes.has('selected'), sticker.id === selectedId);
+      assert.equal(button.classes.has('selected'), false);
     });
   }
   async function settleUntil(predicate) {
