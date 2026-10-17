@@ -24,6 +24,8 @@ let soundBusy = false;
 let posterDataUrl = '';
 let resultStatus = '';
 let records = [];
+let sessionsStarted = 0;
+let layoutVariant = 0;
 let exportNonce = 0;
 let frameRequest = 0;
 let input = null;
@@ -42,7 +44,7 @@ const ui = mountUI({
   onReload: function () { window.location.reload(); }
 });
 
-function currentLevel() { return content ? getRuntimeLevel(content, levelIndex) : null; }
+function currentLevel() { return content ? getRuntimeLevel(content, levelIndex, layoutVariant) : null; }
 function playing() { return screen === 'playing'; }
 function canHint() {
   const level = currentLevel();
@@ -84,6 +86,7 @@ function render() {
     // For the "post feed" view (role 2): read-only facts, the UI never decides the result.
     post: postInfo(level), feed: content ? content.feed || null : null,
     scene: level ? level.background : '',
+    scenes: content ? content.scenes || null : null,
     stats: statsSummary()
   });
   scheduleDraw();
@@ -122,6 +125,9 @@ function startLevel(index) {
 }
 function startSession() {
   if (!content || !assets) return;
+  // The first game uses the original layout; every replay moves the notes (content layouts).
+  layoutVariant = sessionsStarted;
+  sessionsStarted += 1;
   exportNonce += 1;
   records = [];
   posterDataUrl = '';
@@ -184,6 +190,7 @@ function check() {
     });
     feedback = { kind: 'warning', text: blocked ? blocked.hint :
       missing ? missing.why : 'Проверь расположение наклеек и попробуй ещё раз.' };
+    audio.play('warning');
   }
   render();
 }
@@ -214,6 +221,7 @@ function remove(item) {
 function showResult() {
   if (!evaluateLevel(currentLevel(), state.placements).passed) return;
   screen = 'result';
+  audio.play('fanfare');
   preview = null;
   hintIds = [];
   // A fallback frame never awards completion of the main task.

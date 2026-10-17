@@ -163,6 +163,15 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 @keyframes appear{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
 
 
+/* First-frame tutorial finger (positions are set by ui.js) */
+.game-layout{position:relative}
+.tutorial-hand{position:absolute;left:0;top:0;z-index:6;width:46px;height:46px;margin:-8px 0 0 -14px;pointer-events:none;font-size:34px;line-height:1;filter:drop-shadow(2px 3px 0 rgba(24,33,44,.35));animation:hand-drag 2.6s ease-in-out infinite}
+.tutorial-hand span{display:block;transform:rotate(-12deg)}
+.tutorial-hand:before{content:"";position:absolute;left:4px;top:-4px;width:26px;height:26px;border-radius:50%;border:3px solid var(--violet);opacity:0;animation:hand-press 2.6s ease-in-out infinite}
+@keyframes hand-drag{0%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(1)}10%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(1)}18%{transform:translate(var(--sx),var(--sy)) scale(.86)}62%{opacity:1;transform:translate(var(--ex),var(--ey)) scale(.86)}70%{transform:translate(var(--ex),var(--ey)) scale(1)}85%,100%{opacity:0;transform:translate(var(--ex),var(--ey)) scale(1)}}
+@keyframes hand-press{10%,62%{opacity:0}18%,70%{opacity:.8}26%,78%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.tutorial-hand{opacity:1;transform:translate(var(--sx),var(--sy))}}
+
 /* ---------- Live scene layer over the frame ----------
    Positions are scene coordinates (360 x 480) in %. Decoration only: pointer-events none,
    not part of the poster PNG. Each scene shows its own group. */
@@ -195,6 +204,18 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .fx-bulb.b5{left:55.56%;top:25%;animation-delay:.2s}.fx-bulb.b6{left:67.78%;top:25.63%;animation-delay:.6s}.fx-bulb.b7{left:80%;top:25.21%;animation-delay:1s}.fx-bulb.b8{left:92.22%;top:23.75%;animation-delay:1.4s}
 @keyframes fx-puff{0%{opacity:0;transform:translate(-50%,0) scale(.5)}20%{opacity:.8}100%{opacity:0;transform:translate(-50%,-14px) scale(1.5)}}
 @keyframes fx-twinkle{from{opacity:.15}to{opacity:1}}
+/* Switched off in content.json (scenes) and speed of the loops (--fx-speed) */
+.scene-fx[data-off~=clock] .fx-clock-hand,.scene-fx[data-off~=sun] .fx-sun,.scene-fx[data-off~=dust] .fx-dust,
+.scene-fx[data-off~=blink] .fx-lid,.scene-fx[data-off~=lamp] .fx-lamp,.scene-fx[data-off~=steam] .fx-steam,
+.scene-fx[data-off~=steam] .fx-puff,.scene-fx[data-off~=garland] .fx-bulb,.scene-fx[data-off~=confetti] .fx-confetti{display:none!important}
+.fx-clock-hand{animation-duration:calc(6s / var(--fx-speed,1))}
+.fx-sun{animation-duration:calc(2.4s / var(--fx-speed,1))}
+.fx-dust{animation-duration:calc(5s / var(--fx-speed,1))}
+.fx-lid{animation-duration:calc(4.6s / var(--fx-speed,1))}
+.fx-lamp{animation-duration:calc(3s / var(--fx-speed,1))}
+.fx-steam{animation-duration:calc(2.6s / var(--fx-speed,1))}
+.fx-puff{animation-duration:calc(3s / var(--fx-speed,1))}
+.fx-bulb{animation-duration:calc(1.6s / var(--fx-speed,1))}
 /* Reactions to a new sticker: the scene answers the player */
 .scene-fx.react .fx-clock-hand{animation:fx-spin .6s ease-out}
 .scene-fx.react .fx-sun{animation:fx-wink .6s ease-out}
