@@ -66,10 +66,11 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .settings-title{font-size:17px;font-weight:900}
 .switch-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:6px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;font-size:15px;font-weight:800;text-align:left}
 .switch-row .switch-text{flex:1}
-.switch{position:relative;flex:0 0 42px;height:24px;border-radius:999px;background:#d5d7ce;border:2px solid var(--ink);transition:background .15s}
-.switch:after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--ink);transition:transform .15s}
+.switch{position:relative;flex:0 0 46px;width:46px;height:26px;box-sizing:border-box;border-radius:999px;background:#d5d7ce;border:2px solid var(--ink);transition:background .15s}
+/* The knob is centred by its own geometry: 2px gap on every side, in both states. */
+.switch:after{content:"";position:absolute;left:2px;top:50%;width:18px;height:18px;box-sizing:border-box;border-radius:50%;background:#fff;border:2px solid var(--ink);transform:translate(0,-50%);transition:transform .15s}
 .switch-row[aria-pressed=true] .switch{background:var(--lime)}
-.switch-row[aria-pressed=true] .switch:after{transform:translateX(18px)}
+.switch-row[aria-pressed=true] .switch:after{transform:translate(20px,-50%)}
 .mixer{display:grid;gap:10px}
 .slider-row{display:grid;gap:4px;font-size:15px;font-weight:800}
 .slider-row input{width:100%;accent-color:var(--violet);height:28px}
