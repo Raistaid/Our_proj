@@ -1,4 +1,6 @@
-import { centeredRect } from './geometry.js';
+import { getStickerRect } from './game.js';
+import { centeredRect, validRect } from './geometry.js';
+export { loadAssets } from './assets.js';
 
 const INK = '#18212c';
 export function roundedRect(ctx, x, y, w, h, radius) {
@@ -10,34 +12,6 @@ export function roundedRect(ctx, x, y, w, h, radius) {
   ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
   ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
-}
-
-export async function loadAssets(content) {
-  const images = {};
-  const missing = [];
-  const paths = new Set(content.stickers.map(function (s) { return s.src; }));
-  content.levels.forEach(function (level) { paths.add(level.background); });
-  await Promise.all(Array.from(paths).map(function (path) {
-    return new Promise(function (resolve) {
-      const img = new Image();
-      let settled = false;
-      const timer = setTimeout(function () { finish(false); }, 1000);
-      function finish(ok) {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        if (ok) images[path] = img;
-        else missing.push(path);
-        resolve();
-      }
-      img.onload = function () { finish(true); };
-      img.onerror = function () { finish(false); };
-      img.src = new URL(path, document.baseURI).href;
-    });
-  }));
-  const stickers = {};
-  content.stickers.forEach(function (s) { stickers[s.id] = s; });
-  return { images: images, stickers: stickers, missing: missing };
 }
 
 function pixels(rect) {
@@ -89,37 +63,7 @@ function drawCaption(ctx, zone) {
   ctx.restore();
 }
 
-// Bounce of a freshly placed sticker's artwork. The opaque backing never moves.
-const BOUNCE_MS = 240;
-const motion = new WeakMap();
-
-function reducedMotion() {
-  return Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-}
-
-function bounceScales(canvas, placements, now) {
-  let entry = motion.get(canvas);
-  const first = !entry;
-  if (first) { entry = { born: new Map(), frame: 0 }; motion.set(canvas, entry); }
-  const alive = new Set();
-  const scales = {};
-  let animating = false;
-  placements.forEach(function (p) {
-    const key = p.id + ':' + p.rect.join(',');
-    alive.add(key);
-    // Placements that existed before this canvas was first drawn (e.g. the poster) do not bounce.
-    if (!entry.born.has(key)) entry.born.set(key, first || reducedMotion() ? -Infinity : now);
-    const t = (now - entry.born.get(key)) / BOUNCE_MS;
-    if (t >= 0 && t < 1) {
-      scales[key] = 1 + 0.16 * Math.sin(Math.PI * t) * (1 - t * 0.5);
-      animating = true;
-    }
-  });
-  Array.from(entry.born.keys()).forEach(function (key) { if (!alive.has(key)) entry.born.delete(key); });
-  return { entry: entry, scales: scales, animating: animating };
-}
-
-function drawSticker(ctx, placement, assets, preview, scale) {
+function drawSticker(ctx, placement, assets, preview) {
   const p = pixels(placement.rect);
   const sticker = assets.stickers[placement.stickerId] || { color: '#e4ff69' };
   ctx.save();
@@ -129,17 +73,30 @@ function drawSticker(ctx, placement, assets, preview, scale) {
   ctx.fillRect(p[0], p[1], p[2], p[3]);
   ctx.strokeStyle = INK; ctx.lineWidth = 1.8;
   ctx.strokeRect(p[0], p[1], p[2], p[3]);
-  // Artwork stays inside the backing even while it bounces.
+  // Preview, placed artwork and exported artwork share the same fixed size.
   ctx.beginPath(); ctx.rect(p[0], p[1], p[2], p[3]); ctx.clip();
   const img = assets.images[sticker.src];
   if (img) {
-    const size = Math.min(p[2] * 0.82, p[3] * 0.9) * (scale || 1);
+    const size = Math.min(p[2] * 0.82, p[3] * 0.9);
     ctx.drawImage(img, p[0] + (p[2] - size) / 2, p[1] + (p[3] - size) / 2, size, size);
   } else {
     ctx.fillStyle = INK; ctx.font = '700 12px ' + FONT; ctx.textAlign = 'center';
     ctx.textBaseline = 'middle'; ctx.fillText('ПРИКРЫТО', p[0] + p[2] / 2, p[1] + p[3] / 2);
   }
   ctx.restore();
+}
+
+// Palette cards use the exact same drawing and proportions as placed stickers.
+export function renderStickerCard(options) {
+  const canvas = options.canvas;
+  const rect = getStickerRect(options.level, { x: 0.5, y: 0.5 });
+  const ctx = canvas.getContext('2d');
+  if (!ctx || !rect) return;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(canvas.width / (rect[2] * 360), 0, 0,
+    canvas.height / (rect[3] * 480), 0, 0);
+  drawSticker(ctx, { stickerId: options.stickerId, rect: [0, 0, rect[2], rect[3]] }, options.assets, false);
 }
 
 function drawMissingBackground(ctx, level) {
@@ -183,10 +140,20 @@ export function renderBoard(options) {
   });
   level.secrets.forEach(function (zone) { drawNote(ctx, zone); });
   const placements = options.placements || [];
-  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  const bounce = bounceScales(canvas, placements, now);
+  let previewPlacement = null;
+  if (options.preview) {
+    const point = options.preview;
+    const original = point.placementId ? placements.find(function (p) { return p.id === point.placementId; }) : null;
+    const rect = original && Number.isFinite(point.x) && Number.isFinite(point.y) ?
+      centeredRect(point.x, point.y, original.rect[2], original.rect[3]) :
+      !point.placementId ? getStickerRect(level, point) : null;
+    if (rect && validRect(rect)) previewPlacement = { stickerId: original ? original.stickerId : point.stickerId, rect: rect };
+  }
   placements.forEach(function (placement) {
-    drawSticker(ctx, placement, assets, false, bounce.scales[placement.id + ':' + placement.rect.join(',')]);
+    if (options.preview && options.preview.removing && options.preview.placementId === placement.id) return;
+    if (previewPlacement && options.preview.placementId === placement.id) {
+      drawSticker(ctx, previewPlacement, assets, true);
+    } else drawSticker(ctx, placement, assets, false);
   });
   (options.hintIds || []).forEach(function (id) {
     const zone = level.secrets.find(function (s) { return s.id === id; });
@@ -195,21 +162,7 @@ export function renderBoard(options) {
     ctx.save(); ctx.strokeStyle = '#7a398d'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]);
     ctx.strokeRect(p[0] - 4, p[1] - 4, p[2] + 8, p[3] + 8); ctx.restore();
   });
-  if (options.preview) {
-    const size = level.defaultStickerSize || { w: 0.3, h: 0.2 };
-    drawSticker(ctx, {
-      stickerId: options.preview.stickerId,
-      rect: centeredRect(options.preview.x, options.preview.y, size.w, size.h)
-    }, assets, true);
-  }
-  // Keep redrawing only while a bounce is running; the newest options always win.
-  bounce.entry.last = options;
-  if (bounce.animating && !bounce.entry.frame && typeof requestAnimationFrame === 'function') {
-    bounce.entry.frame = requestAnimationFrame(function () {
-      bounce.entry.frame = 0;
-      if (canvas.isConnected) renderBoard(bounce.entry.last);
-    });
-  }
+  if (previewPlacement && !options.preview.placementId) drawSticker(ctx, previewPlacement, assets, true);
 }
 
 export function fitCanvas(canvas) {

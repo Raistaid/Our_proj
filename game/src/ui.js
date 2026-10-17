@@ -5,6 +5,7 @@ export function mountUI(callbacks) {
   const canvas = document.getElementById('board');
   const palette = document.getElementById('palette');
   let paletteKey = '';
+  let stickerCanvases = [];
   const actions = { start: 'onStart', close: 'onClose', sound: 'onSoundToggle',
     undo: 'onUndo', hint: 'onHint', check: 'onCheck', next: 'onNext',
     replay: 'onReplay', share: 'onShare', reload: 'onReload' };
@@ -51,17 +52,19 @@ export function mountUI(callbacks) {
       const key = vm.stickers.map(function (s) { return s.id; }).join('|');
       if (paletteKey !== key) {
         palette.textContent = '';
+        stickerCanvases = [];
         vm.stickers.forEach(function (sticker) {
           const button = document.createElement('button');
           button.type = 'button'; button.className = 'sticker-choice';
           button.dataset.stickerId = sticker.id;
           button.setAttribute('aria-label', sticker.label);
-          const image = document.createElement('img');
-          image.src = sticker.src; image.alt = ''; image.draggable = false;
-          image.onerror = function () { image.hidden = true; };
+          const thumbnail = document.createElement('canvas');
+          thumbnail.className = 'sticker-thumbnail';
+          thumbnail.setAttribute('aria-hidden', 'true');
+          stickerCanvases.push({ canvas: thumbnail, stickerId: sticker.id });
           const label = document.createElement('span');
           label.textContent = sticker.shortLabel || sticker.label;
-          button.appendChild(image); button.appendChild(label); palette.appendChild(button);
+          button.appendChild(thumbnail); button.appendChild(label); palette.appendChild(button);
         });
         paletteKey = key;
       }
@@ -105,6 +108,11 @@ export function mountUI(callbacks) {
         'Кадры готовы. Твои идеи остались видны, личное — за кадром.');
     }
   }
+  function setStickerSize(width, height) {
+    palette.style.setProperty('--sticker-width', width + 'px');
+    palette.style.setProperty('--sticker-height', height + 'px');
+  }
   return { canvas: canvas, boardElement: canvas, paletteElement: palette, rootElement: root,
-    updateUI: updateUI };
+    updateUI: updateUI, setStickerSize: setStickerSize,
+    getStickerCanvases: function () { return stickerCanvases.slice(); } };
 }

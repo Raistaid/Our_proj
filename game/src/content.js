@@ -1,4 +1,4 @@
-import { validRect, inflateRect, intersectsRect } from './geometry.js';
+import { validRect, centeredRect, containsRect, intersectsRect } from './geometry.js';
 
 function text(value) { return typeof value === 'string' && value.trim().length > 0; }
 function localAsset(value) {
@@ -13,11 +13,10 @@ export function validateContent(content) {
   if (!content.board || content.board.width !== 360 || content.board.height !== 480) {
     errors.push('Размер кадра должен быть 360 × 480');
   }
-  if (!Number.isFinite(content.stickerPadding) || content.stickerPadding < 0 ||
-      content.stickerPadding > 0.03) errors.push('Некорректный запас наклейки');
   const size = content.defaultStickerSize;
-  if (!size || !Number.isFinite(size.w) || !Number.isFinite(size.h) ||
-      !(size.w > 0 && size.w <= 0.5 && size.h > 0 && size.h <= 0.4)) {
+  const validSize = size && Number.isFinite(size.w) && Number.isFinite(size.h) &&
+    size.w > 0 && size.w <= 0.5 && size.h > 0 && size.h <= 0.4;
+  if (!validSize) {
     errors.push('Некорректный размер наклейки');
   }
   if (!Array.isArray(content.stickers) || !content.stickers.length) errors.push('Нет наклеек');
@@ -54,10 +53,11 @@ export function validateContent(content) {
       if (!s || !validRect(s.rect)) return;
       if (!Array.isArray(s.lines) || !s.lines.length || s.lines.length > 3 ||
           !s.lines.every(text) || !text(s.why)) errors.push(name + 'нет текста или объяснения');
-      const mask = inflateRect(s.rect, content.stickerPadding);
-      if (!validRect(mask)) errors.push(name + 'подложка выходит за кадр');
+      const mask = validSize ? centeredRect(s.rect[0] + s.rect[2] / 2,
+        s.rect[1] + s.rect[3] / 2, size.w, size.h) : null;
+      if (mask && !containsRect(mask, s.rect)) errors.push(name + 'секрет не помещается под наклейкой');
       keep.forEach(function (k) {
-        if (k && validRect(k.rect) && intersectsRect(mask, k.rect)) {
+        if (mask && k && validRect(k.rect) && intersectsRect(mask, k.rect)) {
           errors.push(name + 'секрет нельзя закрыть, сохранив главный предмет');
         }
       });
@@ -78,7 +78,6 @@ export function validateContent(content) {
 
 export function getRuntimeLevel(content, index) {
   return Object.assign({}, content.levels[index], {
-    stickerPadding: content.stickerPadding,
     defaultStickerSize: content.defaultStickerSize,
     allowedStickerIds: content.stickers.map(function (s) { return s.id; })
   });
@@ -86,7 +85,7 @@ export function getRuntimeLevel(content, index) {
 
 function fallbackContent() {
   return { schemaVersion: 1, board: { width: 360, height: 480 },
-    stickerPadding: 0.012, defaultStickerSize: { w: 0.3, h: 0.2 }, isFallback: true,
+    defaultStickerSize: { w: 0.44, h: 0.18 }, isFallback: true,
     stickers: [{ id: 'sock', label: 'Серьёзный носок', src: './assets/stickers/sock.svg', color: '#e4ff69' }],
     levels: [{ id: 'practice', title: 'Пробный кадр',
       brief: 'Закрой учебный код. Рюкзак оставь видимым.',
