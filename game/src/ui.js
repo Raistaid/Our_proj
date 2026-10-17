@@ -71,7 +71,6 @@ export function mountUI(callbacks) {
       }
       Array.from(palette.querySelectorAll('button')).forEach(function (button) {
         const selected = button.dataset.stickerId === vm.selectedStickerId;
-        button.classList.toggle('selected', selected);
         button.setAttribute('aria-pressed', String(selected));
         button.disabled = vm.screen === 'levelPassed';
       });
