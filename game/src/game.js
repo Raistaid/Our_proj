@@ -1,4 +1,5 @@
-import { validRect, pointInRect, containsRect, intersectsRect, centeredRect } from './geometry.js';
+import { validRect, centeredRect } from './geometry.js';
+import { stickerShape, stickerSize, pointInSticker, stickerIntersectsRect, stickersCoverRect } from './sticker-shapes.js';
 
 export function createLevelState(level) {
   return { levelId: level.id, placements: [], history: [], nextId: 1,
@@ -7,7 +8,7 @@ export function createLevelState(level) {
 
 function copyPlacements(items) {
   return items.map(function (p) {
-    return { id: p.id, stickerId: p.stickerId, rect: p.rect.slice() };
+    return { ...p, rect: p.rect.slice() };
   });
 }
 
@@ -15,7 +16,7 @@ function copyPlacements(items) {
 export function getStickerRect(level, point) {
   if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y) ||
       point.x < 0 || point.x > 1 || point.y < 0 || point.y > 1) return null;
-  const size = level.defaultStickerSize || { w: 0.44, h: 0.18 };
+  const size = stickerSize(level, point.stickerId);
   const rect = centeredRect(point.x, point.y, size.w, size.h);
   return validRect(rect) ? rect : null;
 }
@@ -28,10 +29,7 @@ export function placeSticker(level, state, drop) {
       level.allowedStickerIds.indexOf(drop.stickerId) === -1)) {
     return { state: state, accepted: false, reason: 'unknown' };
   }
-  if (state.placements.length >= level.maxStickers) {
-    return { state: state, accepted: false, reason: 'limit' };
-  }
-  const placement = { id: 'p' + state.nextId, stickerId: drop.stickerId, rect: rect };
+  const placement = { id: 'p' + state.nextId, stickerId: drop.stickerId, shape: stickerShape(level, drop.stickerId), rect: rect };
   return { accepted: true, reason: null, state: Object.assign({}, state, {
     placements: state.placements.concat([placement]),
     history: state.history.concat([copyPlacements(state.placements)]),
@@ -45,7 +43,7 @@ export function hitTestSticker(placements, point) {
       !Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
   for (let index = placements.length - 1; index >= 0; index -= 1) {
     const placement = placements[index];
-    if (placement && validRect(placement.rect) && pointInRect(point.x, point.y, placement.rect)) return placement;
+    if (placement && validRect(placement.rect) && pointInSticker(placement, point.x, point.y)) return placement;
   }
   return null;
 }
@@ -93,18 +91,19 @@ export function undoPlacement(state) {
 
 export function evaluateLevel(level, placements) {
   const list = Array.isArray(placements) ? placements : [];
-  const valid = list.filter(function (p) { return p && validRect(p.rect); });
+  const valid = list.filter(function (p) { return p && validRect(p.rect); })
+    .map(function (p) { return { ...p, shape: stickerShape(level, p.stickerId) }; });
   const covered = level.secrets.filter(function (s) {
-    return valid.some(function (p) { return containsRect(p.rect, s.rect); });
+    return stickersCoverRect(valid, s.rect);
   }).map(function (s) { return s.id; });
   const missing = level.secrets.filter(function (s) {
     return covered.indexOf(s.id) === -1;
   }).map(function (s) { return s.id; });
   const blocked = level.keepZones.filter(function (k) {
-    return valid.some(function (p) { return intersectsRect(p.rect, k.rect); });
+    return valid.some(function (p) { return stickerIntersectsRect(p, k.rect); });
   }).map(function (k) { return k.id; });
   return { passed: level.secrets.length > 0 && missing.length === 0 &&
-    blocked.length === 0 && valid.length === list.length && list.length <= level.maxStickers,
+    blocked.length === 0 && valid.length === list.length,
     coveredSecretIds: covered, missingSecretIds: missing, blockedKeepIds: blocked };
 }
 

@@ -5,8 +5,8 @@
     "height": 480
   },
   "defaultStickerSize": {
-    "w": 0.44,
-    "h": 0.18
+    "w": 0.40,
+    "h": 0.16
   },
   "stickers": [
     {
@@ -14,6 +14,7 @@
       "label": "Серьёзный носок",
       "shortLabel": "Носок",
       "src": "./assets/stickers/sock.svg",
+      "shape": "rectangle",
       "color": "#e4ff69"
     },
     {
@@ -21,6 +22,7 @@
       "label": "Деловое облако",
       "shortLabel": "Облако",
       "src": "./assets/stickers/cloud.svg",
+      "shape": "circle",
       "color": "#c9bdff"
     },
     {
@@ -28,6 +30,7 @@
       "label": "Огурец в полёте",
       "shortLabel": "Огурец",
       "src": "./assets/stickers/cucumber.svg",
+      "shape": "rounded-square",
       "color": "#ffc4b5"
     }
   ],
@@ -38,7 +41,6 @@
       "brief": "Спрячь личное. Рюкзак и идею рисунка оставь в кадре.",
       "background": "./assets/scenes/room.svg",
       "mode": "practice",
-      "maxStickers": 4,
       "secrets": [
         {
           "id": "home_address",
@@ -150,9 +152,7 @@
       "title": "Рабочее место гения",
       "brief": "Покажи рисунок. Доступ к аккаунту оставь себе.",
       "background": "./assets/scenes/desk.svg",
-      "mode": "practice",
-      "maxStickers": 4,
-      "secrets": [
+      "mode": "practice",      "secrets": [
         {
           "id": "password",
           "kind": "password",
@@ -287,9 +287,7 @@
       "title": "Чайник под прикрытием",
       "brief": "У чайника важный вид. Личные записки показывать не нужно.",
       "background": "./assets/scenes/poster.svg",
-      "mode": "practice",
-      "maxStickers": 4,
-      "secrets": [
+      "mode": "practice",      "secrets": [
         {
           "id": "home_address",
           "kind": "address",
@@ -457,9 +455,7 @@
       "title": "Плакат с характером",
       "brief": "Плакат увидят все. Спрячь сведения для доступа.",
       "background": "./assets/scenes/poster.svg",
-      "mode": "practice",
-      "maxStickers": 4,
-      "secrets": [
+      "mode": "practice",      "secrets": [
         {
           "id": "password",
           "kind": "password",
@@ -626,9 +622,7 @@
       "title": "Последний кадр — твой",
       "brief": "Подготовь новый кадр самостоятельно. Сохрани рисунок и идеи.",
       "background": "./assets/scenes/desk.svg",
-      "mode": "transfer",
-      "maxStickers": 4,
-      "secrets": [
+      "mode": "transfer",      "secrets": [
         {
           "id": "pickup_code",
           "kind": "code",

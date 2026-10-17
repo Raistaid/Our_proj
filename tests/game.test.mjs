@@ -45,12 +45,12 @@ test('Обычную идею нельзя заклеить даже после 
   const report = evaluateLevel(level, result.state.placements);
   assert.equal(report.passed, false);
   assert.ok(report.blockedKeepIds.includes('public_note'));
-  assert.deepEqual(result.state.placements.at(-1).rect.slice(2), [0.44, 0.18],
+  assert.deepEqual(result.state.placements.at(-1).rect.slice(2), [0.40, 0.16],
     'Обычная записка не меняет фиксированный размер наклейки');
 });
 
-test('All characters keep one fixed size on every scene, notes, free space and board edges', function () {
-  assert.deepEqual(content.defaultStickerSize, { w: 0.44, h: 0.18 });
+test('Each character keeps its fixed shape size on every scene, notes, free space and board edges', function () {
+  assert.deepEqual(content.defaultStickerSize, { w: 0.40, h: 0.16 });
   for (let index = 0; index < content.levels.length; index += 1) {
     const level = getRuntimeLevel(content, index);
     const notes = level.secrets.concat(level.keepZones.filter(function (zone) { return zone.style === 'note'; }));
@@ -66,7 +66,7 @@ test('All characters keep one fixed size on every scene, notes, free space and b
         const placed = placeSticker(level, createLevelState(level), { stickerId: sticker.id, ...point });
         assert.equal(placed.accepted, true);
         const rect = placed.state.placements[0].rect;
-        assert.deepEqual(rect.slice(2), [0.44, 0.18], level.id + '/' + sticker.id + ': size changed');
+        assert.deepEqual(rect.slice(2), sticker.id === 'sock' ? [0.40, 0.16] : [0.30, 0.225], level.id + '/' + sticker.id + ': size changed');
         assert.ok(validRect(rect), level.id + '/' + sticker.id + ': edge placement must stay inside the board');
       }
     }
@@ -93,8 +93,8 @@ test('Crossing any note boundary moves the fixed rectangle continuously without 
             assert.equal(result.accepted, true);
             return result.state.placements[0].rect;
           });
-          assert.deepEqual(rects[0].slice(2), [0.44, 0.18]);
-          assert.deepEqual(rects[1].slice(2), [0.44, 0.18]);
+          assert.deepEqual(rects[0].slice(2), sticker.id === 'sock' ? [0.40, 0.16] : [0.30, 0.225]);
+          assert.deepEqual(rects[1].slice(2), sticker.id === 'sock' ? [0.40, 0.16] : [0.30, 0.225]);
           assert.ok(Math.abs(rects[1][0] - rects[0][0]) <= 2 * epsilon + 1e-12,
             level.id + '/' + note.id + ': horizontal snap');
           assert.ok(Math.abs(rects[1][1] - rects[0][1]) <= 2 * epsilon + 1e-12,
@@ -125,21 +125,37 @@ test('Координаты и история не изменяют предыд�
   assert.equal(undoPlacement(result.state).placements.length, 0);
   assert.equal(result.state.placements.length, 1);
 });
-test('Лимит, неизвестная наклейка и выход за кадр не добавляют ход', function () {
+test('Unlimited stickers are accepted; unknown stickers and outside drops are rejected', function () {
   const level = getRuntimeLevel(content, 0);
   let state = createLevelState(level);
-  for (let i = 0; i < level.maxStickers; i += 1) {
+  for (let i = 0; i < 12; i += 1) {
     state = placeSticker(level, state, { stickerId: 'sock', x: 0.5, y: 0.5 }).state;
   }
-  assert.equal(placeSticker(level, state, { stickerId: 'sock', x: 0.5, y: 0.5 }).reason, 'limit');
+  assert.equal(state.placements.length, 12);
+  assert.equal(placeSticker(level, state, { stickerId: 'sock', x: 0.5, y: 0.5 }).accepted, true);
   assert.equal(placeSticker(level, state, { stickerId: 'sock', x: -0.1, y: 0.5 }).reason, 'outside');
   assert.equal(placeSticker(level, state, { stickerId: 'unknown', x: 0.5, y: 0.5 }).reason, 'unknown');
 });
 
-test('Moving an existing sticker at the placement limit preserves identity, size, count and layer order', function () {
+test('A solved frame passes with more stickers than the former limit', function () {
+  const level = { ...getRuntimeLevel(content, 0), maxStickers: 4 };
+  let state = solve(level);
+  const rect = level.secrets[0].rect;
+  for (let index = 0; index < 12; index += 1) {
+    const result = placeSticker(level, state, {
+      stickerId: 'sock', x: rect[0] + rect[2] / 2, y: rect[1] + rect[3] / 2
+    });
+    assert.equal(result.accepted, true);
+    state = result.state;
+  }
+  assert.ok(state.placements.length > 4);
+  assert.equal(checkLevel(level, state).report.passed, true);
+});
+
+test('Moving an existing sticker among many stickers preserves identity, size, count and layer order', function () {
   const level = getRuntimeLevel(content, 0);
   let state = createLevelState(level);
-  for (let index = 0; index < level.maxStickers; index += 1) {
+  for (let index = 0; index < 12; index += 1) {
     state = placeSticker(level, state, { stickerId: 'sock', x: 0.5, y: 0.5 }).state;
   }
   const before = structuredClone(state);
@@ -152,7 +168,7 @@ test('Moving an existing sticker at the placement limit preserves identity, size
   assert.deepEqual(state, before, 'Moving must not mutate the prior state');
   assert.notEqual(moved.state, state);
   assert.notEqual(moved.state.placements[0], target);
-  assert.equal(moved.state.placements.length, level.maxStickers);
+  assert.equal(moved.state.placements.length, 12);
   assert.equal(moved.state.nextId, before.nextId);
   assert.deepEqual(moved.state.placements.map(function (p) { return p.id; }), before.placements.map(function (p) { return p.id; }));
   assert.equal(moved.state.placements[0].stickerId, target.stickerId);
@@ -163,7 +179,7 @@ test('Moving an existing sticker at the placement limit preserves identity, size
   assert.deepEqual(moved.state.history.at(-1), before.placements);
   assert.notEqual(moved.state.history.at(-1)[0].rect, target.rect, 'Undo must keep its own rectangle snapshot');
   assert.deepEqual(undoPlacement(moved.state), before);
-  assert.equal(undoPlacement(undoPlacement(moved.state)).placements.length, level.maxStickers - 1);
+  assert.equal(undoPlacement(undoPlacement(moved.state)).placements.length, 12 - 1);
 });
 
 test('Moving a sticker off a normal note updates evaluation and undo restores the original position', function () {
@@ -234,10 +250,10 @@ test('Hit testing selects the topmost containing sticker and respects edges and 
 });
 
 for (const layer of ['top', 'underneath']) {
-  test('Removing the ' + layer + ' sticker at the limit frees capacity and undo restores its exact layer', function () {
+  test('Removing the ' + layer + ' sticker among many stickers and undo restores its exact layer', function () {
     const level = getRuntimeLevel(content, 0);
     let state = useHint(checkLevel(level, createLevelState(level)).state);
-    for (let index = 0; index < level.maxStickers; index += 1) {
+    for (let index = 0; index < 12; index += 1) {
       state = placeSticker(level, state, {
         stickerId: content.stickers[index % content.stickers.length].id, x: 0.5, y: 0.5
       }).state;
@@ -250,7 +266,7 @@ for (const layer of ['top', 'underneath']) {
     assert.equal(removed.reason, null);
     assert.notEqual(removed.state, state);
     assert.deepEqual(state, before, 'Removal must not mutate its input');
-    assert.equal(removed.state.placements.length, level.maxStickers - 1);
+    assert.equal(removed.state.placements.length, 12 - 1);
     assert.deepEqual(removed.state.placements, before.placements.filter(function (p) { return p.id !== target.id; }));
     assert.equal(removed.state.nextId, before.nextId);
     assert.equal(removed.state.checks, before.checks);
@@ -266,8 +282,8 @@ for (const layer of ['top', 'underneath']) {
     assert.equal(hitTestSticker(undone.placements, { x: 0.5, y: 0.5 }).id, before.placements.at(-1).id);
 
     const readded = placeSticker(level, removed.state, { stickerId: 'sock', x: 0.2, y: 0.2 });
-    assert.equal(readded.accepted, true, 'Deleting a sticker must free a placement slot');
-    assert.equal(readded.state.placements.length, level.maxStickers);
+    assert.equal(readded.accepted, true, 'Adding another sticker after removal must succeed');
+    assert.equal(readded.state.placements.length, 12);
     assert.equal(readded.state.placements.at(-1).id, 'p' + before.nextId);
     assert.equal(readded.state.placements.some(function (p) { return p.id === target.id; }), false);
     const undoAdded = undoPlacement(readded.state);
@@ -352,7 +368,6 @@ test('Сломанные данные, внешний ресурс и прозр
     function (c) { c.stickers[0].color = 'transparent'; },
     function (c) { c.levels[0].secrets[0].rect = [-0.1, 0, 0.5, 0.2]; },
     function (c) { c.levels[0].secrets[0].rect = [0.3, 0.35, 0.2, 0.2]; },
-    function (c) { c.levels[0].maxStickers = 1; },
     function (c) { c.levels[0].secrets.push(null); },
     function (c) { c.levels[0].keepZones.push(null); },
     function (c) { c.defaultStickerSize.w = '0.3'; }
@@ -365,7 +380,7 @@ test('Сломанные данные, внешний ресурс и прозр
 });
 
 test('A finite fixed sticker size that cannot cover the secrets is rejected', function () {
-  for (const size of [{ w: 0.30, h: 0.18 }, { w: 0.44, h: 0.10 }]) {
+  for (const size of [{ w: 0.30, h: 0.16 }, { w: 0.40, h: 0.10 }]) {
     const candidate = fresh();
     candidate.defaultStickerSize = size;
     const result = validateContent(candidate);
@@ -412,7 +427,7 @@ test('При недоступном JSON загружается отдельны
     assert.equal(fallback.levels.length, 1);
     assert.equal(validateContent(fallback).ok, true);
     const level = getRuntimeLevel(fallback, 0);
-    assert.deepEqual(fallback.defaultStickerSize, { w: 0.44, h: 0.18 });
+    assert.deepEqual(fallback.defaultStickerSize, { w: 0.40, h: 0.16 });
     assert.equal(evaluateLevel(level, solve(level).placements).passed, true);
   } finally { globalThis.fetch = originalFetch; console.warn = originalWarn; }
 });

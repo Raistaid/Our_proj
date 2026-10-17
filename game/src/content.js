@@ -23,7 +23,8 @@ export function validateContent(content) {
   const stickerIds = new Set();
   (Array.isArray(content.stickers) ? content.stickers : []).forEach(function (s) {
     if (!s || !text(s.id) || stickerIds.has(s.id) || !text(s.label) || !localAsset(s.src) ||
-        typeof s.color !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(s.color)) {
+        typeof s.color !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(s.color) ||
+        (s.shape !== undefined && !['rectangle', 'circle', 'rounded-square'].includes(s.shape))) {
       errors.push('Некорректная наклейка');
     } else stickerIds.add(s.id);
   });
@@ -51,8 +52,6 @@ export function validateContent(content) {
     const secrets = Array.isArray(level.secrets) ? level.secrets : [];
     const keep = Array.isArray(level.keepZones) ? level.keepZones : [];
     if (!secrets.length || !keep.length) errors.push(name + 'нет областей');
-    if (!Number.isInteger(level.maxStickers) || level.maxStickers < secrets.length ||
-        level.maxStickers > 8) errors.push(name + 'неподходящий лимит');
     const ids = new Set();
     secrets.concat(keep).forEach(function (zone) {
       if (!zone || !text(zone.id) || ids.has(zone.id) || !validRect(zone.rect)) {
@@ -103,17 +102,18 @@ export function applyLayout(level, variant) {
 export function getRuntimeLevel(content, index, variant) {
   return Object.assign({}, applyLayout(content.levels[index], variant || 0), {
     defaultStickerSize: content.defaultStickerSize,
+    stickers: content.stickers,
     allowedStickerIds: content.stickers.map(function (s) { return s.id; })
   });
 }
 
 function fallbackContent() {
   return { schemaVersion: 1, board: { width: 360, height: 480 },
-    defaultStickerSize: { w: 0.44, h: 0.18 }, isFallback: true,
+    defaultStickerSize: { w: 0.40, h: 0.16 }, isFallback: true,
     stickers: [{ id: 'sock', label: 'Серьёзный носок', src: './assets/stickers/sock.svg', color: '#e4ff69' }],
     levels: [{ id: 'practice', title: 'Пробный кадр',
       brief: 'Закрой учебный код. Рюкзак оставь видимым.',
-      background: './assets/scenes/room.svg', mode: 'practice', maxStickers: 4,
+      background: './assets/scenes/room.svg', mode: 'practice',
       secrets: [{ id: 'code', kind: 'code', rect: [0.05, 0.08, 0.38, 0.14],
         lines: ['Учебный код', '000000'], why: 'Код не стоит оставлять в открытом доступе.' }],
       keepZones: [{ id: 'hero', rect: [0.26, 0.3, 0.48, 0.38], hint: 'Пусть рюкзак останется видимым.' }],

@@ -15,11 +15,17 @@ function drawingSurface(connected = false) {
   const context = new Proxy({
     globalAlpha: 1,
     fillStyle: '',
-    save: function () { saved.push({ globalAlpha: this.globalAlpha, fillStyle: this.fillStyle }); },
+    pathShape: null, clipShape: null,
+    beginPath: function () { this.pathShape = null; },
+    rect: function () { this.pathShape = 'rectangle'; },
+    arc: function () { this.pathShape = 'circle'; },
+    arcTo: function () { this.pathShape = 'rounded-square'; },
+    clip: function () { this.clipShape = this.pathShape; },
+    save: function () { saved.push({ globalAlpha: this.globalAlpha, fillStyle: this.fillStyle, clipShape: this.clipShape }); },
     restore: function () { Object.assign(this, saved.pop()); },
     measureText: function (text) { return { width: text.length * 5 }; },
     fillRect: function (...rect) {
-      rectangles.push({ rect: rect, alpha: this.globalAlpha, color: this.fillStyle });
+      rectangles.push({ rect: rect, alpha: this.globalAlpha, color: this.fillStyle, shape: this.clipShape });
     },
     drawImage: function (image, ...rect) {
       images.push({ image: image, rect: rect, alpha: this.globalAlpha });
@@ -58,6 +64,8 @@ test('Palette cards draw the same backing and character dimensions as board stic
       const mask = board.rectangles.find(function (r) { return r.color === sticker.color; });
       assert.deepEqual(card.rectangles[0].rect, [0, 0, mask.rect[2], mask.rect[3]]);
       assert.equal(card.rectangles[0].alpha, 1);
+      assert.equal(mask.shape, sticker.shape);
+      assert.equal(card.rectangles[0].shape, sticker.shape);
       const relativeArtwork = [board.images[0].rect[0] - mask.rect[0],
         board.images[0].rect[1] - mask.rect[1], board.images[0].rect[2], board.images[0].rect[3]];
       card.images[0].rect.forEach(function (value, part) {
@@ -150,7 +158,10 @@ test('Fixed preview, placement and exported artwork match on all scenes, notes a
         const exportedMask = exported.rectangles.find(function (r) { return r.alpha === 1 && r.color === sticker.color; });
         assert.ok(mask, level.id + ': предпросмотр отсутствует');
         assert.ok(opaque, level.id + ': непрозрачная подложка отсутствует');
-        assert.deepEqual(mask.rect.slice(2), [0.44 * 360, 0.18 * 480], level.id + ': preview size changed');
+        assert.deepEqual(mask.rect.slice(2), (sticker.id === 'sock' ? [0.40 * 360, 0.16 * 480] : [0.30 * 360, 0.225 * 480]), level.id + ': preview size changed');
+        assert.equal(mask.shape, sticker.shape);
+        assert.equal(opaque.shape, sticker.shape);
+        assert.equal(exportedMask.shape, sticker.shape);
         assert.deepEqual(mask.rect, opaque.rect, level.id + ': размер меняется после установки');
         assert.deepEqual(exportedMask.rect, opaque.rect, level.id + ': exported backing changed');
         assert.equal(preview.images.length, 1);
@@ -189,7 +200,7 @@ test('Dragging a loaded preview into a note keeps the backing and artwork dimens
         const masks = draws.map(function (rendered) {
           return rendered.rectangles.find(function (r) { return r.alpha === 0.65 && r.color === sticker.color; }).rect;
         });
-        assert.deepEqual(masks[0].slice(2), [0.44 * 360, 0.18 * 480]);
+        assert.deepEqual(masks[0].slice(2), (sticker.id === 'sock' ? [0.40 * 360, 0.16 * 480] : [0.30 * 360, 0.225 * 480]));
         assert.deepEqual(masks[1].slice(2), masks[0].slice(2), level.id + '/' + note.id + ': backing resized');
         assert.deepEqual(draws[1].images[0].rect.slice(2), draws[0].images[0].rect.slice(2),
           level.id + '/' + note.id + ': artwork resized');

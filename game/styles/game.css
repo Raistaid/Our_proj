@@ -167,7 +167,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 /* Three cards in one row. Each card is the real sticker scaled down: same drawing, same proportions. */
 .palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;touch-action:none;padding:4px}
 .sticker-choice{width:100%;background:#fffaf1;color:var(--ink);border:2px solid var(--line);border-radius:14px;box-shadow:none;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:background .12s,border-color .12s,transform .12s,box-shadow .12s}
-.sticker-thumbnail{display:block;width:100%;max-width:var(--sticker-width,158.4px);height:auto;aspect-ratio:var(--sticker-ratio,1.8333);pointer-events:none}
+.sticker-thumbnail{display:block;width:100%;max-width:var(--sticker-width,144px);height:auto;aspect-ratio:var(--sticker-ratio,1.875);pointer-events:none}
 .sticker-choice span{font-size:14px;line-height:20px;font-weight:800;pointer-events:none}
 /* The chosen sticker is visible (ТЗ: «явное выбранное состояние»). Driven by aria-pressed,
    which the UI already sets, so no extra class is needed. */
