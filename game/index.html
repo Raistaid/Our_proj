@@ -13,9 +13,13 @@
 <body>
   <div id="app" class="app">
     <header class="topbar">
-      <div class="brand"><span class="brand-spark" aria-hidden="true">✳</span> ЗАСВЕТ<span class="brand-dot">.</span></div>
+      <div class="brand" id="brand"><span class="brand-spark" aria-hidden="true">✳</span> ЗАСВЕТ<span class="brand-dot">.</span></div>
+      <div class="level-info" id="level-info" hidden>
+        <div class="level-meta"><span id="level-counter">Кадр 1 / 5</span><div id="progress" class="progress" aria-hidden="true"></div></div>
+        <h2 id="level-title">Кадр</h2>
+      </div>
       <div class="topbar-actions">
-        <button type="button" class="icon-button sound-button" data-action="sound" aria-pressed="false" aria-label="Включить звук">Звук выкл.</button>
+        <button type="button" class="icon-button sound-button" data-action="sound" aria-pressed="false" aria-label="Включить звук"><span class="sound-icon" aria-hidden="true">🔇</span><span class="sound-label">Звук выкл.</span></button>
         <button type="button" class="icon-button close-button" data-action="close" aria-label="Выйти из игры">×</button>
       </div>
     </header>
@@ -45,36 +49,36 @@
         </div>
       </section>
       <section id="play-screen" class="play-screen" hidden>
-        <div class="level-heading">
-          <div class="level-meta"><span id="level-counter">Кадр 1 / 5</span><div id="progress" class="progress" aria-hidden="true"></div></div>
-          <h2 id="level-title">Кадр</h2>
-          <p id="task" class="task"></p>
-        </div>
-        <div class="game-layout">
+        <p id="task" class="task"></p>
+        <div class="game-layout" id="game-layout">
           <div class="board-stage">
-            <div class="board-frame">
+            <div class="board-frame" id="board-frame">
               <canvas id="board" width="360" height="480" role="img" aria-label="Кадр с записками. Закрой личные сведения, оставь главный предмет и обычные идеи видимыми."></canvas>
-              <div id="passed-notice" class="passed-notice" hidden>
-                <div class="passed-card">
-                  <span class="passed-mark" aria-hidden="true">✓</span>
-                  <strong>КАДР ГОТОВ</strong>
-                  <p id="success-text"></p>
-                  <button type="button" class="button button-primary" data-action="next" id="next-button">Следующий кадр ↗</button>
-                </div>
-              </div>
             </div>
           </div>
           <aside class="workspace">
-            <div class="palette-heading"><span class="eyebrow">Кто прикрывает?</span><span id="sticker-count" class="count-label">0 / 4</span></div>
-            <div id="palette" class="palette" role="group" aria-label="Выбери наклейку"></div>
-            <p class="gesture-help">Перетащи на записку.<br>Или выбери наклейку и коснись кадра.</p>
-            <div class="secondary-actions">
-              <button type="button" class="button button-secondary" data-action="undo" id="undo-button" disabled>↶ Отменить</button>
-              <button type="button" class="button button-secondary" data-action="hint" id="hint-button">Подсказка</button>
-            </div>
-            <button type="button" class="button button-primary check-button" data-action="check" id="check-button">ГОТОВО <span aria-hidden="true">✓</span></button>
             <div id="feedback" class="feedback" role="status" aria-live="polite">
-              <span class="feedback-symbol" aria-hidden="true">✳</span><p id="feedback-text">Секреты прикрываем. Обычные идеи оставляем.</p>
+              <span class="feedback-symbol" id="feedback-symbol" aria-hidden="true">✳</span><p id="feedback-text">Секреты прикрываем. Обычные идеи оставляем.</p>
+            </div>
+            <div class="palette-block">
+              <div class="palette-heading"><span class="eyebrow">Кто прикрывает?</span><span id="sticker-count" class="count-label">0 / 4</span></div>
+              <div id="palette" class="palette" role="group" aria-label="Выбери наклейку"></div>
+              <p class="gesture-help" id="gesture-help">Перетащи на кадр или выбери и коснись кадра.</p>
+            </div>
+            <div class="controls">
+              <button type="button" class="button button-secondary" data-action="undo" id="undo-button" disabled><span aria-hidden="true">↶</span> Отменить</button>
+              <button type="button" class="button button-secondary" data-action="hint" id="hint-button"><span aria-hidden="true">?</span> Подсказка</button>
+              <button type="button" class="button button-primary check-button" data-action="check" id="check-button">Готово <span aria-hidden="true">✓</span></button>
+            </div>
+            <div id="passed-notice" class="passed-notice" hidden>
+              <div class="passed-card">
+                <span class="passed-mark" aria-hidden="true">✓</span>
+                <div class="passed-copy">
+                  <strong>Секреты закрыты</strong>
+                  <p id="success-text"></p>
+                </div>
+              </div>
+              <button type="button" class="button button-primary next-button" data-action="next" id="next-button">Следующий кадр ↗</button>
             </div>
             <p class="fallback-note" id="fallback-note" hidden>Основные кадры не загрузились. Пока можно попробовать один.</p>
           </aside>

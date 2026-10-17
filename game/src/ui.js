@@ -1,3 +1,5 @@
+const SYMBOLS = { info: '✳', warning: '!', success: '✓' };
+
 export function mountUI(callbacks) {
   const root = document.getElementById('app');
   const canvas = document.getElementById('board');
@@ -24,8 +26,12 @@ export function mountUI(callbacks) {
     show('play-screen', playing);
     show('result-screen', vm.screen === 'result');
     show('error-screen', vm.screen === 'error');
+    root.dataset.screen = vm.screen;
+    show('brand', !playing);
+    show('level-info', playing);
     const sound = root.querySelector('[data-action=sound]');
-    sound.textContent = vm.soundOn ? 'Звук вкл.' : 'Звук выкл.';
+    sound.querySelector('.sound-icon').textContent = vm.soundOn ? '🔊' : '🔇';
+    sound.querySelector('.sound-label').textContent = vm.soundOn ? 'Звук вкл.' : 'Звук выкл.';
     sound.setAttribute('aria-pressed', String(Boolean(vm.soundOn)));
     sound.setAttribute('aria-label', vm.soundOn ? 'Выключить звук' : 'Включить звук');
     setText('start-note', vm.isFallback ?
@@ -72,9 +78,17 @@ export function mountUI(callbacks) {
         'Сначала попробуй подготовить этот кадр самостоятельно' : '';
       document.getElementById('check-button').disabled = vm.screen === 'levelPassed';
       const feedback = document.getElementById('feedback');
-      feedback.dataset.kind = vm.feedback.kind || 'info';
+      const kind = vm.feedback.kind || 'info';
+      feedback.dataset.kind = kind;
+      // Color is never the only signal: every kind has its own symbol.
+      setText('feedback-symbol', SYMBOLS[kind] || SYMBOLS.info);
       setText('feedback-text', vm.feedback.text);
-      show('passed-notice', vm.screen === 'levelPassed');
+      // Only on the first frame, and constant within it so buttons never jump under a finger.
+      show('gesture-help', vm.levelIndex === 1);
+      const passed = vm.screen === 'levelPassed';
+      show('passed-notice', passed);
+      root.querySelector('.workspace').dataset.passed = String(passed);
+      document.getElementById('board-frame').classList.toggle('passed', passed);
       setText('success-text', vm.successText);
       setText('next-button', vm.levelIndex === vm.levelCount ? 'Мой коллаж ↗' : 'Следующий кадр ↗');
       show('fallback-note', vm.isFallback);
