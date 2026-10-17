@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push to the same branch or PR cancels the run that is still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Тесты (npm test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The project has no dependencies, so there is nothing to install.
+      - run: npm test
+
+  content:
+    name: Сцены проходимы (check:content)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run check:content
+
+  weight:
+    name: Вес игры ≤ 5 МБ
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Размер папки game
+        run: |
+          bytes=$(du -sb game | cut -f1)
+          echo "Папка game: $((bytes / 1024)) КБ (бюджет хакатона 5 МБ)"
+          echo "### Вес игры: $((bytes / 1024)) КБ из 5120 КБ" >> "$GITHUB_STEP_SUMMARY"
+          test "$bytes" -le $((5 * 1024 * 1024))
