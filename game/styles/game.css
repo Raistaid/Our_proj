@@ -3,7 +3,7 @@
  --muted:#59635f;--line:#d5d7ce;--warn-bg:#fff0bd;--ok-bg:#eaf8c8;
  --gutter:16px;--topbar:64px;
  /* Vertical space taken by everything around the board on the play screen (phone layout). */
- --play-chrome:532px;
+ --play-chrome:385px;
  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--paper);font-synthesis:none;
  -webkit-text-size-adjust:100%;text-size-adjust:100%
 }
@@ -103,6 +103,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .workspace[data-passed=true] .feedback,.workspace[data-passed=true] .controls,.workspace[data-passed=true] .palette-block{display:none}
 .palette-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .count-label{font-size:14px;font-weight:800;color:var(--muted)}
+/* Three cards in one row. Each card is the real sticker scaled down: same drawing, same proportions. */
 .palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;touch-action:none;padding:4px}
 .sticker-choice{width:100%;background:transparent;color:var(--ink);border:0;border-radius:0;box-shadow:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .sticker-thumbnail{display:block;width:100%;max-width:var(--sticker-width,158.4px);height:auto;aspect-ratio:var(--sticker-ratio,1.8333);pointer-events:none}
@@ -110,6 +111,8 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .sticker-choice.selected .sticker-thumbnail{outline:3px solid var(--violet);outline-offset:2px}
 .sticker-choice .sticker-thumbnail{transition:transform .15s ease-out}
 .sticker-choice.selected .sticker-thumbnail{transform:translateY(-2px)}
+.board-frame.just-placed{animation:placed .26s ease-out}
+@keyframes placed{0%{box-shadow:0 0 0 5px var(--lime)}100%{box-shadow:6px 6px 0 #ded9ea}}
 .gesture-help{font-size:14px;line-height:1.4;color:var(--muted);margin:10px 0 0}
 .fallback-note{order:5;font-size:14px;line-height:1.5;padding:10px;background:var(--warn-bg);border-radius:8px;margin:0}
 .passed-card{display:flex;gap:12px;align-items:center;background:var(--ok-bg);border:2px solid var(--ink);border-radius:14px;padding:14px;box-shadow:3px 3px 0 var(--ink)}
@@ -169,6 +172,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .feedback-symbol{flex-basis:24px;height:24px;font-size:16px}
  .palette-heading{display:none}
  .palette{gap:12px}
+ /* On phones the card itself shows the sticker; its name stays in aria-label. */
  .sticker-choice span{display:none}
  .gesture-help{font-size:14px;margin-top:6px}
  .controls{grid-template-columns:1fr 1fr 1.2fr;gap:8px}
