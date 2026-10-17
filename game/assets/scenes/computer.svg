@@ -1,25 +1,69 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 360 480">
-  <defs><pattern id="wall" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#18212c" opacity=".06"/></pattern><linearGradient id="case" x2="1" y2="1"><stop stop-color="#c9bded"/><stop offset="1" stop-color="#9590b5"/></linearGradient><linearGradient id="screen" x2="0" y2="1"><stop stop-color="#fffaff"/><stop offset="1" stop-color="#eae5fa"/></linearGradient><linearGradient id="desk" x2="0" y2="1"><stop stop-color="#e8cdb0"/><stop offset="1" stop-color="#d8bda1"/></linearGradient></defs>
-  <rect width="360" height="480" fill="#e9edf5"/>
-  <rect width="360" height="382" fill="url(#wall)"/>
-  <path d="M0 382H360V480H0Z" fill="url(#desk)"/>
-  <path d="M0 382H360" stroke="#18212c" stroke-width="2" opacity=".22"/>
-  <path d="M12 455H72M284 451H342M17 394H71M291 392H348" stroke="#b89e86" stroke-width="1.5" stroke-linecap="round" opacity=".4"/>
-  <ellipse cx="180" cy="403" rx="70" ry="7" fill="#18212c" opacity=".1"/>
-  <rect x="22" y="37" width="328" height="344" rx="14" fill="#18212c" opacity=".15"/>
-  <rect x="16" y="30" width="328" height="344" rx="14" fill="url(#case)" stroke="#18212c" stroke-width="3"/>
-  <path d="M24 38H328" stroke="#f5efff" stroke-width="2" stroke-linecap="round" opacity=".8"/>
-  <rect x="25" y="43" width="310" height="320" rx="7" fill="url(#screen)" stroke="#18212c" stroke-width="2"/>
-  <path d="M25 79H335" stroke="#d3cfe7" stroke-width="1.5"/>
-  <circle cx="43" cy="61" r="8" fill="#b2a3ed"/>
-  <path d="M39 61H47M43 57V65" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
-  <text x="61" y="65" font-family="system-ui,Arial,sans-serif" font-size="12" font-weight="800" fill="#18212c">Личные сообщения</text>
-  <circle cx="304" cy="61" r="2" fill="#6c6589"/><circle cx="312" cy="61" r="2" fill="#6c6589"/><circle cx="320" cy="61" r="2" fill="#6c6589"/>
-  <circle cx="321" cy="369" r="2" fill="#e3ff74"/>
-  <path d="M153 375L149 399H211L207 375" fill="#9c9bb6" stroke="#18212c" stroke-width="2"/>
-  <path d="M135 401H225" stroke="#18212c" stroke-width="5" stroke-linecap="round"/>
-  <path d="M51 439H305" stroke="#18212c" stroke-width="4" stroke-linecap="round" opacity=".1"/>
-  <path d="M64 414H292L309 436H47Z" fill="#fff9e9" stroke="#18212c" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M68 421H289M60 429H297M94 416L89 430M120 416L118 430M146 416L145 430M172 416V430M198 416L199 430M224 416L226 430M250 416L253 430M276 416L280 430" stroke="#9c9bb6" stroke-width="2"/>
-  <path d="M150 433H205" stroke="#b2a3ed" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#ede9f8"/><stop offset="1" stop-color="#f8f1e7"/></linearGradient>
+    <pattern id="paper" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".8" fill="#756b8c" opacity=".08"/></pattern>
+    <linearGradient id="case" x2=".7" y2="1"><stop stop-color="#dfd4ff"/><stop offset=".5" stop-color="#b9a9e3"/><stop offset="1" stop-color="#8d80b1"/></linearGradient>
+    <linearGradient id="screen" x2="0" y2="1"><stop stop-color="#faf8ff"/><stop offset="1" stop-color="#ede8f8"/></linearGradient>
+    <linearGradient id="desk" x2="0" y2="1"><stop stop-color="#ead2b8"/><stop offset="1" stop-color="#d7b597"/></linearGradient>
+    <linearGradient id="stand" x2="1" y2="0"><stop stop-color="#8f83aa"/><stop offset=".45" stop-color="#d3c9e8"/><stop offset="1" stop-color="#a99abd"/></linearGradient>
+    <clipPath id="display"><rect x="25" y="43" width="310" height="328" rx="8"/></clipPath>
+  </defs>
+  <rect width="360" height="480" fill="url(#wall)"/>
+  <circle cx="37" cy="90" r="103" fill="#dcd5f3" opacity=".45"/>
+  <circle cx="338" cy="302" r="105" fill="#ffe5d4" opacity=".4"/>
+  <rect width="360" height="396" fill="url(#paper)"/>
+  <path d="M0 396H360V480H0Z" fill="url(#desk)"/>
+  <path d="M0 397H360" stroke="#ad8e75" stroke-width="2"/>
+  <path d="M8 443H47M12 471H91M272 465H350M301 400H350" stroke="#b48f70" stroke-width="1.2" stroke-linecap="round" opacity=".35"/>
+  <ellipse cx="182" cy="413" rx="115" ry="10" fill="#55425b" opacity=".13"/>
+  <!-- Monitor and app chrome. Message data is drawn separately from content.json. -->
+  <rect x="22" y="37" width="328" height="354" rx="19" fill="#493d60" opacity=".16"/>
+  <rect x="16" y="30" width="328" height="354" rx="18" fill="url(#case)" stroke="#272634" stroke-width="3"/>
+  <path d="M24 74V49Q24 38 36 38H325" fill="none" stroke="#fff8ff" stroke-width="2.5" stroke-linecap="round" opacity=".8"/>
+  <rect x="23" y="41" width="314" height="332" rx="10" fill="#433d56"/>
+  <rect x="25" y="43" width="310" height="328" rx="8" fill="url(#screen)"/>
+  <g clip-path="url(#display)">
+    <rect x="25" y="43" width="310" height="19" fill="#ded5f3"/>
+    <circle cx="38" cy="52" r="3" fill="#e8999b"/><circle cx="48" cy="52" r="3" fill="#e8c575"/><circle cx="58" cy="52" r="3" fill="#92bf9c"/>
+    <text x="185" y="55" text-anchor="middle" font-family="system-ui,Arial,sans-serif" font-size="7" font-weight="800" letter-spacing="1.1" fill="#685a80">КОМИКС-КЛУБ</text>
+    <path d="M315 50H323M319 47V57" stroke="#8a7ba1" stroke-width="1.2" stroke-linecap="round"/>
+    <rect x="25" y="62" width="310" height="31" fill="#fffdfd"/>
+    <path d="M25 93H335" stroke="#ddd6e9"/>
+    <circle cx="44" cy="77" r="10" fill="#dcd1fa"/>
+    <path d="M39 78Q44 84 49 78" fill="none" stroke="#65557f" stroke-width="1.3" stroke-linecap="round"/>
+    <circle cx="40.5" cy="75" r="1" fill="#65557f"/><circle cx="47.5" cy="75" r="1" fill="#65557f"/>
+    <circle cx="51" cy="84" r="3" fill="#91b98b" stroke="#fff" stroke-width="1.2"/>
+    <text x="61" y="75" font-family="system-ui,Arial,sans-serif" font-size="10" font-weight="800" fill="#302b3f">Чат о комиксе</text>
+    <text x="61" y="86" font-family="system-ui,Arial,sans-serif" font-size="7" font-weight="600" fill="#82758f">в сети · обсуждаем идеи</text>
+    <path d="M293 73H300V80H293Z M300 75L304 72V81L300 78" fill="none" stroke="#9384aa" stroke-width="1.2" stroke-linejoin="round"/>
+    <circle cx="319" cy="74" r="1.2" fill="#9384aa"/><circle cx="319" cy="78" r="1.2" fill="#9384aa"/><circle cx="319" cy="82" r="1.2" fill="#9384aa"/>
+    <!-- A quiet sketchbook pattern between the messages. -->
+    <path d="M171 125L175 131L182 132L176 137L176 144L170 140L163 142L165 135L161 129L168 129Z" fill="none" stroke="#dcd4eb" stroke-width="1.2"/>
+    <path d="M166 301Q176 287 186 301Q176 315 166 301Z M171 301H181" fill="none" stroke="#e0d8eb" stroke-width="1.2"/>
+    <rect x="34" y="345" width="292" height="20" rx="10" fill="#fffdfd" stroke="#d7cfe3"/>
+    <circle cx="45" cy="355" r="5" fill="none" stroke="#a69ab7" stroke-width="1.1"/>
+    <path d="M42.5 355.5Q45 358 47.5 355.5" fill="none" stroke="#a69ab7" stroke-width=".9"/>
+    <text x="57" y="358" font-family="system-ui,Arial,sans-serif" font-size="7.5" fill="#a398b1">Сообщение…</text>
+    <path d="M309 351L317 355L309 359L311 355Z" fill="#a18ac6"/>
+  </g>
+  <path d="M25 375H335" stroke="#8876a8" stroke-width="1.2" opacity=".5"/>
+  <rect x="169" y="377" width="22" height="2" rx="1" fill="#746486"/><circle cx="325" cy="378" r="2" fill="#ddf795"/>
+  <path d="M154 385L150 407H210L206 385" fill="url(#stand)" stroke="#34303f" stroke-width="1.8"/>
+  <path d="M159 388L157 403" stroke="#ede7f5" stroke-width="2" stroke-linecap="round"/>
+  <path d="M143 406H217L226 412H134Z" fill="#b4a6c8" stroke="#34303f" stroke-width="1.8" stroke-linejoin="round"/>
+  <!-- Compact keyboard, mouse and cup stay below the messages and above the caption. -->
+  <ellipse cx="177" cy="440" rx="126" ry="5" fill="#614a51" opacity=".12"/>
+  <path d="M63 417H288L302 438H49Z" fill="#c5b7d3" stroke="#34303f" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M64 415H287L300 434H51Z" fill="#fffbef" stroke="#34303f" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M64 421H287M59 427H293M88 417L84 429M111 417L109 429M134 417L133 429M157 417V429M180 417V429M203 417L204 429M226 417L228 429M249 417L252 429M272 417L276 429" stroke="#c6b9cc" stroke-width="1.2"/>
+  <path d="M129 431H215" stroke="#b7a1d6" stroke-width="2" stroke-linecap="round"/>
+  <path d="M328 414Q339 414 339 428V434Q328 442 317 434V428Q317 414 328 414Z" fill="#ece4f5" stroke="#34303f" stroke-width="1.6"/>
+  <path d="M328 416V425M319 426H337" stroke="#b09bc4" stroke-width="1.2"/><rect x="326.5" y="419" width="3" height="5" rx="1.5" fill="#9380a9"/>
+  <ellipse cx="26" cy="438" rx="20" ry="3.5" fill="#614a51" opacity=".1"/>
+  <path d="M37 413H41Q50 414 46 424Q44 428 38 427" fill="none" stroke="#34303f" stroke-width="5"/>
+  <path d="M37 413H41Q50 414 46 424Q44 428 38 427" fill="none" stroke="#d5c4ee" stroke-width="2.5"/>
+  <path d="M13 411H38V430Q26 440 14 430Z" fill="#e0d2f4" stroke="#34303f" stroke-width="1.6"/>
+  <ellipse cx="25.5" cy="411" rx="12.5" ry="3.5" fill="#b19891" stroke="#34303f" stroke-width="1.2"/>
+  <path d="M18 417V428" stroke="#f6efff" stroke-width="2" stroke-linecap="round"/>
+  <path d="M22 402Q18 399 22 394M30 402Q26 398 30 394" fill="none" stroke="#aa90b6" stroke-width="1.3" stroke-linecap="round" opacity=".6"/>
 </svg>

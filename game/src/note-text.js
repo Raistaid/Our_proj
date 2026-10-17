@@ -1,4 +1,4 @@
-// Note typography in logical 360 × 480 pixels; scoring uses an independent inset.
+// Shared typography for visible notes and the sensitive-glyph coverage check.
 export const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
 const LINE = 1.18;
 const FORMS = ['phone', 'tag', 'paper', 'badge', 'message'];

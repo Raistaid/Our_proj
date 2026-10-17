@@ -112,7 +112,7 @@ function postInfo(level) {
   if (!level || !state) return null;
   const report = evaluateLevel(level, state.placements);
   return {
-    missingKinds: level.secrets.filter(function (s) {
+    missingKinds: report.blockedKeepIds.length ? [] : level.secrets.filter(function (s) {
       return report.missingSecretIds.indexOf(s.id) !== -1;
     }).map(function (s) { return s.kind; }),
     stickerIds: state.placements.map(function (p) { return p.stickerId; })
@@ -132,7 +132,7 @@ function startLevel(index) {
   screen = 'playing';
   feedback = { kind: 'info', text: currentLevel().mode === 'transfer' ?
     'Этот кадр — полностью твой 😎 Подсказка откроется после первой проверки.' :
-    'Прикрой середину личной записки. Узкий край можно оставить 😉' };
+    'Закрой личные слова и цифры. Обычные записки оставь видимыми 😉' };
   render();
 }
 function startSession() {
@@ -193,10 +193,13 @@ function check() {
     audio.play('success');
     bridge.vibrate();
   } else {
+    const blocked = level.keepZones.find(function (zone) {
+      return result.report.blockedKeepIds.includes(zone.id);
+    });
     const missing = level.secrets.find(function (zone) {
       return result.report.missingSecretIds.indexOf(zone.id) !== -1;
     });
-    feedback = { kind: 'warning', text: missing ? missing.why : 'Проверь расположение наклеек и попробуй ещё раз.' };
+    feedback = { kind: 'warning', text: blocked ? blocked.hint : missing ? missing.why : 'Проверь расположение наклеек и попробуй ещё раз.' };
     audio.play('warning');
   }
   render();

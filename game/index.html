@@ -6,14 +6,14 @@
   <meta name="theme-color" content="#f7f4eb">
   <meta name="color-scheme" content="light">
   <meta name="description" content="Закрой личное смешными наклейками и подготовь кадр, который можно показать.">
-  <title>Засвет — наклей всё!</title>
+  <title>Засвет</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles/game.css">
 </head>
 <body>
   <div id="app" class="app">
     <header class="topbar">
-      <div class="brand" id="brand"><span class="sber-badge" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span> ЗАСВЕТ<span class="brand-dot">.</span></div>
+      <div class="brand" id="brand"><span class="sber-badge" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span> ЗАСВЕТ</div>
       <div class="level-info" id="level-info" hidden>
         <div class="level-meta"><span id="level-counter">Кадр 1 / 5</span><div id="progress" class="progress" aria-hidden="true"></div></div>
         <h2 id="level-title">Кадр</h2>
@@ -39,15 +39,14 @@
       </section>
       <section id="start-screen" class="start-screen" hidden>
         <div class="intro-copy">
-          <p class="eyebrow intro-eyebrow"><span aria-hidden="true">✳</span> Студия безопасных постов</p>
-          <h1>ЛИЧНОЕ —<br><span class="marker">ЗА КАДРОМ.</span></h1>
-          <p class="intro-description">Готовишь пост? Найди личные слова и цифры и прикрой их смешными наклейками. Остальное украшай как хочешь.</p>
+          <h1>ЛИЧНОЕ —<br><span class="marker">ЗА КАДРОМ</span></h1>
+          <p class="intro-description">Найди персональные данные и прикрой их смешными наклейками. Обычные идеи и подписи оставь видимыми.</p>
           <ol class="how-to" aria-label="Как играть">
             <li><span class="how-num" aria-hidden="true">1</span><span><b>Читай записки.</b> Код, пароль, адрес — это личное.</span></li>
-            <li><span class="how-num" aria-hidden="true">2</span><span><b>Прикрой личное.</b> Заклей середину записки. Узкий край можно оставить.</span></li>
-            <li><span class="how-num" aria-hidden="true">3</span><span><b>Жми «Готово».</b> Главное — спрятать все личные данные.</span></li>
+            <li><span class="how-num" aria-hidden="true">2</span><span><b>Прикрой личное.</b> Заклей все буквы и цифры личных данных.</span></li>
+            <li><span class="how-num" aria-hidden="true">3</span><span><b>Жми «Готово».</b> Секреты скрыты, обычные записки и подписи видны.</span></li>
           </ol>
-          <div class="intro-tags"><span class="tag-lime" id="scene-count">6 кадров</span><span class="tag-lavender">3 наклейки</span><span class="tag-peach">Твой коллаж</span></div>
+          <div class="intro-tags"><span class="tag-lime" id="scene-count">5 кадров</span><span class="tag-lavender">3 наклейки</span><span class="tag-peach">Твой коллаж</span></div>
         </div>
         <div class="intro-art" aria-hidden="true">
           <div class="cover-caption">смотри, как играть</div>
@@ -72,7 +71,7 @@
           <svg class="cover-star" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50.0,8.0 61.2,36.6 91.8,38.4 68.1,57.9 75.9,87.6 50.0,71.0 24.1,87.6 31.9,57.9 8.2,38.4 38.8,36.6" transform="translate(5 5)" fill="#18212c"/><polygon points="50.0,8.0 61.2,36.6 91.8,38.4 68.1,57.9 75.9,87.6 50.0,71.0 24.1,87.6 31.9,57.9 8.2,38.4 38.8,36.6" fill="#c9bdff" stroke="#18212c" stroke-width="5" stroke-linejoin="round"/></svg>
         </div>
         <div class="start-actions">
-          <button type="button" class="button button-primary start-button" data-action="start">ПРИКРЫВАЕМ <span aria-hidden="true">↗</span></button>
+          <button type="button" class="button button-primary start-button" data-action="start">Играть <span aria-hidden="true">↗</span></button>
           <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук и музыка — в настройках ⚙.</p>
         </div>
       </section>
@@ -88,7 +87,7 @@
           <span class="tutorial-hand" id="tutorial-hand" aria-hidden="true" hidden><span>👆</span></span>
           <div class="board-stage">
             <div class="board-frame" id="board-frame">
-              <canvas id="board" width="360" height="480" role="img" aria-label="Кадр с записками. Закрой середину каждой записки с личными данными. Узкий край можно оставить. Остальные объекты можно заклеивать."></canvas>
+              <canvas id="board" width="360" height="480" role="img" aria-label="Кадр с записками. Закрой все символы личных данных. Обычные записки и подписи оставь видимыми."></canvas>
               <!-- Live layer over the frame: decoration only, never in the poster, never catches taps. -->
               <div class="scene-fx" id="scene-fx" aria-hidden="true">
                 <div class="fx-room"><span class="fx-clock-hand"></span><span class="fx-sun"></span></div>

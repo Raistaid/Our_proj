@@ -1,4 +1,5 @@
-import { getStickerRect, secretTargetRect } from './game.js';
+import { getStickerRect } from './game.js';
+import { sensitiveRegions } from './sensitive-text.js';
 import { centeredRect, validRect } from './geometry.js';
 export { loadAssets } from './assets.js';
 import { FONT, noteForm, tagGeometry, paintText as drawText, paintNoteText } from './note-text.js';
@@ -63,14 +64,24 @@ function clipTo(ctx, p) {
 function drawMessage(ctx, level, zone, p) {
   ctx.save();
   clipTo(ctx, p);
-  roundedRect(ctx, p[0] + 1, p[1] + 1, p[2] - 2, p[3] - 7, 10);
+  const left = p[0] + 1, right = p[0] + p[2] - 1;
+  const top = p[1] + 1, bottom = p[1] + p[3] - 6;
+  const outgoing = zone.rect[0] + zone.rect[2] / 2 >= .5;
+  // One outline keeps the tail joined to the bubble without a line across its base.
+  ctx.beginPath();
+  ctx.moveTo(left + 10, top); ctx.lineTo(right - 10, top);
+  ctx.quadraticCurveTo(right, top, right, top + 10);
+  ctx.lineTo(right, bottom - 10); ctx.quadraticCurveTo(right, bottom, right - 10, bottom);
+  if (outgoing) {
+    ctx.lineTo(right - 12, bottom); ctx.lineTo(right - 5, bottom + 5); ctx.lineTo(right - 26, bottom);
+  } else {
+    ctx.lineTo(left + 26, bottom); ctx.lineTo(left + 5, bottom + 5); ctx.lineTo(left + 12, bottom);
+  }
+  ctx.lineTo(left + 10, bottom); ctx.quadraticCurveTo(left, bottom, left, bottom - 10);
+  ctx.lineTo(left, top + 10); ctx.quadraticCurveTo(left, top, left + 10, top);
+  ctx.closePath();
   ctx.fillStyle = /^#[0-9a-fA-F]{6}$/.test(zone.color || '') ? zone.color : '#ffffff';
   ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(p[0] + 12, p[1] + p[3] - 7);
-  ctx.lineTo(p[0] + 6, p[1] + p[3] - 1);
-  ctx.lineTo(p[0] + 26, p[1] + p[3] - 7);
-  ctx.fill(); ctx.stroke();
   paintNoteText(ctx, level, zone);
   ctx.restore();
 }
@@ -354,7 +365,12 @@ export function renderBoard(options) {
   (options.hintIds || []).forEach(function (id) {
     const zone = level.secrets.find(function (s) { return s.id === id; });
     if (!zone) return;
-    const p = pixels(secretTargetRect(zone));
+    const regions = sensitiveRegions(level, zone);
+    const left = Math.min(...regions.map(r => r[0]));
+    const top = Math.min(...regions.map(r => r[1]));
+    const right = Math.max(...regions.map(r => r[0] + r[2]));
+    const bottom = Math.max(...regions.map(r => r[1] + r[3]));
+    const p = pixels([left, top, right - left, bottom - top]);
     ctx.save(); ctx.strokeStyle = '#7a398d'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]);
     ctx.strokeRect(...p); ctx.restore();
   });

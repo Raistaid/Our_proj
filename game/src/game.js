@@ -1,8 +1,6 @@
 import { validRect, centeredRect } from './geometry.js';
-import { secretTargetRect } from './sensitive-text.js';
-import { stickerShape, stickerSize, pointInSticker, stickersCoverRect } from './sticker-shapes.js';
-
-export { secretTargetRect };
+import { sensitiveRegions } from './sensitive-text.js';
+import { stickerShape, stickerSize, pointInSticker, stickersCoverRect, stickerIntersectsRect } from './sticker-shapes.js';
 
 export function createLevelState(level) {
   return { levelId: level.id, placements: [], history: [], nextId: 1,
@@ -92,19 +90,30 @@ export function undoPlacement(state) {
   });
 }
 
+// Allow a small overlap at the paper edges, in logical 360 × 480 board pixels.
+function protectedKeepRect(zone) {
+  const [x, y, width, height] = zone.rect;
+  const insetX = Math.min(4 / 360, width / 4);
+  const insetY = Math.min(4 / 480, height / 4);
+  return [x + insetX, y + insetY, width - insetX * 2, height - insetY * 2];
+}
+
 export function evaluateLevel(level, placements) {
   const list = Array.isArray(placements) ? placements : [];
   const valid = list.filter(function (p) { return p && validRect(p.rect); })
     .map(function (p) { return { ...p, shape: stickerShape(level, p.stickerId) }; });
   const covered = level.secrets.filter(function (s) {
-    return stickersCoverRect(valid, secretTargetRect(s));
+    return sensitiveRegions(level, s).every(function (rect) { return stickersCoverRect(valid, rect); });
   }).map(function (s) { return s.id; });
   const missing = level.secrets.filter(function (s) {
     return covered.indexOf(s.id) === -1;
   }).map(function (s) { return s.id; });
+  const blocked = (level.keepZones || []).filter(function (zone) {
+    return zone.id !== 'hero' && valid.some(function (p) { return stickerIntersectsRect(p, protectedKeepRect(zone)); });
+  }).map(function (zone) { return zone.id; });
   return { passed: level.secrets.length > 0 && missing.length === 0 &&
-    valid.length === list.length,
-    coveredSecretIds: covered, missingSecretIds: missing, blockedKeepIds: [] };
+    blocked.length === 0 && valid.length === list.length,
+    coveredSecretIds: covered, missingSecretIds: missing, blockedKeepIds: blocked };
 }
 
 export function checkLevel(level, state) {
@@ -122,6 +131,10 @@ export function useHint(state) {
 
 export function getLevelHint(level, placements) {
   const report = evaluateLevel(level, placements);
+  const blocked = (level.keepZones || []).find(function (zone) {
+    return report.blockedKeepIds.includes(zone.id);
+  });
+  if (blocked) return { hintIds: [], text: blocked.hint };
   const missing = level.secrets.find(function (zone) {
     return report.missingSecretIds.indexOf(zone.id) !== -1;
   });

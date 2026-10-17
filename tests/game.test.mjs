@@ -23,7 +23,7 @@ function solve(level, initial) {
 }
 test('Полный набор проходит проверку схемы', function () {
   assert.deepEqual(validateContent(content), { ok: true, errors: [] });
-  assert.equal(content.levels.length, 6);
+  assert.equal(content.levels.length, 5);
   assert.equal(content.levels.at(-1).mode, 'transfer');
 });
 for (let index = 0; index < content.levels.length; index += 1) {
@@ -37,14 +37,14 @@ for (let index = 0; index < content.levels.length; index += 1) {
     assert.equal(checked.report.blockedKeepIds.length, 0);
   });
 }
-test('Обычную идею можно заклеить после закрытия всех секретов', function () {
+test('Закрытая обычная идея мешает успеху даже после скрытия всех секретов', function () {
   const level = getRuntimeLevel(content, 0);
   const r = level.keepZones.find(function (z) { return z.id === 'public_note'; }).rect;
   const result = placeSticker(level, solve(level), { stickerId: 'sock',
     x: r[0] + r[2] / 2, y: r[1] + r[3] / 2 });
   const report = evaluateLevel(level, result.state.placements);
-  assert.equal(report.passed, true);
-  assert.deepEqual(report.blockedKeepIds, []);
+  assert.equal(report.passed, false);
+  assert.deepEqual(report.blockedKeepIds, ['public_note']);
   assert.deepEqual(result.state.placements.at(-1).rect.slice(2), [0.40, 0.16],
     'Обычная записка не меняет фиксированный размер наклейки');
 });
@@ -76,7 +76,8 @@ test('На доске нужно закрыть каждый вид личных
         const note = level.keepZones.find(z => z.id === 'weekend_plan');
         const [x, y, w, h] = note.rect;
         const blocked = placeSticker(level, state, { stickerId: sticker.id, x: x + w / 2, y: y + h / 2 });
-        assert.equal(evaluateLevel(level, blocked.state.placements).passed, true);
+        assert.equal(evaluateLevel(level, blocked.state.placements).passed, false);
+        assert.ok(evaluateLevel(level, blocked.state.placements).blockedKeepIds.includes(note.id));
       }
     }
   }
@@ -230,7 +231,7 @@ test('Moving a sticker off a normal note updates evaluation and undo restores th
   const placed = placeSticker(level, createLevelState(level), {
     stickerId: 'sock', x: note.rect[0] + note.rect[2] / 2, y: note.rect[1] + note.rect[3] / 2
   }).state;
-  assert.deepEqual(evaluateLevel(level, placed.placements).blockedKeepIds, []);
+  assert.deepEqual(evaluateLevel(level, placed.placements).blockedKeepIds, [note.id]);
   const secret = level.secrets[0];
   const moved = moveSticker(level, placed, {
     placementId: placed.placements[0].id,
@@ -241,6 +242,7 @@ test('Moving a sticker off a normal note updates evaluation and undo restores th
   assert.equal(report.blockedKeepIds.includes(note.id), false);
   assert.ok(report.coveredSecretIds.includes(secret.id));
   assert.deepEqual(undoPlacement(moved.state), placed);
+  assert.ok(evaluateLevel(level, undoPlacement(moved.state).placements).blockedKeepIds.includes(note.id));
 });
 
 test('Locked, missing, invalid and unchanged moves keep the original state and history', function () {
@@ -379,14 +381,14 @@ test('Неудачная первая попытка и подсказка со�
   assert.equal(state.hintUsed, true);
 });
 
-test('Подсказка ищет личные данные независимо от закрытой обычной записки', function () {
+test('Подсказка сначала объясняет перекрытие обычной записки, затем ищет секрет', function () {
   const level = getRuntimeLevel(content, 0);
   const note = level.keepZones.find(function (zone) { return zone.style === 'note'; });
   const placed = placeSticker(level, createLevelState(level), {
     stickerId: 'sock', x: note.rect[0] + note.rect[2] / 2, y: note.rect[1] + note.rect[3] / 2
   }).state;
   assert.deepEqual(getLevelHint(level, placed.placements), {
-    hintIds: [level.secrets[0].id], text: level.secrets[0].why
+    hintIds: [], text: note.hint
   });
   const undone = undoPlacement(placed);
   assert.deepEqual(getLevelHint(level, undone.placements), {

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { applyLayout } from '../game/src/content.js';
+import { sensitiveRegions } from '../game/src/sensitive-text.js';
 
 // This harness exercises the real app, UI, input, renderer, export and bridge.
 // Canvas drawing is recorded, not rasterized: device rendering and native sharing
@@ -149,7 +150,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
     readFile(new URL('../game/data/content.json', import.meta.url), 'utf8')
   ]);
   const content = JSON.parse(rawContent);
-  assert.equal(content.levels.length, 6);
+  assert.equal(content.levels.length, 5);
   const document = makeDocument(html);
   const messages = [];
   const frames = new Map();
@@ -401,19 +402,13 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         click('check');
         assert.equal(root.dataset.screen, 'playing');
         assert.equal(byId('feedback').dataset.kind, 'warning');
+        assert.equal(byId('feedback-text').textContent, publicNote.hint);
+        assert.equal(byId('stranger').hidden, true, 'The warning should explain the ordinary note being covered');
         board.calls.length = 0;
         click('hint');
-        assert.equal(byId('feedback-text').textContent, level.secrets[0].why);
-        assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d').length, 1,
-          'a sticker on an ordinary note does not distract the hint from sensitive data');
-        const hint = board.calls.find(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d');
-        const [x, y, width, height] = level.secrets[0].rect;
-        const insetX = Math.min(8, width * 360 / 4);
-        const insetY = Math.min(8, height * 480 / 4);
-        const expectedHint = [x * 360 + insetX, y * 480 + insetY,
-          width * 360 - 2 * insetX, height * 480 - 2 * insetY];
-        hint.args.forEach((value, index) => assert.ok(Math.abs(value - expectedHint[index]) < 1e-8,
-          'The visible hint must match the inset scoring target'));
+        assert.equal(byId('feedback-text').textContent, publicNote.hint);
+        assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d').length, 0,
+          'The player should uncover the ordinary note before another secret is highlighted');
         click('undo');
         assert.equal(byId('sticker-count').textContent, 'Наклеек: 0');
         assert.equal(byId('undo-button').disabled, true);
@@ -422,6 +417,15 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         assert.equal(byId('feedback-text').textContent, level.secrets[0].why);
         assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d').length, 1,
           'after undo the hint may highlight the missing secret');
+        const hint = board.calls.find(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d');
+        const regions = sensitiveRegions(level, level.secrets[0]);
+        const left = Math.min(...regions.map(r => r[0]));
+        const top = Math.min(...regions.map(r => r[1]));
+        const right = Math.max(...regions.map(r => r[0] + r[2]));
+        const bottom = Math.max(...regions.map(r => r[1] + r[3]));
+        const expectedHint = [left * 360, top * 480, (right - left) * 360, (bottom - top) * 480];
+        hint.args.forEach((value, index) => assert.ok(Math.abs(value - expectedHint[index]) < 1e-8,
+          'The visible hint must enclose the sensitive symbols'));
       }
       if (exerciseMistakes && level.mode === 'transfer') {
         assert.equal(byId('hint-button').disabled, true);

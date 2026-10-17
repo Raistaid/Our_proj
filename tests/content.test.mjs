@@ -6,6 +6,14 @@ import { intersectsRect } from '../game/src/geometry.js';
 
 const content = JSON.parse(await readFile(new URL('../game/data/content.json', import.meta.url), 'utf8'));
 
+test('Пять разных сцен без повторов; последний кадр — самостоятельная проверка', function () {
+  assert.equal(content.levels.length, 5);
+  assert.equal(new Set(content.levels.map(level => level.background)).size, content.levels.length);
+  assert.equal(content.levels.filter(level => level.mode === 'transfer').length, 1);
+  assert.equal(content.levels.at(-1).mode, 'transfer');
+  assert.equal(content.feed.likes.length, content.levels.length);
+});
+
 test('Одна сцена телефона содержит СМС, личный номер и адрес', function () {
   const phones = content.levels.filter(level => level.background.endsWith('/poster.svg'));
   assert.equal(phones.length, 1, 'Повторная сцена с телефоном не нужна');
