@@ -58,6 +58,21 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .intro-tags span{border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700}
 .start-button{min-width:244px;justify-content:space-between;font-size:17px;min-height:56px}
 .start-button span{font-size:24px}
+.topbar{position:relative}
+.settings-button span{font-size:22px;line-height:1}
+.settings-button[aria-expanded=true]{background:var(--lime);border-color:var(--ink)}
+/* Settings: sound on/off, mixer (music, effects) and button sounds */
+.settings-panel{position:absolute;right:0;top:calc(100% - 6px);z-index:30;width:min(300px,calc(100vw - 32px));display:grid;gap:10px;padding:14px;background:#fffaf1;border:2px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);animation:appear .18s ease-out}
+.settings-title{font-size:17px;font-weight:900}
+.switch-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:6px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;font-size:15px;font-weight:800;text-align:left}
+.switch-row .switch-text{flex:1}
+.switch{position:relative;flex:0 0 42px;height:24px;border-radius:999px;background:#d5d7ce;border:2px solid var(--ink);transition:background .15s}
+.switch:after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--ink);transition:transform .15s}
+.switch-row[aria-pressed=true] .switch{background:var(--lime)}
+.switch-row[aria-pressed=true] .switch:after{transform:translateX(18px)}
+.mixer{display:grid;gap:10px}
+.slider-row{display:grid;gap:4px;font-size:15px;font-weight:800}
+.slider-row input{width:100%;accent-color:var(--violet);height:28px}
 .sound-start{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;min-height:44px;padding:8px 14px;border:2px solid var(--ink);border-radius:999px;background:#fffaf1;font-size:15px;font-weight:800}
 .sound-start .sound-icon{font-size:18px}
 .sound-start[aria-pressed=true]{background:var(--lime);box-shadow:2px 2px 0 var(--ink)}
@@ -120,7 +135,9 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 
 /* ---------- Play ---------- */
 .play-screen{padding:20px 0 28px}
-.task{max-width:700px;margin:0 auto 18px;font-size:18px;line-height:1.4;font-weight:600;text-align:center}
+.play-top{max-width:720px;margin:0 auto 16px;display:grid;gap:10px}
+.task{margin:0;font-size:18px;line-height:1.35;font-weight:800;text-align:center}
+.app[data-screen=levelPassed] .play-top .feedback,.app[data-screen=levelPassed] .play-top .gesture-help{display:none}
 .game-layout{display:grid;grid-template-columns:minmax(0,400px) 300px;gap:40px;justify-content:center;align-items:start}
 .board-stage{display:flex;justify-content:center}
 .board-frame{position:relative;width:100%;border:2px solid var(--ink);border-radius:11px;overflow:hidden;background:#e9e6ff;box-shadow:6px 6px 0 #ded9ea;transition:box-shadow .2s}
@@ -130,18 +147,20 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 @keyframes stamp{from{opacity:0;transform:scale(.4) rotate(-20deg)}70%{opacity:1;transform:scale(1.12) rotate(4deg)}to{transform:none}}
 
 .workspace{display:flex;flex-direction:column;gap:14px;min-width:0}
-.feedback{order:4;display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fffaf1;min-height:60px}
+/* The message panel above the board: bold, informal, clearly highlighted. */
+.feedback{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border:2px solid var(--ink);border-radius:14px;background:#f3ffc4;box-shadow:3px 3px 0 var(--ink)}
 .feedback-symbol{flex:0 0 26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:var(--violet);line-height:1}
-.feedback p{margin:0;font-size:16px;line-height:1.4;align-self:center}
-.feedback[data-kind=warning]{background:var(--warn-bg);border-color:#e3c86b}
+.feedback p{margin:0;font-size:16px;line-height:1.35;font-weight:700;align-self:center}
+.feedback[data-kind=warning]{background:var(--warn-bg)}
 .feedback[data-kind=warning] .feedback-symbol{background:var(--ink);color:var(--warn-bg)}
-.feedback[data-kind=success]{background:var(--ok-bg);border-color:#b9db54}
+.feedback[data-kind=success]{background:var(--ok-bg)}
 .feedback[data-kind=success] .feedback-symbol{background:var(--ink);color:var(--lime)}
 .palette-block{order:1}
 .controls{order:2;display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.controls .check-button{grid-column:1/-1;font-size:17px}
+.controls .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:2px solid currentColor;font-size:13px;font-weight:900;line-height:1}
+.check-button{grid-column:1/-1;font-size:17px}
 .passed-notice{order:3;display:flex;flex-direction:column;gap:12px;animation:appear .22s ease-out}
-.workspace[data-passed=true] .feedback,.workspace[data-passed=true] .controls,.workspace[data-passed=true] .palette-block{display:none}
+.workspace[data-passed=true] .controls,.workspace[data-passed=true] .palette-block{display:none}
 .palette-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .count-label{font-size:14px;font-weight:800;color:var(--muted)}
 /* Three cards in one row. Each card is the real sticker scaled down: same drawing, same proportions. */
@@ -157,7 +176,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .sticker-choice{position:relative}
 .board-frame.just-placed{animation:placed .26s ease-out}
 @keyframes placed{0%{box-shadow:0 0 0 5px var(--lime)}100%{box-shadow:6px 6px 0 #ded9ea}}
-.gesture-help{font-size:14px;line-height:1.4;color:var(--muted);margin:10px 0 0}
+.gesture-help{font-size:14px;line-height:1.4;color:var(--muted);margin:0;text-align:center}
 .fallback-note{order:5;font-size:14px;line-height:1.5;padding:10px;background:var(--warn-bg);border-radius:8px;margin:0}
 .passed-card{display:flex;gap:12px;align-items:center;background:var(--ok-bg);border:2px solid var(--ink);border-radius:14px;padding:14px;box-shadow:3px 3px 0 var(--ink)}
 .passed-mark{flex:0 0 40px;display:flex;height:40px;border:2px solid var(--ink);border-radius:50%;align-items:center;justify-content:center;font-size:24px;font-weight:900;background:var(--lime);animation:stamp .26s ease-out}
@@ -183,14 +202,13 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .scene-fx>div{position:absolute;inset:0;display:none}
 .board-frame[data-scene=room] .fx-room,.board-frame[data-scene=desk] .fx-desk,.board-frame[data-scene=poster] .fx-poster{display:block}
 .scene-fx span{position:absolute;display:block}
+/* Hidden where a sticker covers it: the live layer must never peek out from under a sticker. */
+.scene-fx span.covered{visibility:hidden}
 /* room: clock, sun, dust in the window light */
 .fx-clock-hand{left:calc(13.889% - 1px);top:6.667%;width:2px;height:3.75%;background:#d2366a;border-radius:2px;transform-origin:50% 100%;animation:fx-tick 6s steps(60) infinite}
 .fx-sun{left:89.72%;top:7.71%;width:5%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);animation:fx-sun 2.4s ease-in-out infinite}
-.fx-dust{width:4px;height:4px;border-radius:50%;background:#fff3b0;box-shadow:0 0 4px #ffe17a;opacity:0;animation:fx-dust 5s linear infinite}
-.fx-dust.d1{left:80%;top:20%}.fx-dust.d2{left:86%;top:22%;animation-delay:1.7s}.fx-dust.d3{left:76%;top:24%;animation-delay:3.3s}
 @keyframes fx-tick{to{transform:rotate(360deg)}}
 @keyframes fx-sun{0%,100%{box-shadow:0 0 0 0 rgba(255,225,122,.85)}50%{box-shadow:0 0 0 9px rgba(255,225,122,0)}}
-@keyframes fx-dust{0%{opacity:0;transform:none}15%{opacity:.9}100%{opacity:0;transform:translate(-46px,70px)}}
 /* desk: the robot blinks, the lamp glows, the mug steams */
 .fx-lid{top:41.875%;width:6.67%;aspect-ratio:1;border-radius:50%;background:#b2a3ed;border-bottom:2px solid #18212c;transform:translate(-50%,-50%) scaleY(0);animation:fx-blink 4.6s infinite}
 .fx-lid.l1{left:41.94%}.fx-lid.l2{left:55.28%}
@@ -209,12 +227,11 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 @keyframes fx-puff{0%{opacity:0;transform:translate(-50%,0) scale(.5)}20%{opacity:.8}100%{opacity:0;transform:translate(-50%,-14px) scale(1.5)}}
 @keyframes fx-twinkle{from{opacity:.15}to{opacity:1}}
 /* Switched off in content.json (scenes) and speed of the loops (--fx-speed) */
-.scene-fx[data-off~=clock] .fx-clock-hand,.scene-fx[data-off~=sun] .fx-sun,.scene-fx[data-off~=dust] .fx-dust,
+.scene-fx[data-off~=clock] .fx-clock-hand,.scene-fx[data-off~=sun] .fx-sun,
 .scene-fx[data-off~=blink] .fx-lid,.scene-fx[data-off~=lamp] .fx-lamp,.scene-fx[data-off~=steam] .fx-steam,
 .scene-fx[data-off~=steam] .fx-puff,.scene-fx[data-off~=garland] .fx-bulb,.scene-fx[data-off~=confetti] .fx-confetti{display:none!important}
 .fx-clock-hand{animation-duration:calc(6s / var(--fx-speed,1))}
 .fx-sun{animation-duration:calc(2.4s / var(--fx-speed,1))}
-.fx-dust{animation-duration:calc(5s / var(--fx-speed,1))}
 .fx-lid{animation-duration:calc(4.6s / var(--fx-speed,1))}
 .fx-lamp{animation-duration:calc(3s / var(--fx-speed,1))}
 .fx-steam{animation-duration:calc(2.6s / var(--fx-speed,1))}
@@ -301,7 +318,8 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .app[data-screen=playing] .footer,.app[data-screen=levelPassed] .footer{display:none}
 
  .play-screen{padding:10px 0 14px}
- .task{font-size:16px;margin:0 0 10px;text-align:left;font-weight:600}
+ .play-top{margin:0 0 10px;gap:8px}
+ .task{font-size:16px;text-align:left}
  .game-layout{display:flex;flex-direction:column;gap:12px}
  .board-stage{width:100%}
  /* The whole board shrinks with the screen height, keeping 3:4, so controls stay on screen. */
@@ -309,15 +327,15 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  @supports(height:100dvh){.board-frame{width:min(100%,400px,max(270px,calc((100dvh - var(--play-chrome)) * .75)))}}
  .board-frame{box-shadow:4px 4px 0 #ded9ea}
  .workspace{width:100%;max-width:440px;margin:0 auto;gap:10px}
- .feedback{order:0;padding:8px 12px;min-height:0;gap:8px}
- .feedback p{font-size:15px;line-height:1.35}
+ .feedback{padding:8px 12px;gap:8px}
+ .feedback p{font-size:15px;line-height:1.3}
  .feedback-symbol{flex-basis:24px;height:24px;font-size:16px}
  .palette-heading{display:none}
  .palette{gap:12px}
  /* On phones the card itself shows the sticker; its name stays in aria-label. */
  .sticker-choice span{display:none}
  .sticker-choice{padding:4px;border-radius:12px}
- .gesture-help{font-size:14px;margin-top:6px}
+ .gesture-help{font-size:13px;text-align:left}
  .controls{grid-template-columns:1fr 1fr 1.2fr;gap:8px}
  .controls .button{min-height:48px;padding:6px 4px;font-size:14px;border-radius:11px;gap:4px}
  .controls .check-button{grid-column:auto;font-size:16px}
@@ -359,11 +377,12 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .play-screen{padding:8px 0;display:grid;grid-template-columns:auto minmax(220px,360px);grid-template-areas:"board task" "board work";column-gap:20px;justify-content:center;align-items:start}
  .game-layout{display:contents}
  .board-stage{grid-area:board}.workspace{grid-area:work}
- .task{grid-area:task;font-size:15px;margin:0 0 8px;text-align:left}
+ .play-top{grid-area:task;margin:0 0 8px;gap:6px}
+ .task{font-size:15px;text-align:left}
  .board-frame{width:max(200px,calc((100vh - 56px - 22px) * .75))}
  @supports(height:100dvh){.board-frame{width:max(200px,calc((100dvh - 56px - 22px) * .75))}}
  .workspace{gap:8px}
- .feedback{order:0;padding:8px 10px;min-height:0}
+ .feedback{padding:8px 10px}
  .feedback p{font-size:14px}
  .palette-heading{display:none}
  .sticker-choice span{font-size:13px}

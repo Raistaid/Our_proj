@@ -1,23 +1,24 @@
-// Own short sounds, synthesized in code (no audio files, nothing to download).
+// Own sounds and a quiet background tune, synthesized in code (no audio files, nothing to download).
 // Off until the player turns sound on: browsers and the sandbox also require a tap first.
-// The same switch turns on a quiet background tune.
-// Phone speakers are small: the designed volumes are doubled.
-const LOUD = 2;
-// Background music level relative to the game sounds.
-const MUSIC_VOLUME = 0.35;
+// Mixer: music and effects have their own volume; button taps have their own switch.
+
+// Volumes are 0…1 from the settings sliders; gain = volume² sounds even to the ear.
+const DEFAULTS = { music: 0.6, effects: 0.5, clicks: false };
 
 export function createAudio() {
   let context = null;
   let master = null;
+  let musicBus = null;
+  let effectsBus = null;
   let enabled = false;
   let keepAlive = null;
-  let musicGain = null;
   let musicTimer = 0;
   let musicStep = 0;
   let nextStepAt = 0;
+  const settings = Object.assign({}, DEFAULTS);
 
   // A tiny silent WAV made in code. Playing it through an <audio> element moves iOS to the
-  // "playback" audio session, so Web Audio is heard even when the ring/silent switch is on silent.
+  // "playback" audio session, so sound is heard even when the ring/silent switch is on silent.
   function silentWavUrl() {
     const rate = 8000;
     const samples = 800;
@@ -53,36 +54,68 @@ export function createAudio() {
     } catch (error) { /* optional */ }
   }
 
-  function tone(freq, at, duration, options) {
-    const o = options || {};
+  function build() {
+    context = new (window.AudioContext || window.webkitAudioContext)();
+    const limiter = context.createDynamicsCompressor();
+    master = context.createGain();
+    master.connect(limiter); limiter.connect(context.destination);
+    musicBus = context.createGain();
+    musicBus.connect(master);
+    // Effects pass a soft low-pass filter: no sharp, piercing highs.
+    const soften = context.createBiquadFilter();
+    soften.type = 'lowpass'; soften.frequency.value = 2600; soften.Q.value = 0.4;
+    effectsBus = context.createGain();
+    effectsBus.connect(soften); soften.connect(master);
+    applyVolumes();
+  }
+
+  function applyVolumes() {
+    if (!context) return;
+    const now = context.currentTime;
+    musicBus.gain.setTargetAtTime(settings.music * settings.music, now, 0.05);
+    effectsBus.gain.setTargetAtTime(settings.effects * settings.effects, now, 0.05);
+  }
+
+  // A soft note: gentle attack and a smooth fade, never a click.
+  function tone(bus, freq, at, duration, volume, type, glideTo) {
     const osc = context.createOscillator();
     const gain = context.createGain();
-    osc.type = o.type || 'triangle';
+    osc.type = type || 'sine';
     osc.frequency.setValueAtTime(freq, at);
-    if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, at + duration);
+    if (glideTo) osc.frequency.exponentialRampToValueAtTime(glideTo, at + duration);
     gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime((o.volume || 0.06) * LOUD, at + 0.012);
+    gain.gain.exponentialRampToValueAtTime(volume, at + Math.min(0.025, duration / 3));
     gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
-    osc.connect(gain); gain.connect(master);
-    osc.start(at); osc.stop(at + duration + 0.02);
+    osc.connect(gain); gain.connect(bus);
+    osc.start(at); osc.stop(at + duration + 0.03);
   }
 
-  function hiss(at, duration, volume) {
-    const length = Math.max(1, Math.floor(context.sampleRate * duration));
-    const buffer = context.createBuffer(1, length, context.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < length; i += 1) data[i] = (Math.random() * 2 - 1) * (1 - i / length);
-    const source = context.createBufferSource();
-    const filter = context.createBiquadFilter();
-    const gain = context.createGain();
-    source.buffer = buffer;
-    filter.type = 'highpass'; filter.frequency.value = 1800;
-    gain.gain.value = volume * LOUD;
-    source.connect(filter); filter.connect(gain); gain.connect(master);
-    source.start(at);
-  }
+  const SOUNDS = {
+    // A sticker lands: a round, soft "pop".
+    place: function (t) {
+      tone(effectsBus, 440, t, 0.16, 0.18, 'sine', 220);
+      tone(effectsBus, 880, t, 0.06, 0.04);
+    },
+    // A button tap: a tiny, quiet tick.
+    click: function (t) { tone(effectsBus, 700, t, 0.06, 0.08); },
+    // Frame ready: a gentle C-E-G and a soft bell for the likes.
+    success: function (t) {
+      [523.25, 659.25, 783.99].forEach(function (f, i) { tone(effectsBus, f, t + i * 0.09, 0.22, 0.14); });
+      tone(effectsBus, 1046.5, t + 0.3, 0.6, 0.08);
+    },
+    // The made-up stranger notices a secret: a low, quiet "hmm".
+    warning: function (t) {
+      tone(effectsBus, 330, t, 0.2, 0.14, 'sine', 311);
+      tone(effectsBus, 262, t + 0.2, 0.3, 0.14, 'sine', 247);
+    },
+    // Final screen with the agent title.
+    fanfare: function (t) {
+      [523.25, 659.25, 783.99].forEach(function (f, i) { tone(effectsBus, f, t + i * 0.11, 0.2, 0.12, 'triangle'); });
+      tone(effectsBus, 1046.5, t + 0.33, 0.7, 0.14, 'triangle');
+    }
+  };
 
-  // ---------- Background music: our own short tune, synthesized, looped ----------
+  // ---------- Background music: our own short tune, looped ----------
   // C major, 112 bpm, eighth-note steps; chords C – Am – F – G, two 4-bar phrases.
   const STEP = 60 / 112 / 2;
   const NOTE = { G4: 392, A4: 440, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880, C6: 1046.5 };
@@ -98,42 +131,20 @@ export function createAudio() {
   ];
   const BASS = [130.81, 110, 87.31, 98]; // C3, A2, F2, G2: one chord per bar
 
-  function pluck(freq, at, duration, volume, type) {
-    const osc = context.createOscillator();
-    const gain = context.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, at);
-    gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(volume, at + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
-    osc.connect(gain); gain.connect(musicGain);
-    osc.start(at); osc.stop(at + duration + 0.02);
-  }
-
   function scheduleMusic() {
     // Look a little ahead so notes stay on time even if the page is busy.
     while (nextStepAt < context.currentTime + 0.25) {
       const step = musicStep % MELODY.length;
       const note = MELODY[step];
-      if (note) pluck(NOTE[note], nextStepAt, 0.32, 0.05, 'triangle');
-      if (step % 4 === 0) pluck(BASS[Math.floor(step / 8) % BASS.length], nextStepAt, 0.5, 0.07, 'sine');
-      // A soft off-beat "tick" keeps it bouncy.
-      if (step % 2 === 1) pluck(2093, nextStepAt, 0.03, 0.006, 'square');
+      if (note) tone(musicBus, NOTE[note], nextStepAt, 0.32, 0.07, 'triangle');
+      if (step % 4 === 0) tone(musicBus, BASS[Math.floor(step / 8) % BASS.length], nextStepAt, 0.5, 0.1);
       nextStepAt += STEP;
       musicStep += 1;
     }
   }
 
   function startMusic() {
-    if (!context || musicTimer) return;
-    if (!musicGain) {
-      musicGain = context.createGain();
-      musicGain.connect(master);
-    }
-    // Quiet: background music must never cover the game sounds.
-    musicGain.gain.cancelScheduledValues(context.currentTime);
-    musicGain.gain.setValueAtTime(0.0001, context.currentTime);
-    musicGain.gain.exponentialRampToValueAtTime(MUSIC_VOLUME, context.currentTime + 1.2);
+    if (!context || musicTimer || document.hidden) return;
     nextStepAt = context.currentTime + 0.1;
     scheduleMusic();
     musicTimer = setInterval(scheduleMusic, 100);
@@ -141,11 +152,6 @@ export function createAudio() {
 
   function stopMusic() {
     if (musicTimer) { clearInterval(musicTimer); musicTimer = 0; }
-    if (musicGain && context) {
-      musicGain.gain.cancelScheduledValues(context.currentTime);
-      musicGain.gain.setValueAtTime(musicGain.gain.value, context.currentTime);
-      musicGain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.3);
-    }
   }
 
   // Music pauses while the game is hidden (app in the background) and returns with it.
@@ -156,30 +162,27 @@ export function createAudio() {
     });
   }
 
-  const SOUNDS = {
-    // A sticker lands: a soft thump with a little paper "shh".
-    place: function (t) {
-      tone(150, t, 0.1, { type: 'sine', to: 55, volume: 0.09 });
-      hiss(t, 0.04, 0.025);
-    },
-    // Frame ready: quick C-E-G, then the "ding" of likes.
-    success: function (t) {
-      [523.25, 659.25, 783.99].forEach(function (f, i) { tone(f, t + i * 0.07, 0.13); });
-      tone(1567.98, t + 0.26, 0.45, { type: 'sine', volume: 0.04 });
-      tone(2349.32, t + 0.26, 0.3, { type: 'sine', volume: 0.02 });
-    },
-    // The made-up stranger notices a secret: a suspicious "hmm".
-    warning: function (t) {
-      tone(392, t, 0.14, { type: 'sine', to: 370, volume: 0.05 });
-      tone(311.13, t + 0.16, 0.22, { type: 'sine', to: 290, volume: 0.05 });
-    },
-    // Final screen with the agent title.
-    fanfare: function (t) {
-      [523.25, 659.25, 783.99].forEach(function (f, i) { tone(f, t + i * 0.1, 0.12, { volume: 0.05 }); });
-      tone(1046.5, t + 0.3, 0.45, { volume: 0.06 });
-      tone(1318.51, t + 0.3, 0.45, { type: 'sine', volume: 0.025 });
+  function play(kind) {
+    if (!enabled || !context) return;
+    // iOS suspends audio after a call or when the app goes to the background; every play
+    // comes from a tap, so resuming here is allowed.
+    if (context.state !== 'running') {
+      const resumed = context.resume();
+      if (resumed && resumed.catch) resumed.catch(function () {});
     }
-  };
+    const sound = SOUNDS[kind] || SOUNDS.place;
+    try {
+      if (kind === 'fanfare') {
+        // The final fanfare sounds alone, then the tune comes back.
+        const now = context.currentTime;
+        const level = settings.music * settings.music;
+        musicBus.gain.cancelScheduledValues(now);
+        musicBus.gain.setTargetAtTime(0, now, 0.05);
+        musicBus.gain.setTargetAtTime(level, now + 1.4, 0.4);
+      }
+      sound(context.currentTime + 0.01);
+    } catch (error) { /* a missed sound must never break the game */ }
+  }
 
   return {
     toggle: async function () {
@@ -189,47 +192,29 @@ export function createAudio() {
         if (keepAlive) keepAlive.pause();
         return false;
       }
-      const AudioContextType = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextType) return false;
+      if (!(window.AudioContext || window.webkitAudioContext)) return false;
       try {
-        if (!context) {
-          context = new AudioContextType();
-          const limiter = context.createDynamicsCompressor();
-          master = context.createGain();
-          master.gain.value = 1;
-          master.connect(limiter); limiter.connect(context.destination);
-        }
+        if (!context) build();
         unlock();
         const resumed = context.resume();
-        // A short confirmation once audio runs, so the player hears that sound is on.
         enabled = true;
         await resumed;
+        // A short confirmation once audio runs, so the player hears that sound is on.
         SOUNDS.place(context.currentTime + 0.01);
         startMusic();
       } catch (error) { enabled = false; }
       return enabled;
     },
-    play: function (kind) {
-      if (!enabled || !context) return;
-      // iOS suspends audio after a call or when the app goes to the background; every play
-      // comes from a tap, so resuming here is allowed.
-      if (context.state !== 'running') {
-        const resumed = context.resume();
-        if (resumed && resumed.catch) resumed.catch(function () {});
-      }
-      const sound = SOUNDS[kind] || SOUNDS.place;
-      try {
-        if (kind === 'fanfare' && musicGain) {
-          // The final fanfare sounds alone, then the tune comes back.
-          const now = context.currentTime;
-          musicGain.gain.cancelScheduledValues(now);
-          musicGain.gain.setValueAtTime(Math.max(musicGain.gain.value, 0.0001), now);
-          musicGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
-          musicGain.gain.setValueAtTime(0.0001, now + 1.2);
-          musicGain.gain.exponentialRampToValueAtTime(MUSIC_VOLUME, now + 2.5);
-        }
-        sound(context.currentTime + 0.01);
-      } catch (error) { /* a missed sound must never break the game */ }
-    }
+    play: play,
+    // A tap on any button: only when "button sounds" is switched on.
+    click: function () { if (settings.clicks) play('click'); },
+    configure: function (next) {
+      if (next && Number.isFinite(next.music)) settings.music = Math.max(0, Math.min(1, next.music));
+      if (next && Number.isFinite(next.effects)) settings.effects = Math.max(0, Math.min(1, next.effects));
+      if (next && typeof next.clicks === 'boolean') settings.clicks = next.clicks;
+      applyVolumes();
+      return Object.assign({}, settings);
+    },
+    settings: function () { return Object.assign({}, settings); }
   };
 }
