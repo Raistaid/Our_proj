@@ -22,25 +22,34 @@ const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
 const LINE = 1.18;
 
 function drawLines(ctx, lines, rect, maxFont, bold) {
-  if (!lines || !lines.length) return;
   const p = pixels(rect);
-  const padX = 6;
-  const padY = lines.length > 1 ? 4 : 2;
-  // The largest font that fits the note height; then shrink only if a line is too wide.
-  let font = Math.min(maxFont, (p[3] - padY * 2) / (lines.length * LINE));
-  font = Math.max(9, font);
-  function setFont() { ctx.font = (bold ? '700 ' : '600 ') + font + 'px ' + FONT; }
-  setFont();
-  while (font > 9 && lines.some(function (s) { return ctx.measureText(s).width > p[2] - padX * 2; })) {
-    font -= 0.5; setFont();
+  drawText(ctx, lines, [p[0] + 2, p[1] + 1, p[2] - 4, p[3] - 2], maxFont, { bold: bold });
+}
+
+// Lines inside a pixel box: the largest font that fits its height, then smaller only if a line
+// is too wide. Text is clipped to the box, so it never leaves its note.
+function drawText(ctx, lines, box, maxFont, opts) {
+  if (!lines || !lines.length) return;
+  const padX = 4;
+  const padY = lines.length > 1 ? 3 : 1;
+  let font = Math.max(9, Math.min(maxFont, (box[3] - padY * 2) / (lines.length * LINE)));
+  function weight(i) { return opts.bold || (opts.boldFirst && i === 0) ? '800 ' : '600 '; }
+  function tooWide() {
+    return lines.some(function (line, i) {
+      ctx.font = weight(i) + font + 'px ' + FONT;
+      return ctx.measureText(line).width > box[2] - padX * 2;
+    });
   }
-  const pad = padX;
+  while (font > 9 && tooWide()) font -= 0.5;
   ctx.save();
-  ctx.beginPath(); ctx.rect(p[0] + 2, p[1] + 1, p[2] - 4, p[3] - 2); ctx.clip();
+  ctx.beginPath(); ctx.rect(box[0], box[1], box[2], box[3]); ctx.clip();
   ctx.fillStyle = INK; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
   const lineHeight = font * LINE;
-  const top = p[1] + p[3] / 2 - (lines.length - 1) * lineHeight / 2;
-  lines.forEach(function (line, i) { ctx.fillText(line, p[0] + pad, top + lineHeight * i); });
+  const top = box[1] + box[3] / 2 - (lines.length - 1) * lineHeight / 2;
+  lines.forEach(function (line, i) {
+    ctx.font = weight(i) + font + 'px ' + FONT;
+    ctx.fillText(line, box[0] + padX, top + lineHeight * i);
+  });
   ctx.restore();
 }
 
@@ -53,6 +62,166 @@ function drawNote(ctx, zone) {
   ctx.fillStyle = '#b2a3ed'; ctx.fillRect(p[0] + p[2] * 0.37, p[1] - 3, p[2] * 0.26, 6);
   drawLines(ctx, zone.lines, zone.rect, 16, false);
   ctx.restore();
+}
+
+// ---------- Notes that belong to the scene ----------
+// A note is a phone notification, a luggage tag tied to the main object, or paper.
+// The form never depends on whether the note is private: ordinary notes use the same forms,
+// so the child has to read the text. Every form stays inside its rect, so a sticker
+// covers the whole note, even while it animates.
+const FORMS = ['phone', 'tag', 'paper'];
+const KIND_FORM = { code: 'phone', private_location: 'phone', address: 'tag', password: 'paper' };
+const PHONE_IN = 420;
+const PHONE_BUZZ = 480;
+const TAG_SWING = 1300;
+const STAGGER = 220;
+
+function hash(text) {
+  let h = 0;
+  for (let i = 0; i < text.length; i += 1) h = (h * 31 + text.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+export function noteForm(level, zone) {
+  if (FORMS.indexOf(zone.form) !== -1) return zone.form;
+  if (zone.kind && KIND_FORM[zone.kind]) return KIND_FORM[zone.kind];
+  return FORMS[hash(level.id + ':' + zone.id) % FORMS.length];
+}
+
+function easeOutBack(x) {
+  const c = 1.70158;
+  return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2);
+}
+
+function clipTo(ctx, p) {
+  ctx.beginPath(); ctx.rect(p[0], p[1], p[2], p[3]); ctx.clip();
+}
+
+// t: ms since this note started to appear; null means a still picture (poster, tests).
+function drawPhone(ctx, zone, p, t) {
+  if (t !== null && t < 0) return;
+  let dx = 0;
+  let dy = 0;
+  if (t !== null) {
+    dy = -(1 - easeOutBack(Math.min(1, t / PHONE_IN))) * p[3];
+    const buzz = t - PHONE_IN;
+    if (buzz > 0 && buzz < PHONE_BUZZ) dx = Math.sin(buzz / 22) * 2.2 * (1 - buzz / PHONE_BUZZ);
+  }
+  ctx.save();
+  clipTo(ctx, p);
+  ctx.translate(dx, dy);
+  roundedRect(ctx, p[0] + 1, p[1] + 1, p[2] - 2, p[3] - 2, 9);
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  // App icon with a tick: the notification "came from the phone".
+  roundedRect(ctx, p[0] + 5, p[1] + 5, 12, 12, 3.5);
+  ctx.fillStyle = '#21a038'; ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(p[0] + 8, p[1] + 11); ctx.lineTo(p[0] + 10.2, p[1] + 13.2); ctx.lineTo(p[0] + 14, p[1] + 8.8);
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+  // Header row like a real notification; the lines get the full card width below it.
+  ctx.fillStyle = '#7b8590'; ctx.font = '600 8px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText('сейчас', p[0] + 21, p[1] + 11);
+  drawText(ctx, zone.lines, [p[0] + 2, p[1] + 18, p[2] - 4, p[3] - 20], 15, { boldFirst: true });
+  ctx.restore();
+}
+
+function tagGeometry(level, p) {
+  const hero = level.keepZones.find(function (zone) { return !zone.lines; });
+  const h = hero ? pixels(hero.rect) : [120, 160, 120, 160];
+  const holeRight = p[0] + p[2] / 2 < h[0] + h[2] / 2;
+  const hole = [holeRight ? p[0] + p[2] - 8 : p[0] + 8, p[1] + p[3] / 2];
+  const above = hole[1] < h[1];
+  // The string is tied near the top of the main object (its handle), on the tag's side.
+  const anchor = [Math.max(h[0] + h[2] * 0.3, Math.min(h[0] + h[2] * 0.7, hole[0])),
+    above ? h[1] + h[3] * 0.06 : h[1] + h[3] * 0.94];
+  return { holeRight: holeRight, hole: hole, anchor: anchor };
+}
+
+function drawTagString(ctx, level, zone) {
+  const p = pixels(zone.rect);
+  const g = tagGeometry(level, p);
+  ctx.save();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(g.hole[0], g.hole[1]);
+  ctx.quadraticCurveTo((g.hole[0] + g.anchor[0]) / 2, Math.max(g.hole[1], g.anchor[1]) + 16, g.anchor[0], g.anchor[1]);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(g.anchor[0], g.anchor[1], 3, 0, Math.PI * 2);
+  ctx.fillStyle = INK; ctx.fill();
+  ctx.restore();
+}
+
+function drawTag(ctx, level, zone, p, t) {
+  const g = tagGeometry(level, p);
+  const angle = t === null || t < 0 ? 0 : 0.1 * Math.exp(-t / 450) * Math.sin(t / 110);
+  const x0 = p[0] + 1; const y0 = p[1] + 1; const x1 = p[0] + p[2] - 1; const y1 = p[1] + p[3] - 1;
+  const cut = Math.min(13, p[3] / 3);
+  ctx.save();
+  clipTo(ctx, p);
+  ctx.translate(g.hole[0], g.hole[1]); ctx.rotate(angle); ctx.translate(-g.hole[0], -g.hole[1]);
+  ctx.beginPath();
+  if (g.holeRight) {
+    ctx.moveTo(x0, y0); ctx.lineTo(x1 - cut, y0); ctx.lineTo(x1, y0 + cut);
+    ctx.lineTo(x1, y1 - cut); ctx.lineTo(x1 - cut, y1); ctx.lineTo(x0, y1);
+  } else {
+    ctx.moveTo(x1, y0); ctx.lineTo(x0 + cut, y0); ctx.lineTo(x0, y0 + cut);
+    ctx.lineTo(x0, y1 - cut); ctx.lineTo(x0 + cut, y1); ctx.lineTo(x1, y1);
+  }
+  ctx.closePath();
+  ctx.fillStyle = '#f6d58a'; ctx.fill();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(g.hole[0], g.hole[1], 5.5, 0, Math.PI * 2);
+  ctx.strokeStyle = '#c99a3c'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(g.hole[0], g.hole[1], 3.2, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff9e9'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  const box = g.holeRight ? [p[0] + 2, p[1] + 2, p[2] - 18, p[3] - 4] : [p[0] + 16, p[1] + 2, p[2] - 18, p[3] - 4];
+  drawText(ctx, zone.lines, box, 15, { boldFirst: true });
+  ctx.restore();
+}
+
+function textZones(level) {
+  return level.keepZones.filter(function (zone) { return zone.lines && zone.style === 'note'; })
+    .concat(level.secrets);
+}
+
+// Draws every note; returns true while an entrance animation is still running.
+function drawNotes(ctx, level, now) {
+  const zones = textZones(level);
+  let animating = false;
+  zones.forEach(function (zone) {
+    if (noteForm(level, zone) === 'tag') drawTagString(ctx, level, zone);
+  });
+  zones.forEach(function (zone, i) {
+    const form = noteForm(level, zone);
+    const p = pixels(zone.rect);
+    const t = now === null ? null : now - i * STAGGER;
+    if (form === 'phone') {
+      drawPhone(ctx, zone, p, t);
+      if (t !== null && t < PHONE_IN + PHONE_BUZZ) animating = true;
+    } else if (form === 'tag') {
+      drawTag(ctx, level, zone, p, t);
+      if (t !== null && t < TAG_SWING) animating = true;
+    } else {
+      drawNote(ctx, zone);
+    }
+  });
+  return animating;
+}
+
+// Entrance timing per canvas and level: the animation runs once when a scene appears.
+const entrances = new WeakMap();
+function entranceTime(canvas, level) {
+  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const reduce = typeof window !== 'undefined' && window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return null;
+  const entry = entrances.get(canvas);
+  if (!entry || entry.levelId !== level.id) {
+    entrances.set(canvas, { levelId: level.id, start: now });
+    return 0;
+  }
+  return now - entry.start;
 }
 
 function drawCaption(ctx, zone) {
@@ -133,12 +302,11 @@ export function renderBoard(options) {
   if (background) ctx.drawImage(background, 0, 0, 360, 480);
   else drawMissingBackground(ctx, level);
   level.keepZones.forEach(function (zone) {
-    if (zone.lines) {
-      if (zone.style === 'note') drawNote(ctx, zone);
-      else drawCaption(ctx, zone);
-    }
+    if (zone.lines && zone.style !== 'note') drawCaption(ctx, zone);
   });
-  level.secrets.forEach(function (zone) { drawNote(ctx, zone); });
+  // options.animate: the caller redraws while this returns { animating: true }.
+  // The renderer itself never schedules frames.
+  const animating = drawNotes(ctx, level, options.animate ? entranceTime(canvas, level) : null);
   const placements = options.placements || [];
   let previewPlacement = null;
   if (options.preview) {
@@ -163,6 +331,7 @@ export function renderBoard(options) {
     ctx.strokeRect(p[0] - 4, p[1] - 4, p[2] + 8, p[3] + 8); ctx.restore();
   });
   if (previewPlacement && !options.preview.placementId) drawSticker(ctx, previewPlacement, assets, true);
+  return { animating: animating };
 }
 
 export function fitCanvas(canvas) {

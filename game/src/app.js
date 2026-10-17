@@ -59,8 +59,10 @@ function redraw() {
     if (fitCanvas(card.canvas)) renderStickerCard({ canvas: card.canvas, stickerId: card.stickerId,
       level: level, assets: assets });
   });
-  renderBoard({ canvas: ui.canvas, level: level, placements: state.placements,
-    assets: assets, hintIds: hintIds, preview: preview });
+  const drawn = renderBoard({ canvas: ui.canvas, level: level, placements: state.placements,
+    assets: assets, hintIds: hintIds, preview: preview, animate: true });
+  // Notes play a short entrance animation; keep drawing the current state until it ends.
+  if (drawn && drawn.animating) scheduleDraw();
 }
 function scheduleDraw() {
   if (!frameRequest) frameRequest = window.requestAnimationFrame(redraw);
