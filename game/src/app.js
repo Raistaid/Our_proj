@@ -83,11 +83,14 @@ function render() {
     resultStatus: resultStatus,
     // For the "post feed" view (role 2): read-only facts, the UI never decides the result.
     post: postInfo(level), feed: content ? content.feed || null : null,
-    stats: { levels: records.length,
-      firstTry: records.filter(function (r) { return r.firstCheckPassed; }).length,
-      hints: records.filter(function (r) { return r.hintUsed; }).length }
+    stats: statsSummary()
   });
   scheduleDraw();
+}
+function statsSummary() {
+  return { levels: records.length,
+    firstTry: records.filter(function (r) { return r.firstCheckPassed; }).length,
+    hints: records.filter(function (r) { return r.hintUsed; }).length };
 }
 function postInfo(level) {
   if (!level || !state) return null;
@@ -228,7 +231,8 @@ async function refreshPoster() {
   resultStatus = 'Готовим твой коллаж…';
   render();
   try {
-    const image = await createPoster({ level: level, placements: placements, assets: assets });
+    const image = await createPoster({ level: level, placements: placements, assets: assets,
+      feed: content.feed || null, stats: statsSummary() });
     if (nonce !== exportNonce || screen !== 'result') return;
     posterDataUrl = image;
     resultStatus = 'Можно показать коллаж. Все личные записки на нём закрыты.';
