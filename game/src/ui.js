@@ -28,6 +28,8 @@ export function mountUI(callbacks) {
   let paletteKey = '';
   let stickerCanvases = [];
   let lastUsed = 0;
+  let wasPassed = false;
+  let reactTimer = 0;
   let postKey = '';
   let resultKey = '';
   const actions = { start: 'onStart', close: 'onClose', sound: 'onSoundToggle',
@@ -130,9 +132,19 @@ export function mountUI(callbacks) {
       const frame = document.getElementById('board-frame');
       frame.classList.toggle('passed', passed);
       // Micro-reaction to a new placement: only the frame glows; the canvas, its size and input stay untouched.
+      // The live layer shows the current scene's animations (scene file name: room, desk, poster…).
+      frame.dataset.scene = String(vm.scene || '').split('/').pop().replace(/\.svg$/, '');
+      const fx = document.getElementById('scene-fx');
       if (vm.screen === 'playing' && vm.usedStickers > lastUsed) {
         frame.classList.remove('just-placed'); void frame.offsetWidth; frame.classList.add('just-placed');
+        // The scene answers a new sticker: the robot blinks, the teapot puffs, the clock spins.
+        fx.classList.remove('react'); void fx.offsetWidth; fx.classList.add('react');
+        clearTimeout(reactTimer);
+        reactTimer = setTimeout(function () { fx.classList.remove('react'); }, 900);
       }
+      if (passed && !wasPassed) { fx.classList.remove('party'); void fx.offsetWidth; fx.classList.add('party'); }
+      if (!passed) fx.classList.remove('party');
+      wasPassed = passed;
       lastUsed = vm.usedStickers;
       setText('success-text', vm.successText);
       // The passed frame becomes a post: likes count up, fans comment on the stickers.

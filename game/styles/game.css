@@ -3,7 +3,7 @@
  --muted:#59635f;--line:#d5d7ce;--warn-bg:#fff0bd;--ok-bg:#eaf8c8;
  --gutter:16px;--topbar:64px;
  /* Vertical space taken by everything around the board on the play screen (phone layout). */
- --play-chrome:385px;
+ --play-chrome:392px;
  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--paper);font-synthesis:none;
  -webkit-text-size-adjust:100%;text-size-adjust:100%
 }
@@ -142,14 +142,13 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .count-label{font-size:14px;font-weight:800;color:var(--muted)}
 /* Three cards in one row. Each card is the real sticker scaled down: same drawing, same proportions. */
 .palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;touch-action:none;padding:4px}
-.sticker-choice{width:100%;background:transparent;color:var(--ink);border:0;border-radius:0;box-shadow:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.sticker-choice{width:100%;background:#fffaf1;color:var(--ink);border:2px solid var(--line);border-radius:14px;box-shadow:none;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:background .12s,border-color .12s,transform .12s,box-shadow .12s}
 .sticker-thumbnail{display:block;width:100%;max-width:var(--sticker-width,158.4px);height:auto;aspect-ratio:var(--sticker-ratio,1.8333);pointer-events:none}
 .sticker-choice span{font-size:14px;line-height:20px;font-weight:800;pointer-events:none}
 /* The chosen sticker is visible (ТЗ: «явное выбранное состояние»). Driven by aria-pressed,
    which the UI already sets, so no extra class is needed. */
-.sticker-choice .sticker-thumbnail{transition:transform .15s ease-out,box-shadow .15s ease-out}
-.sticker-choice[aria-pressed=true] .sticker-thumbnail{transform:translateY(-3px);box-shadow:0 0 0 3px var(--paper),0 0 0 6px var(--violet),3px 6px 0 6px rgba(118,99,175,.35)}
-.sticker-choice[aria-pressed=true] span{color:var(--violet)}
+.sticker-choice[aria-pressed=true]{background:var(--lime);border-color:var(--ink);box-shadow:3px 3px 0 var(--ink);transform:translate(-1px,-1px)}
+.sticker-choice:hover:not([aria-pressed=true]){background:#fff4dc}
 .sticker-choice[aria-pressed=true]::after{content:"✓";position:absolute;top:-6px;right:-4px;width:22px;height:22px;border-radius:50%;background:var(--violet);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--paper)}
 .sticker-choice{position:relative}
 .board-frame.just-placed{animation:placed .26s ease-out}
@@ -162,6 +161,57 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .passed-copy p{font-size:16px;line-height:1.35;margin:3px 0 0}
 .next-button{width:100%;min-height:52px;font-size:17px}
 @keyframes appear{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+
+
+/* ---------- Live scene layer over the frame ----------
+   Positions are scene coordinates (360 x 480) in %. Decoration only: pointer-events none,
+   not part of the poster PNG. Each scene shows its own group. */
+.scene-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.scene-fx>div{position:absolute;inset:0;display:none}
+.board-frame[data-scene=room] .fx-room,.board-frame[data-scene=desk] .fx-desk,.board-frame[data-scene=poster] .fx-poster{display:block}
+.scene-fx span{position:absolute;display:block}
+/* room: clock, sun, dust in the window light */
+.fx-clock-hand{left:calc(13.889% - 1px);top:6.667%;width:2px;height:3.75%;background:#d2366a;border-radius:2px;transform-origin:50% 100%;animation:fx-tick 6s steps(60) infinite}
+.fx-sun{left:89.72%;top:7.71%;width:5%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);animation:fx-sun 2.4s ease-in-out infinite}
+.fx-dust{width:4px;height:4px;border-radius:50%;background:#fff3b0;box-shadow:0 0 4px #ffe17a;opacity:0;animation:fx-dust 5s linear infinite}
+.fx-dust.d1{left:80%;top:20%}.fx-dust.d2{left:86%;top:22%;animation-delay:1.7s}.fx-dust.d3{left:76%;top:24%;animation-delay:3.3s}
+@keyframes fx-tick{to{transform:rotate(360deg)}}
+@keyframes fx-sun{0%,100%{box-shadow:0 0 0 0 rgba(255,225,122,.85)}50%{box-shadow:0 0 0 9px rgba(255,225,122,0)}}
+@keyframes fx-dust{0%{opacity:0;transform:none}15%{opacity:.9}100%{opacity:0;transform:translate(-46px,70px)}}
+/* desk: the robot blinks, the lamp glows, the mug steams */
+.fx-lid{top:41.875%;width:6.67%;aspect-ratio:1;border-radius:50%;background:#b2a3ed;border-bottom:2px solid #18212c;transform:translate(-50%,-50%) scaleY(0);animation:fx-blink 4.6s infinite}
+.fx-lid.l1{left:41.94%}.fx-lid.l2{left:55.28%}
+.fx-lamp{left:19.44%;top:41.67%;width:16%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,243,176,.9),rgba(255,243,176,0) 65%);animation:fx-glow 3s ease-in-out infinite}
+.fx-steam{left:87%;top:60%;width:3px;height:5%;border-radius:3px;background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.9));opacity:0;animation:fx-rise 2.6s ease-out infinite}
+.fx-steam.s2{left:90%;animation-delay:1.3s}
+@keyframes fx-blink{0%,90%,96%,100%{transform:translate(-50%,-50%) scaleY(0)}92%,94%{transform:translate(-50%,-50%) scaleY(1)}}
+@keyframes fx-glow{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes fx-rise{0%{opacity:0;transform:translateY(0) scaleX(1)}25%{opacity:.9}100%{opacity:0;transform:translateY(-26px) scaleX(2.2)}}
+/* poster: steam from the teapot, twinkling garland */
+.fx-puff{left:49.7%;top:36.5%;width:3.4%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.95);border:1.5px solid rgba(24,33,44,.25);opacity:0;animation:fx-puff 3s ease-out infinite}
+.fx-puff.p2{animation-delay:1s;left:48%}.fx-puff.p3{animation-delay:2s;left:51.5%}
+.fx-bulb{width:4.2%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,250,200,.95),rgba(255,250,200,0) 70%);animation:fx-twinkle 1.6s ease-in-out infinite alternate}
+.fx-bulb.b1{left:7.78%;top:23.75%}.fx-bulb.b2{left:20%;top:25.21%;animation-delay:.4s}.fx-bulb.b3{left:32.22%;top:25.63%;animation-delay:.8s}.fx-bulb.b4{left:44.44%;top:25%;animation-delay:1.2s}
+.fx-bulb.b5{left:55.56%;top:25%;animation-delay:.2s}.fx-bulb.b6{left:67.78%;top:25.63%;animation-delay:.6s}.fx-bulb.b7{left:80%;top:25.21%;animation-delay:1s}.fx-bulb.b8{left:92.22%;top:23.75%;animation-delay:1.4s}
+@keyframes fx-puff{0%{opacity:0;transform:translate(-50%,0) scale(.5)}20%{opacity:.8}100%{opacity:0;transform:translate(-50%,-14px) scale(1.5)}}
+@keyframes fx-twinkle{from{opacity:.15}to{opacity:1}}
+/* Reactions to a new sticker: the scene answers the player */
+.scene-fx.react .fx-clock-hand{animation:fx-spin .6s ease-out}
+.scene-fx.react .fx-sun{animation:fx-wink .6s ease-out}
+.scene-fx.react .fx-lid{animation:fx-surprise .7s ease-out}
+.scene-fx.react .fx-puff{animation:fx-burst .8s ease-out}
+.scene-fx.react .fx-puff.p2{animation-delay:.1s}.scene-fx.react .fx-puff.p3{animation-delay:.2s}
+@keyframes fx-spin{to{transform:rotate(720deg)}}
+@keyframes fx-wink{0%,100%{box-shadow:0 0 0 0 rgba(255,225,122,0)}40%{box-shadow:0 0 0 14px rgba(255,225,122,.9)}}
+@keyframes fx-surprise{0%,30%,60%,100%{transform:translate(-50%,-50%) scaleY(0)}15%,45%{transform:translate(-50%,-50%) scaleY(1)}}
+@keyframes fx-burst{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:.85}100%{opacity:0;transform:translate(-50%,-16px) scale(2.2)}}
+/* Frame passed: a short confetti shower */
+.fx-confetti i{position:absolute;top:-6%;width:2.4%;height:1.6%;border-radius:2px;opacity:0}
+.scene-fx.party .fx-confetti{display:block}
+.scene-fx.party .fx-confetti i{animation:fx-fall 1.5s ease-in forwards}
+.fx-confetti i:nth-child(4n+1){background:#e4ff69}.fx-confetti i:nth-child(4n+2){background:#c9bdff}.fx-confetti i:nth-child(4n+3){background:#ffc4b5}.fx-confetti i:nth-child(4n){background:#21a038}
+.fx-confetti i:nth-child(1){left:4.0%;animation-delay:0.00s!important}.fx-confetti i:nth-child(2){left:10.8%;animation-delay:0.05s!important}.fx-confetti i:nth-child(3){left:17.6%;animation-delay:0.10s!important}.fx-confetti i:nth-child(4){left:24.4%;animation-delay:0.15s!important}.fx-confetti i:nth-child(5){left:31.2%;animation-delay:0.20s!important}.fx-confetti i:nth-child(6){left:38.0%;animation-delay:0.25s!important}.fx-confetti i:nth-child(7){left:44.8%;animation-delay:0.30s!important}.fx-confetti i:nth-child(8){left:51.6%;animation-delay:0.35s!important}.fx-confetti i:nth-child(9){left:58.4%;animation-delay:0.40s!important}.fx-confetti i:nth-child(10){left:65.2%;animation-delay:0.00s!important}.fx-confetti i:nth-child(11){left:72.0%;animation-delay:0.05s!important}.fx-confetti i:nth-child(12){left:78.8%;animation-delay:0.10s!important}.fx-confetti i:nth-child(13){left:85.6%;animation-delay:0.15s!important}.fx-confetti i:nth-child(14){left:92.4%;animation-delay:0.20s!important}
+@keyframes fx-fall{0%{opacity:1;top:-6%;transform:rotate(0)}85%{opacity:1}100%{opacity:0;top:104%;transform:rotate(540deg)}}
 
 /* ---------- Result ---------- */
 .result-screen{display:grid;grid-template-columns:1fr 320px;gap:55px;align-items:center;max-width:800px;margin:0 auto;padding:50px 0}
@@ -241,6 +291,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .palette{gap:12px}
  /* On phones the card itself shows the sticker; its name stays in aria-label. */
  .sticker-choice span{display:none}
+ .sticker-choice{padding:4px;border-radius:12px}
  .gesture-help{font-size:14px;margin-top:6px}
  .controls{grid-template-columns:1fr 1fr 1.2fr;gap:8px}
  .controls .button{min-height:48px;padding:6px 4px;font-size:14px;border-radius:11px;gap:4px}
