@@ -34,6 +34,16 @@ export function validateContent(content) {
     const name = level.id + ': ';
     if (levelIds.has(level.id)) errors.push(name + 'повтор ID');
     levelIds.add(level.id);
+    const layouts = Array.isArray(level.layouts) ? level.layouts : [];
+    layouts.forEach(function (layout, i) {
+      const ids = (level.secrets || []).concat(level.keepZones || []).map(function (z) { return z && z.id; });
+      Object.keys(layout || {}).forEach(function (id) {
+        if (ids.indexOf(id) === -1) errors.push(name + 'раскладка ' + (i + 1) + ': неизвестная область ' + id);
+      });
+    });
+    // The original layout and every replay layout pass the same checks.
+    [level].concat(layouts.map(function (_, i) { return applyLayout(level, i + 1); })).forEach(function (level, v) {
+    const name = level.id + (v ? ' (раскладка ' + v + ')' : '') + ': ';
     if (!text(level.title) || !text(level.brief) || !text(level.successText) || !localAsset(level.background)) {
       errors.push(name + 'нет заголовка, задачи или локального фона');
     }
@@ -72,12 +82,26 @@ export function validateContent(content) {
       if (k && k.lines && (!Array.isArray(k.lines) || !k.lines.length ||
           k.lines.length > 3 || !k.lines.every(text))) errors.push(name + 'неподходящий видимый текст');
     });
+    });
   });
   return { ok: errors.length === 0, errors: errors };
 }
 
-export function getRuntimeLevel(content, index) {
-  return Object.assign({}, content.levels[index], {
+// Replay layouts: variant 0 is the original; variant n uses layouts[(n - 1) % length], which moves
+// notes (secrets and ordinary ones alike) to other places so a replay has to be read again.
+export function applyLayout(level, variant) {
+  const layouts = level && Array.isArray(level.layouts) ? level.layouts : [];
+  if (!variant || !layouts.length) return level;
+  const layout = layouts[(variant - 1) % layouts.length] || {};
+  function move(zone) { return zone && layout[zone.id] ? Object.assign({}, zone, layout[zone.id]) : zone; }
+  return Object.assign({}, level, {
+    secrets: (level.secrets || []).map(move),
+    keepZones: (level.keepZones || []).map(move)
+  });
+}
+
+export function getRuntimeLevel(content, index, variant) {
+  return Object.assign({}, applyLayout(content.levels[index], variant || 0), {
     defaultStickerSize: content.defaultStickerSize,
     allowedStickerIds: content.stickers.map(function (s) { return s.id; })
   });

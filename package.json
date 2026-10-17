@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node tools/serve.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check:content": "node tools/check-content.mjs"
+    "check:content": "node tools/check-content.mjs",
+    "check:budget": "node tools/first-screen-budget.mjs"
   }
 }

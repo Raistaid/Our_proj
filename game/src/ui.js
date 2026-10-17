@@ -2,6 +2,24 @@ import { DEFAULT_FEED, pick, fanComments, strangerComment, agentTitle } from './
 
 const SYMBOLS = { info: '✳', warning: '!', success: '✓' };
 
+// First-frame tutorial: a finger drags the chosen card into the frame until the first sticker
+// is placed. It aims at an empty bit of wall, never at a secret (secrets are not highlighted).
+const HAND_TARGET = { x: 0.1, y: 0.18 };
+function placeHand(hand, palette, canvas) {
+  const layout = hand.parentElement;
+  const card = palette.querySelector('[aria-pressed=true]') || palette.querySelector('button');
+  if (!layout || !card) return false;
+  const base = layout.getBoundingClientRect();
+  const from = card.getBoundingClientRect();
+  const board = canvas.getBoundingClientRect();
+  if (!from.width || !board.width) return false;
+  hand.style.setProperty('--sx', (from.left + from.width / 2 - base.left) + 'px');
+  hand.style.setProperty('--sy', (from.top + from.height / 2 - base.top) + 'px');
+  hand.style.setProperty('--ex', (board.left + board.width * HAND_TARGET.x - base.left) + 'px');
+  hand.style.setProperty('--ey', (board.top + board.height * HAND_TARGET.y - base.top) + 'px');
+  return true;
+}
+
 function reduceMotion() {
   return typeof window === 'undefined' || !window.matchMedia ||
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -135,16 +153,27 @@ export function mountUI(callbacks) {
       // The live layer shows the current scene's animations (scene file name: room, desk, poster…).
       frame.dataset.scene = String(vm.scene || '').split('/').pop().replace(/\.svg$/, '');
       const fx = document.getElementById('scene-fx');
+      // content.json → scenes: which live effects run, their speed, reactions and confetti.
+      const setup = vm.scenes || {};
+      const sceneSetup = setup[frame.dataset.scene] || {};
+      const off = Object.keys(sceneSetup).filter(function (k) { return sceneSetup[k] === false; });
+      if (setup.confetti === false) off.push('confetti');
+      fx.dataset.off = off.join(' ');
+      const speed = Number(setup.speed);
+      fx.style.setProperty('--fx-speed', String(speed > 0 && speed <= 4 ? speed : 1));
       if (vm.screen === 'playing' && vm.usedStickers > lastUsed) {
         frame.classList.remove('just-placed'); void frame.offsetWidth; frame.classList.add('just-placed');
         // The scene answers a new sticker: the robot blinks, the teapot puffs, the clock spins.
-        fx.classList.remove('react'); void fx.offsetWidth; fx.classList.add('react');
+        if (setup.reactions !== false) { fx.classList.remove('react'); void fx.offsetWidth; fx.classList.add('react'); }
         clearTimeout(reactTimer);
         reactTimer = setTimeout(function () { fx.classList.remove('react'); }, 900);
       }
       if (passed && !wasPassed) { fx.classList.remove('party'); void fx.offsetWidth; fx.classList.add('party'); }
       if (!passed) fx.classList.remove('party');
       wasPassed = passed;
+      const hand = document.getElementById('tutorial-hand');
+      const teach = vm.screen === 'playing' && vm.levelIndex === 1 && vm.usedStickers === 0 && !vm.isFallback;
+      hand.hidden = !(teach && placeHand(hand, palette, canvas));
       lastUsed = vm.usedStickers;
       setText('success-text', vm.successText);
       // The passed frame becomes a post: likes count up, fans comment on the stickers.
