@@ -4,10 +4,9 @@
     "width": 360,
     "height": 480
   },
-  "stickerPadding": 0.012,
   "defaultStickerSize": {
-    "w": 0.3,
-    "h": 0.2
+    "w": 0.44,
+    "h": 0.18
   },
   "stickers": [
     {
