@@ -245,10 +245,13 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
       Math.abs(call.args[2] - content.defaultStickerSize.w * 360) < 1e-8 &&
       Math.abs(call.args[3] - content.defaultStickerSize.h * 480) < 1e-8).map(call => call.args);
   }
-  function assertPaletteMatches() {
+  function assertPaletteMatches(selectedId = content.stickers[0].id) {
+    const buttons = byId('palette').querySelectorAll('button');
     const thumbnails = byId('palette').querySelectorAll('canvas');
+    assert.equal(buttons.length, content.stickers.length);
     assert.equal(thumbnails.length, content.stickers.length);
     thumbnails.forEach((thumbnail, stickerIndex) => {
+      const sticker = content.stickers[stickerIndex];
       const bounds = thumbnail.getBoundingClientRect();
       assert.equal(bounds.width, board.getBoundingClientRect().width * content.defaultStickerSize.w);
       assert.equal(bounds.height, board.getBoundingClientRect().height * content.defaultStickerSize.h);
@@ -256,8 +259,15 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
       assert.equal(thumbnail.height, Math.round(bounds.height));
       assert.equal(thumbnail.getAttribute('aria-hidden'), 'true');
       assert.ok(thumbnail.calls.some(call => call.name === 'drawImage' &&
-        call.args[0].src === new URL(content.stickers[stickerIndex].src, document.baseURI).href),
+        call.args[0].src === new URL(sticker.src, document.baseURI).href),
       'palette cards render the sticker artwork');
+    });
+    buttons.forEach((button, stickerIndex) => {
+      const sticker = content.stickers[stickerIndex];
+      assert.equal(button.dataset.stickerId, sticker.id);
+      assert.equal(button.querySelector('span').textContent, sticker.shortLabel || sticker.label);
+      assert.equal(button.getAttribute('aria-pressed'), String(sticker.id === selectedId));
+      assert.equal(button.classes.has('selected'), sticker.id === selectedId);
     });
   }
   async function settleUntil(predicate) {
@@ -285,6 +295,13 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
       assert.equal(byId('level-title').textContent, level.title);
       assertPaletteMatches();
       if (exerciseMistakes && index === 0) {
+        const choices = byId('palette').querySelectorAll('button');
+        root.dispatch('click', { target: choices[1].querySelector('canvas') });
+        flushFrames();
+        assertPaletteMatches(content.stickers[1].id);
+        root.dispatch('click', { target: choices[0] });
+        flushFrames();
+        assertPaletteMatches();
         const originalBounds = board.getBoundingClientRect();
         board.bounds = { left: 0, top: 0, width: 270, height: 360 };
         for (const handler of windowListeners.get('resize')) handler({});
