@@ -58,6 +58,9 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .intro-tags span{border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700}
 .start-button{min-width:244px;justify-content:space-between;font-size:17px;min-height:56px}
 .start-button span{font-size:24px}
+.sound-start{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;min-height:44px;padding:8px 14px;border:2px solid var(--ink);border-radius:999px;background:#fffaf1;font-size:15px;font-weight:800}
+.sound-start .sound-icon{font-size:18px}
+.sound-start[aria-pressed=true]{background:var(--lime);box-shadow:2px 2px 0 var(--ink)}
 .small-note{font-size:14px;line-height:1.5;color:var(--muted);margin:18px 0 0;max-width:380px}
 .intro-art{position:relative;padding:35px 15px 40px;isolation:isolate;overflow:hidden}
 /* Bright slowly turning rays behind the demo. */
