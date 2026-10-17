@@ -128,14 +128,10 @@ export function mountUI(callbacks) {
     const exit = root.querySelector('[data-action=close]');
     if (exit) exit.hidden = vm.screen === 'start' || vm.screen === 'loading';
     show('level-info', playing);
-    // Sound buttons: the small one in the top bar and the big one on the start screen.
+    // The sound switch lives in the settings panel.
     root.querySelectorAll('[data-action=sound]').forEach(function (sound) {
       const icon = sound.querySelector('.sound-icon');
-      const label = sound.querySelector('.sound-label');
-      const textLabel = sound.querySelector('.sound-text');
       if (icon) icon.textContent = vm.soundOn ? '🔊' : '🔇';
-      if (label) label.textContent = vm.soundOn ? 'Звук вкл.' : 'Звук выкл.';
-      if (textLabel) textLabel.textContent = vm.soundOn ? 'Звук и музыка включены' : 'Включить звук и музыку';
       sound.setAttribute('aria-pressed', String(Boolean(vm.soundOn)));
       sound.setAttribute('aria-label', vm.soundOn ? 'Выключить звук' : 'Включить звук');
     });
@@ -150,7 +146,7 @@ export function mountUI(callbacks) {
     if (clicks) clicks.setAttribute('aria-pressed', String(Boolean(lastAudio.clicks)));
     setText('start-note', vm.isFallback ?
       'Основные кадры не загрузились. Можно попробовать один и открыть игру снова.' :
-      'Все данные в сценах вымышленные. Звук — по желанию.');
+      'Все данные в сценах вымышленные. Звук и музыка — в настройках ⚙.');
     if (playing) {
       setText('level-title', vm.title);
       setText('task', vm.task);
