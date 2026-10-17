@@ -21,7 +21,7 @@ if (!validation.ok) {
     for (const secret of level.secrets) {
       const r = secret.rect;
       const result = placeSticker(level, state, {
-        stickerId: content.stickers[i % content.stickers.length].id,
+        stickerId: content.stickers.find(function (s) { return !s.shape || s.shape === 'rectangle'; }).id,
         x: r[0] + r[2] / 2, y: r[1] + r[3] / 2
       });
       if (!result.accepted) throw new Error(level.id + ' v' + v + ': нельзя поставить наклейку');

@@ -299,14 +299,15 @@ function drawSticker(ctx, placement, assets, preview) {
   const p = pixels(placement.rect);
   const sticker = assets.stickers[placement.stickerId] || { color: '#e4ff69' };
   ctx.save();
-  // This is an opaque rectangular mask. The artwork may have transparent pixels.
+  // Clip the opaque backing and artwork to the same physical shape.
   ctx.globalAlpha = preview ? 0.65 : 1;
+  stickerPath(ctx, p, sticker.shape || 'rectangle');
+  ctx.clip();
   ctx.fillStyle = sticker.color || '#e4ff69';
   ctx.fillRect(p[0], p[1], p[2], p[3]);
   ctx.strokeStyle = INK; ctx.lineWidth = 1.8;
-  ctx.strokeRect(p[0], p[1], p[2], p[3]);
+  stickerPath(ctx, p, sticker.shape || 'rectangle'); ctx.stroke();
   // Preview, placed artwork and exported artwork share the same fixed size.
-  ctx.beginPath(); ctx.rect(p[0], p[1], p[2], p[3]); ctx.clip();
   const img = assets.images[sticker.src];
   if (img) {
     const size = Math.min(p[2] * 0.82, p[3] * 0.9);
@@ -318,28 +319,33 @@ function drawSticker(ctx, placement, assets, preview) {
   ctx.restore();
 }
 
+function stickerPath(ctx, p, shape) {
+  const [x, y, w, h] = p;
+  ctx.beginPath();
+  if (shape === 'circle') {
+    ctx.arc(x + w / 2, y + h / 2, w / 2, 0, Math.PI * 2);
+  } else if (shape === 'rounded-square') {
+    const r = Math.min(w, h) * 0.18;
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+  } else ctx.rect(x, y, w, h);
+  ctx.closePath();
+}
+
 // Palette cards use the exact same drawing and proportions as placed stickers.
 export function renderStickerCard(options) {
   const canvas = options.canvas;
-  const rect = getStickerRect(options.level, { x: 0.5, y: 0.5 });
+  const rect = getStickerRect(options.level, { x: 0.5, y: 0.5, stickerId: options.stickerId });
   const ctx = canvas.getContext('2d');
   if (!ctx || !rect) return;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.setTransform(canvas.width / (rect[2] * 360), 0, 0,
-    canvas.height / (rect[3] * 480), 0, 0);
-  if (options.bare) {
-    // Palette card: only the artwork, same size and position as on the board; the card itself
-    // is the button's background.
-    const sticker = options.assets.stickers[options.stickerId] || {};
-    const img = options.assets.images[sticker.src];
-    const p = pixels([0, 0, rect[2], rect[3]]);
-    if (img) {
-      const size = Math.min(p[2] * 0.82, p[3] * 0.9);
-      ctx.drawImage(img, (p[2] - size) / 2, (p[3] - size) / 2, size, size);
-    }
-    return;
-  }
+  const scale = Math.min(canvas.width / (rect[2] * 360), canvas.height / (rect[3] * 480));
+  ctx.setTransform(scale, 0, 0, scale,
+    (canvas.width - rect[2] * 360 * scale) / 2, (canvas.height - rect[3] * 480 * scale) / 2);
   drawSticker(ctx, { stickerId: options.stickerId, rect: [0, 0, rect[2], rect[3]] }, options.assets, false);
 }
 

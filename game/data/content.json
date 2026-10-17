@@ -5,8 +5,8 @@
     "height": 480
   },
   "defaultStickerSize": {
-    "w": 0.44,
-    "h": 0.18
+    "w": 0.40,
+    "h": 0.16
   },
   "stickers": [
     {
@@ -14,6 +14,7 @@
       "label": "Серьёзный носок",
       "shortLabel": "Носок",
       "src": "./assets/stickers/sock.svg",
+      "shape": "rectangle",
       "color": "#e4ff69"
     },
     {
@@ -21,6 +22,7 @@
       "label": "Деловое облако",
       "shortLabel": "Облако",
       "src": "./assets/stickers/cloud.svg",
+      "shape": "circle",
       "color": "#c9bdff"
     },
     {
@@ -28,6 +30,7 @@
       "label": "Огурец в полёте",
       "shortLabel": "Огурец",
       "src": "./assets/stickers/cucumber.svg",
+      "shape": "rounded-square",
       "color": "#ffc4b5"
     }
   ],
@@ -38,7 +41,6 @@
       "brief": "Спрячь личное. Рюкзак и идею рисунка оставь в кадре.",
       "background": "./assets/scenes/room.svg",
       "mode": "practice",
-      "maxStickers": 4,
       "secrets": [
         {
           "id": "home_address",
@@ -150,9 +152,7 @@
       "title": "Доска заметок",
       "brief": "Спрячь данные карты, телефон, школу и класс.",
       "background": "./assets/scenes/desk.svg",
-      "mode": "practice",
-      "maxStickers": 6,
-      "secrets": [
+      "mode": "practice",      "secrets": [
         {
           "id": "card_number",
           "kind": "card_number",
@@ -410,9 +410,7 @@
       "title": "Уведомление на телефоне",
       "brief": "Спрячь код из уведомления и адрес внизу экрана.",
       "background": "./assets/scenes/poster.svg",
-      "mode": "practice",
-      "maxStickers": 4,
-      "secrets": [
+      "mode": "practice",      "secrets": [
         {
           "id": "pickup_code",
           "kind": "code",
@@ -537,9 +535,7 @@
       "title": "Телефон: код для входа",
       "brief": "Спрячь код из уведомления и адрес внизу экрана.",
       "background": "./assets/scenes/poster.svg",
-      "mode": "practice",
-      "maxStickers": 4,
-      "secrets": [
+      "mode": "practice",      "secrets": [
         {
           "id": "login_code",
           "kind": "code",
@@ -665,7 +661,6 @@
       "brief": "Спрячь код из сообщения на компьютере.",
       "background": "./assets/scenes/computer.svg",
       "mode": "practice",
-      "maxStickers": 4,
       "secrets": [
         {
           "id": "chat_code",
@@ -776,7 +771,6 @@
       "brief": "Спрячь домашний адрес на посылке.",
       "background": "./assets/scenes/parcel.svg",
       "mode": "practice",
-      "maxStickers": 4,
       "secrets": [
         {
           "id": "shipping_address",
@@ -886,9 +880,7 @@
       "title": "Доска заметок: твоя проверка",
       "brief": "Самостоятельно спрячь личное. Идеи и робота оставь.",
       "background": "./assets/scenes/desk.svg",
-      "mode": "transfer",
-      "maxStickers": 6,
-      "secrets": [
+      "mode": "transfer",      "secrets": [
         {
           "id": "school",
           "kind": "school",

@@ -99,8 +99,8 @@ class Element {
     if (this.classes.has('sticker-thumbnail')) {
       const style = this.ownerDocument.getElementById('palette').style;
       return { left: 0, top: 500,
-        width: parseFloat(style.getPropertyValue('--sticker-width')) || 158.4,
-        height: parseFloat(style.getPropertyValue('--sticker-height')) || 86.4 };
+        width: parseFloat(style.getPropertyValue('--sticker-width')) || 144,
+        height: parseFloat(style.getPropertyValue('--sticker-height')) || 76.8 };
     }
     return this.bounds || { left: 0, top: 0, width: 360, height: 480 };
   }
@@ -326,7 +326,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         assert.deepEqual(stickerMasks().at(-1), originalMask,
           'grabbing an existing sticker away from its center must not make it jump');
         pointer('pointerup', grab.x, grab.y);
-        assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers,
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 1',
           'tapping an existing sticker does not add another sticker');
         const secret = level.secrets[0].rect;
         // Aim at the secret's own centre so the test follows the scene data, not a fixed spot.
@@ -335,7 +335,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         pointer('pointermove', destination.x + 0.04, destination.y + 0.02);
         board.calls.length = 0;
         pointer('pointerup', destination.x + 0.04, destination.y + 0.02);
-        assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers,
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 1',
           'moving a sticker keeps the sticker count unchanged');
         const movedMask = stickerMasks().at(-1);
         assert.ok(Math.abs((movedMask[0] + movedMask[2] / 2) / 360 - destination.x) < 1e-8);
@@ -346,12 +346,12 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         board.calls.length = 0;
         click('undo');
         assert.deepEqual(stickerMasks().at(-1), originalMask, 'undo restores the previous sticker position');
-        assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers);
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 1');
         pointer('pointerdown', grab.x, grab.y);
         board.calls.length = 0;
         pointer('pointermove', 1.2, grab.y);
         assert.deepEqual(stickerMasks(), [], 'the sticker is hidden while its removal is previewed');
-        assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers,
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 1',
           'previewing removal does not commit it');
         assert.equal(byId('feedback-text').textContent, 'Отпусти за кадром, чтобы убрать наклейку.');
         assert.equal(byId('feedback').dataset.kind, 'warning');
@@ -359,7 +359,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         pointer('pointercancel', 1.2, grab.y);
         assert.deepEqual(stickerMasks().at(-1), originalMask,
           'cancelling outside the board restores the existing sticker');
-        assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers);
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 1');
 
         pointer('pointerdown', grab.x, grab.y);
         pointer('pointermove', 1.2, grab.y);
@@ -369,14 +369,14 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         pointer('pointerup', 1.2, grab.y);
         assert.deepEqual(stickerMasks().at(-1), originalMask,
           'resize cancels a pending removal and a later pointerup cannot delete');
-        assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers);
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 1');
 
         pointer('pointerdown', grab.x, grab.y);
         pointer('pointermove', 1.2, grab.y);
         pointer('pointermove', destination.x + 0.04, destination.y + 0.02);
         board.calls.length = 0;
         pointer('pointerup', destination.x + 0.04, destination.y + 0.02);
-        assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers,
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 1',
           'returning inside before release moves the sticker instead of deleting it');
         const returnedMask = stickerMasks().at(-1);
         assert.ok(Math.abs((returnedMask[0] + returnedMask[2] / 2) / 360 - destination.x) < 1e-8);
@@ -389,7 +389,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         pointer('pointermove', 1.2, grab.y);
         board.calls.length = 0;
         pointer('pointerup', 1.2, grab.y);
-        assert.equal(byId('sticker-count').textContent, '0 / ' + level.maxStickers,
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 0',
           'releasing outside removes the existing sticker');
         assert.deepEqual(stickerMasks(), [], 'the removed sticker no longer renders');
         assert.equal(byId('undo-button').disabled, false);
@@ -397,7 +397,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         click('undo');
         assert.deepEqual(stickerMasks().at(-1), originalMask,
           'undo restores a removed sticker at its previous position');
-        assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers);
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 1');
         click('check');
         assert.equal(root.dataset.screen, 'playing');
         assert.equal(byId('feedback').dataset.kind, 'warning');
@@ -407,7 +407,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d').length, 0,
           'a hint about a blocked ordinary note must not highlight a different secret');
         click('undo');
-        assert.equal(byId('sticker-count').textContent, '0 / ' + level.maxStickers);
+        assert.equal(byId('sticker-count').textContent, 'Наклеек: 0');
         assert.equal(byId('undo-button').disabled, true);
         board.calls.length = 0;
         click('hint');

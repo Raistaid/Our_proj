@@ -62,7 +62,7 @@ function redraw() {
   ui.setStickerSize(bounds.width * level.defaultStickerSize.w, bounds.height * level.defaultStickerSize.h);
   ui.getStickerCanvases().forEach(function (card) {
     if (fitCanvas(card.canvas)) renderStickerCard({ canvas: card.canvas, stickerId: card.stickerId,
-      level: level, assets: assets, bare: true });
+      level: level, assets: assets });
   });
   const drawn = renderBoard({ canvas: ui.canvas, level: level, placements: state.placements,
     assets: assets, hintIds: hintIds, preview: preview, animate: true });
@@ -79,7 +79,7 @@ function render() {
     title: level ? level.title : '', task: level ? level.brief : '',
     levelIndex: levelIndex + 1, levelCount: content ? content.levels.length : 0,
     stickers: content ? content.stickers : [], selectedStickerId: selectedStickerId,
-    usedStickers: state ? state.placements.length : 0, maxStickers: level ? level.maxStickers : 0,
+    usedStickers: state ? state.placements.length : 0,
     canUndo: playing() && state.history.length > 0, canHint: canHint(),
     hintLocked: playing() && !canHint(), feedback: preview && preview.removing ?
       { kind: 'warning', text: 'Отпусти за кадром, чтобы убрать наклейку.' } : feedback,
@@ -91,7 +91,7 @@ function render() {
     scene: level ? level.background : '',
     scenes: content ? content.scenes || null : null,
     audio: audio.settings(),
-    placementRects: state ? state.placements.map(function (p) { return p.rect.slice(); }) : [],
+    placements: state ? state.placements : [],
     stats: statsSummary()
   });
   scheduleDraw();
@@ -151,9 +151,7 @@ function drop(item) {
   if (!playing()) return;
   const result = placeSticker(currentLevel(), state, item);
   if (!result.accepted) {
-    feedback = { kind: 'warning', text: result.reason === 'limit' ?
-      'Наклейки закончились. Отмени лишнюю и попробуй ещё раз.' :
-      'Попробуй поставить наклейку внутри кадра.' };
+    feedback = { kind: 'warning', text: 'Попробуй поставить наклейку внутри кадра.' };
   } else {
     state = result.state;
     hintIds = [];

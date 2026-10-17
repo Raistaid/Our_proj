@@ -1,4 +1,5 @@
 import { DEFAULT_FEED, pick, fanComments, strangerComment, agentTitle } from './feed.js';
+import { stickerIntersectsRect } from './sticker-shapes.js';
 
 const SYMBOLS = { info: '✳', warning: '!', success: '✓' };
 
@@ -31,7 +32,7 @@ function placeHand(hand, palette, canvas) {
 
 // Live elements under a sticker are hidden (the clock hand must not stick out of a sticker).
 // Their boxes are widened a little because they move (rotation, rising steam).
-function hideUnderStickers(fx, frame, rects) {
+function hideUnderStickers(fx, frame, placements) {
   const base = frame.getBoundingClientRect();
   if (!base.width || !base.height) return;
   Array.from(fx.querySelectorAll('span')).forEach(function (el) {
@@ -40,10 +41,7 @@ function hideUnderStickers(fx, frame, rects) {
     const pad = 0.04;
     const box = [(r.left - base.left) / base.width - pad, (r.top - base.top) / base.height - pad * 2,
       r.width / base.width + pad * 2, r.height / base.height + pad * 3];
-    const covered = rects.some(function (p) {
-      return Math.min(p[0] + p[2], box[0] + box[2]) > Math.max(p[0], box[0]) &&
-        Math.min(p[1] + p[3], box[1] + box[3]) > Math.max(p[1], box[1]);
-    });
+    const covered = placements.some(function (p) { return stickerIntersectsRect(p, box); });
     el.classList.toggle('covered', covered);
   });
 }
@@ -124,18 +122,14 @@ export function mountUI(callbacks) {
     show('error-screen', vm.screen === 'error');
     root.dataset.screen = vm.screen;
     show('brand', !playing);
-    // Exit appears once the game has started (and on the load error screen, where it is the only way out).
+    // Exit is available on every main screen (TZ: CLOSE_EVENT in all main states).
     const exit = root.querySelector('[data-action=close]');
-    if (exit) exit.hidden = vm.screen === 'start' || vm.screen === 'loading';
+    if (exit) exit.hidden = vm.screen === 'loading';
     show('level-info', playing);
-    // Sound buttons: the small one in the top bar and the big one on the start screen.
+    // The sound switch lives in the settings panel.
     root.querySelectorAll('[data-action=sound]').forEach(function (sound) {
       const icon = sound.querySelector('.sound-icon');
-      const label = sound.querySelector('.sound-label');
-      const textLabel = sound.querySelector('.sound-text');
       if (icon) icon.textContent = vm.soundOn ? '🔊' : '🔇';
-      if (label) label.textContent = vm.soundOn ? 'Звук вкл.' : 'Звук выкл.';
-      if (textLabel) textLabel.textContent = vm.soundOn ? 'Звук и музыка включены' : 'Включить звук и музыку';
       sound.setAttribute('aria-pressed', String(Boolean(vm.soundOn)));
       sound.setAttribute('aria-label', vm.soundOn ? 'Выключить звук' : 'Включить звук');
     });
@@ -150,7 +144,7 @@ export function mountUI(callbacks) {
     if (clicks) clicks.setAttribute('aria-pressed', String(Boolean(lastAudio.clicks)));
     setText('start-note', vm.isFallback ?
       'Основные кадры не загрузились. Можно попробовать один и открыть игру снова.' :
-      'Все данные в сценах вымышленные. Звук — по желанию.');
+      'Все данные в сценах вымышленные. Звук и музыка — в настройках ⚙.');
     if (playing) {
       setText('level-title', vm.title);
       setText('task', vm.task);
@@ -186,7 +180,7 @@ export function mountUI(callbacks) {
         button.setAttribute('aria-pressed', String(selected));
         button.disabled = vm.screen === 'levelPassed';
       });
-      setText('sticker-count', vm.usedStickers + ' / ' + vm.maxStickers);
+      setText('sticker-count', 'Наклеек: ' + vm.usedStickers);
       document.getElementById('undo-button').disabled = !vm.canUndo;
       document.getElementById('hint-button').disabled = !vm.canHint;
       document.getElementById('hint-button').title = vm.hintLocked ?
@@ -230,7 +224,7 @@ export function mountUI(callbacks) {
       fx.dataset.off = off.join(' ');
       const speed = Number(setup.speed);
       fx.style.setProperty('--fx-speed', String(speed > 0 && speed <= 4 ? speed : 1));
-      hideUnderStickers(fx, frame, vm.placementRects || []);
+      hideUnderStickers(fx, frame, vm.placements || []);
       if (vm.screen === 'playing' && vm.usedStickers > lastUsed) {
         frame.classList.remove('just-placed'); void frame.offsetWidth; frame.classList.add('just-placed');
         // The scene answers a new sticker: the robot blinks, the teapot puffs, the clock spins.
