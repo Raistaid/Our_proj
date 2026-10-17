@@ -327,7 +327,8 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         assert.equal(byId('sticker-count').textContent, '1 / ' + level.maxStickers,
           'tapping an existing sticker does not add another sticker');
         const secret = level.secrets[0].rect;
-        const destination = { x: 0.24, y: secret[1] + secret[3] / 2 };
+        // Aim at the secret's own centre so the test follows the scene data, not a fixed spot.
+        const destination = { x: secret[0] + secret[2] / 2, y: secret[1] + secret[3] / 2 };
         pointer('pointerdown', grab.x, grab.y);
         pointer('pointermove', destination.x + 0.04, destination.y + 0.02);
         board.calls.length = 0;
