@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#fde8ef">
+  <meta name="theme-color" content="#f7f4eb">
   <meta name="color-scheme" content="light">
   <meta name="description" content="Закрой личное смешными наклейками и подготовь кадр, который можно показать.">
   <title>Засвет — наклей всё!</title>
@@ -13,47 +13,39 @@
 <body>
   <div id="app" class="app">
     <header class="topbar">
-      <button type="button" class="icon-button close-button" data-action="close" aria-label="Выйти из игры">×</button>
-      <div class="brand" id="brand"><span class="brand-spark" aria-hidden="true">✳</span> ЗАСВЕТ<span class="brand-dot">.</span></div>
+      <div class="brand" id="brand"><span class="sber-badge" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span> ЗАСВЕТ<span class="brand-dot">.</span></div>
       <div class="level-info" id="level-info" hidden>
         <div class="level-meta"><span id="level-counter">Кадр 1 / 5</span><div id="progress" class="progress" aria-hidden="true"></div></div>
         <h2 id="level-title">Кадр</h2>
       </div>
       <div class="topbar-actions">
         <button type="button" class="icon-button sound-button" data-action="sound" aria-pressed="false" aria-label="Включить звук"><span class="sound-icon" aria-hidden="true">🔇</span><span class="sound-label">Звук выкл.</span></button>
+        <button type="button" class="icon-button close-button" data-action="close" aria-label="Выйти из игры">×</button>
       </div>
     </header>
     <main>
       <section id="loading-screen" class="loading-screen">
-        <div class="pixel-loader" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="loader-spark" aria-hidden="true">✳</div>
         <p role="status">Готовим кадры и серьёзный носок…</p>
       </section>
       <section id="start-screen" class="start-screen" hidden>
         <div class="intro-copy">
-          <span class="chip">Наклейки на посту</span>
-          <h1>Личное —<br><span class="marker">за кадром</span></h1>
-          <div class="host host-start">
-            <img src="./assets/host/happy.svg" alt="" class="host-face" aria-hidden="true">
-            <p class="bubble">Привет! Я Носок, охраняю секреты. Помоги подготовить пост: личное прячем, а главное оставляем на виду.</p>
-          </div>
-          <div class="intro-tags"><span class="tag-green">5 кадров</span><span class="tag-mint">3 наклейки</span><span class="tag-sun">Твой коллаж</span></div>
+          <span class="eyebrow kids-label"><span class="sber-badge sber-badge-small" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span>Игра для СберKids</span>
+          <h1>ЛИЧНОЕ —<br><span class="marker">ЗА КАДРОМ.</span></h1>
+          <p class="intro-description">Готовишь пост? Найди секреты и прикрой их. Пусть в кадре останется только то, что ты хочешь показать.</p>
+          <div class="intro-tags"><span>5 кадров</span><span>3 наклейки</span><span>Твой коллаж</span></div>
+          <button type="button" class="button button-primary start-button" data-action="start">ПРИКРЫВАЕМ <span aria-hidden="true">↗</span></button>
+          <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук — по желанию.</p>
         </div>
         <div class="intro-art" aria-hidden="true">
           <div class="cover-caption">пост почти готов</div>
           <div class="cover-picture">
             <img src="./assets/scenes/room.svg" alt="" class="cover-background">
-            <div class="cover-note"><i></i><i></i><i></i></div>
+            <div class="cover-note">Адрес дома<br>лучше за кадром</div>
             <div class="cover-sticker"><img src="./assets/stickers/sock.svg" alt=""></div>
           </div>
-          <div class="cover-label">Носок прикроет</div>
-          <div class="pixel-friends">
-            <img src="./assets/stickers/cloud.svg" alt="">
-            <img src="./assets/stickers/cucumber.svg" alt="">
-          </div>
-        </div>
-        <div class="start-actions">
-          <button type="button" class="button button-primary start-button" data-action="start">Начать игру <span aria-hidden="true">▶</span></button>
-          <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук — по желанию.</p>
+          <div class="cover-label">НОСОК ПРИКРОЕТ.</div>
+          <span class="cover-star">✳</span>
         </div>
       </section>
       <section id="play-screen" class="play-screen" hidden>
@@ -66,7 +58,7 @@
           </div>
           <aside class="workspace">
             <div id="feedback" class="feedback" role="status" aria-live="polite">
-              <span class="host-mini" aria-hidden="true"><img src="./assets/host/calm.svg" alt="" id="host-face"><span class="feedback-symbol" id="feedback-symbol">✳</span></span><p id="feedback-text">Секреты прикрываем. Обычные идеи оставляем.</p>
+              <span class="feedback-symbol" id="feedback-symbol" aria-hidden="true">✳</span><p id="feedback-text">Секреты прикрываем. Обычные идеи оставляем.</p>
             </div>
             <div class="palette-block">
               <div class="palette-heading"><span class="eyebrow">Кто прикрывает?</span><span id="sticker-count" class="count-label">0 / 4</span></div>
@@ -94,23 +86,20 @@
       </section>
       <section id="result-screen" class="result-screen" hidden>
         <div class="result-copy">
-          <span class="chip">Наклейки справились</span>
-          <h2>Секреты<br><span class="marker">прикрыты</span></h2>
-          <div class="host host-result">
-            <img src="./assets/host/happy.svg" alt="" class="host-face" aria-hidden="true">
-            <p class="bubble" id="result-description">Кадры готовы. Твои идеи остались видны, личное — за кадром.</p>
-          </div>
+          <span class="eyebrow">Наклейки справились</span>
+          <h2>СЕКРЕТЫ<br><span class="marker">ПРИКРЫТЫ.</span></h2>
+          <p id="result-description">Кадры готовы. Твои идеи остались видны, личное — за кадром.</p>
           <button type="button" class="button button-primary" data-action="share" id="share-button" disabled>Поделиться коллажем ↗</button>
           <button type="button" class="button button-secondary" data-action="replay">Ещё один заход ↶</button>
           <p id="result-status" class="small-note" role="status">Готовим твой постер…</p>
         </div>
         <div class="poster-frame">
           <img id="poster-image" alt="Твой коллаж: личные сведения закрыты наклейками" hidden>
-          <div id="poster-placeholder" class="poster-placeholder"><div class="pixel-loader" aria-hidden="true"><i></i><i></i><i></i><i></i></div><span>Твой коллаж</span></div>
+          <div id="poster-placeholder" class="poster-placeholder">✳<span>Твой коллаж</span></div>
         </div>
       </section>
       <section id="error-screen" class="error-screen" hidden>
-        <div class="pixel-loader is-still" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <span class="loader-spark" aria-hidden="true">✳</span>
         <h2>Кадр пока не открылся</h2>
         <p>Попробуем ещё раз?</p>
         <button type="button" class="button button-primary" data-action="reload">Открыть снова ↻</button>
