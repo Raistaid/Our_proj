@@ -19,8 +19,17 @@
         <h2 id="level-title">Кадр</h2>
       </div>
       <div class="topbar-actions">
-        <button type="button" class="icon-button sound-button" data-action="sound" aria-pressed="false" aria-label="Включить звук"><span class="sound-icon" aria-hidden="true">🔇</span><span class="sound-label">Звук выкл.</span></button>
+        <button type="button" class="icon-button settings-button" data-action="settings" aria-expanded="false" aria-controls="settings-panel" aria-label="Настройки"><span aria-hidden="true">⚙</span></button>
         <button type="button" class="icon-button close-button" data-action="close" aria-label="Выйти из игры">×</button>
+      </div>
+      <div class="settings-panel" id="settings-panel" role="dialog" aria-label="Настройки" hidden>
+        <b class="settings-title">Настройки</b>
+        <button type="button" class="switch-row" data-action="sound" aria-pressed="false"><span class="sound-icon" aria-hidden="true">🔇</span><span class="switch-text">Звук и музыка</span><span class="switch" aria-hidden="true"></span></button>
+        <div class="mixer" id="mixer">
+          <label class="slider-row"><span>🎵 Музыка</span><input type="range" id="music-volume" min="0" max="100" step="5" value="60"></label>
+          <label class="slider-row"><span>✨ Эффекты</span><input type="range" id="effects-volume" min="0" max="100" step="5" value="50"></label>
+          <button type="button" class="switch-row" data-action="clicks" aria-pressed="false"><span aria-hidden="true">👆</span><span class="switch-text">Звуки кнопок</span><span class="switch" aria-hidden="true"></span></button>
+        </div>
       </div>
     </header>
     <main>
@@ -68,7 +77,13 @@
         </div>
       </section>
       <section id="play-screen" class="play-screen" hidden>
-        <p id="task" class="task"></p>
+        <div class="play-top">
+          <p id="task" class="task"></p>
+          <div id="feedback" class="feedback" role="status" aria-live="polite">
+            <span class="feedback-symbol" id="feedback-symbol" aria-hidden="true">✳</span><div class="feedback-body"><p id="feedback-text">Секреты прикрываем. Обычные идеи оставляем.</p><p class="stranger" id="stranger" hidden></p></div>
+          </div>
+          <p class="gesture-help" id="gesture-help">Тяни наклейку на кадр или просто коснись кадра. Двигать можно, а чтобы убрать — утащи за край.</p>
+        </div>
         <div class="game-layout" id="game-layout">
           <span class="tutorial-hand" id="tutorial-hand" aria-hidden="true" hidden><span>👆</span></span>
           <div class="board-stage">
@@ -76,7 +91,7 @@
               <canvas id="board" width="360" height="480" role="img" aria-label="Кадр с записками. Закрой личные сведения, оставь главный предмет и обычные идеи видимыми."></canvas>
               <!-- Live layer over the frame: decoration only, never in the poster, never catches taps. -->
               <div class="scene-fx" id="scene-fx" aria-hidden="true">
-                <div class="fx-room"><span class="fx-clock-hand"></span><span class="fx-sun"></span><span class="fx-dust d1"></span><span class="fx-dust d2"></span><span class="fx-dust d3"></span></div>
+                <div class="fx-room"><span class="fx-clock-hand"></span><span class="fx-sun"></span></div>
                 <div class="fx-desk"><span class="fx-lid l1"></span><span class="fx-lid l2"></span><span class="fx-lamp"></span><span class="fx-steam s1"></span><span class="fx-steam s2"></span></div>
                 <div class="fx-poster"><span class="fx-puff p1"></span><span class="fx-puff p2"></span><span class="fx-puff p3"></span><span class="fx-bulb b1"></span><span class="fx-bulb b2"></span><span class="fx-bulb b3"></span><span class="fx-bulb b4"></span><span class="fx-bulb b5"></span><span class="fx-bulb b6"></span><span class="fx-bulb b7"></span><span class="fx-bulb b8"></span></div>
                 <div class="fx-confetti"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -84,17 +99,13 @@
             </div>
           </div>
           <aside class="workspace">
-            <div id="feedback" class="feedback" role="status" aria-live="polite">
-              <span class="feedback-symbol" id="feedback-symbol" aria-hidden="true">✳</span><div class="feedback-body"><p id="feedback-text">Секреты прикрываем. Обычные идеи оставляем.</p><p class="stranger" id="stranger" hidden></p></div>
-            </div>
             <div class="palette-block">
               <div class="palette-heading"><span class="eyebrow">Кто прикрывает?</span><span id="sticker-count" class="count-label">0 / 4</span></div>
               <div id="palette" class="palette" role="group" aria-label="Выбери наклейку"></div>
-              <p class="gesture-help" id="gesture-help">Перетащи на кадр или коснись его. Наклейку можно двигать, а за край кадра — убрать.</p>
             </div>
             <div class="controls">
-              <button type="button" class="button button-secondary" data-action="undo" id="undo-button" disabled><span aria-hidden="true">↶</span> Отменить</button>
-              <button type="button" class="button button-secondary" data-action="hint" id="hint-button"><span aria-hidden="true">?</span> Подсказка</button>
+              <button type="button" class="button button-secondary" data-action="undo" id="undo-button" disabled>Отменить <span class="btn-icon" aria-hidden="true">↶</span></button>
+              <button type="button" class="button button-secondary" data-action="hint" id="hint-button">Подсказка <span class="btn-icon" aria-hidden="true">?</span></button>
               <button type="button" class="button button-primary check-button" data-action="check" id="check-button">Готово <span aria-hidden="true">✓</span></button>
             </div>
             <div id="passed-notice" class="passed-notice" hidden>

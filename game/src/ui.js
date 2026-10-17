@@ -17,7 +17,35 @@ function placeHand(hand, palette, canvas) {
   hand.style.setProperty('--sy', (from.top + from.height / 2 - base.top) + 'px');
   hand.style.setProperty('--ex', (board.left + board.width * HAND_TARGET.x - base.left) + 'px');
   hand.style.setProperty('--ey', (board.top + board.height * HAND_TARGET.y - base.top) + 'px');
+  // Browsers keep a running animation on its old coordinates; restart it when the start changes,
+  // so the finger always comes out of the card the player has just chosen.
+  const key = card.dataset.stickerId + ':' + Math.round(from.left) + ':' + Math.round(board.width);
+  if (hand.dataset.from !== key) {
+    hand.dataset.from = key;
+    hand.style.animation = 'none';
+    void hand.offsetWidth;
+    hand.style.animation = '';
+  }
   return true;
+}
+
+// Live elements under a sticker are hidden (the clock hand must not stick out of a sticker).
+// Their boxes are widened a little because they move (rotation, rising steam).
+function hideUnderStickers(fx, frame, rects) {
+  const base = frame.getBoundingClientRect();
+  if (!base.width || !base.height) return;
+  Array.from(fx.querySelectorAll('span')).forEach(function (el) {
+    const r = el.getBoundingClientRect();
+    if (!r.width && !r.height) { el.classList.remove('covered'); return; }
+    const pad = 0.04;
+    const box = [(r.left - base.left) / base.width - pad, (r.top - base.top) / base.height - pad * 2,
+      r.width / base.width + pad * 2, r.height / base.height + pad * 3];
+    const covered = rects.some(function (p) {
+      return Math.min(p[0] + p[2], box[0] + box[2]) > Math.max(p[0], box[0]) &&
+        Math.min(p[1] + p[3], box[1] + box[3]) > Math.max(p[1], box[1]);
+    });
+    el.classList.toggle('covered', covered);
+  });
 }
 
 function reduceMotion() {
@@ -53,9 +81,32 @@ export function mountUI(callbacks) {
   const actions = { start: 'onStart', close: 'onClose', sound: 'onSoundToggle',
     undo: 'onUndo', hint: 'onHint', check: 'onCheck', next: 'onNext',
     replay: 'onReplay', share: 'onShare', reload: 'onReload' };
+  const panel = document.getElementById('settings-panel');
+  const gear = root.querySelector('[data-action=settings]');
+  let lastAudio = { music: 0.6, effects: 0.5, clicks: false };
+  function openSettings(open) {
+    panel.hidden = !open;
+    if (gear) gear.setAttribute('aria-expanded', String(open));
+  }
+  ['music', 'effects'].forEach(function (channel) {
+    const slider = document.getElementById(channel + '-volume');
+    if (slider) slider.addEventListener('input', function () {
+      const next = {}; next[channel] = Number(slider.value) / 100;
+      if (callbacks.onSettings) callbacks.onSettings(next);
+    });
+  });
   root.addEventListener('click', function (event) {
     const button = event.target.closest ? event.target.closest('button') : null;
+    // A tap outside the open settings panel closes it.
+    if (!panel.hidden && !(event.target.closest && (event.target.closest('#settings-panel') ||
+        event.target.closest('[data-action=settings]')))) openSettings(false);
     if (!button || button.disabled) return;
+    if (callbacks.onButtonTap) callbacks.onButtonTap();
+    if (button.dataset.action === 'settings') { openSettings(panel.hidden); return; }
+    if (button.dataset.action === 'clicks') {
+      if (callbacks.onSettings) callbacks.onSettings({ clicks: !lastAudio.clicks });
+      return;
+    }
     if (button.dataset.stickerId) {
       callbacks.onStickerSelect(button.dataset.stickerId); return;
     }
@@ -73,6 +124,9 @@ export function mountUI(callbacks) {
     show('error-screen', vm.screen === 'error');
     root.dataset.screen = vm.screen;
     show('brand', !playing);
+    // Exit appears once the game has started (and on the load error screen, where it is the only way out).
+    const exit = root.querySelector('[data-action=close]');
+    if (exit) exit.hidden = vm.screen === 'start' || vm.screen === 'loading';
     show('level-info', playing);
     // Sound buttons: the small one in the top bar and the big one on the start screen.
     root.querySelectorAll('[data-action=sound]').forEach(function (sound) {
@@ -85,6 +139,15 @@ export function mountUI(callbacks) {
       sound.setAttribute('aria-pressed', String(Boolean(vm.soundOn)));
       sound.setAttribute('aria-label', vm.soundOn ? 'Выключить звук' : 'Включить звук');
     });
+    // Mixer: sliders and the button-sounds switch show only while sound is on.
+    if (vm.audio) lastAudio = vm.audio;
+    document.getElementById('mixer').hidden = !vm.soundOn;
+    const musicSlider = document.getElementById('music-volume');
+    const effectsSlider = document.getElementById('effects-volume');
+    if (document.activeElement !== musicSlider) musicSlider.value = String(Math.round(lastAudio.music * 100));
+    if (document.activeElement !== effectsSlider) effectsSlider.value = String(Math.round(lastAudio.effects * 100));
+    const clicks = root.querySelector('[data-action=clicks]');
+    if (clicks) clicks.setAttribute('aria-pressed', String(Boolean(lastAudio.clicks)));
     setText('start-note', vm.isFallback ?
       'Основные кадры не загрузились. Можно попробовать один и открыть игру снова.' :
       'Все данные в сценах вымышленные. Звук — по желанию.');
@@ -167,6 +230,7 @@ export function mountUI(callbacks) {
       fx.dataset.off = off.join(' ');
       const speed = Number(setup.speed);
       fx.style.setProperty('--fx-speed', String(speed > 0 && speed <= 4 ? speed : 1));
+      hideUnderStickers(fx, frame, vm.placementRects || []);
       if (vm.screen === 'playing' && vm.usedStickers > lastUsed) {
         frame.classList.remove('just-placed'); void frame.offsetWidth; frame.classList.add('just-placed');
         // The scene answers a new sticker: the robot blinks, the teapot puffs, the clock spins.

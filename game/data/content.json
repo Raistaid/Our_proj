@@ -883,8 +883,7 @@
     "confetti": true,
     "room": {
       "clock": true,
-      "sun": true,
-      "dust": true
+      "sun": true
     },
     "desk": {
       "blink": true,

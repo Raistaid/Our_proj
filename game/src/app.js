@@ -39,6 +39,9 @@ const ui = mountUI({
   onCheck: check,
   onNext: next,
   onSoundToggle: toggleSound,
+  // Settings panel (role 2): mixer volumes and button sounds go straight to the audio module.
+  onSettings: function (next) { audio.configure(next); render(); },
+  onButtonTap: function () { audio.click(); },
   onShare: share,
   onClose: close,
   onReload: function () { window.location.reload(); }
@@ -87,6 +90,8 @@ function render() {
     post: postInfo(level), feed: content ? content.feed || null : null,
     scene: level ? level.background : '',
     scenes: content ? content.scenes || null : null,
+    audio: audio.settings(),
+    placementRects: state ? state.placements.map(function (p) { return p.rect.slice(); }) : [],
     stats: statsSummary()
   });
   scheduleDraw();
@@ -119,8 +124,8 @@ function startLevel(index) {
   preview = null;
   screen = 'playing';
   feedback = { kind: 'info', text: currentLevel().mode === 'transfer' ?
-    'Твой самостоятельный кадр. Подсказка появится после первой проверки.' :
-    'Прикрой личное. Главного героя и обычную идею оставь видимыми.' };
+    'Этот кадр — полностью твой 😎 Подсказка откроется после первой проверки.' :
+    'Ищи всё личное и заклеивай! А главное в кадре не трогай 😉' };
   render();
 }
 function startSession() {
@@ -145,7 +150,7 @@ function drop(item) {
   } else {
     state = result.state;
     hintIds = [];
-    feedback = { kind: 'info', text: 'Готово? Проверь, что личное закрыто, а идея осталась видимой.' };
+    feedback = { kind: 'info', text: 'Есть! Всё личное спрятано? Тогда жми «Готово» 👇' };
     audio.play('place');
   }
   render();
@@ -155,7 +160,7 @@ function undo() {
   if (input) input.cancel();
   state = undoPlacement(state);
   hintIds = [];
-  feedback = { kind: 'info', text: 'Последнее действие отменено. Можно попробовать другое место.' };
+  feedback = { kind: 'info', text: 'Отменили! Пробуй другое место 🙂' };
   render();
 }
 function hint() {
@@ -200,7 +205,7 @@ function move(item) {
   if (!result.accepted) return;
   state = result.state;
   hintIds = [];
-  feedback = { kind: 'info', text: 'Наклейка перенесена. Проверь, что личное закрыто, а идея осталась видимой.' };
+  feedback = { kind: 'info', text: 'Переехала! Глянь, всё ли теперь закрыто 👀' };
   audio.play('place');
   render();
 }
@@ -215,7 +220,7 @@ function remove(item) {
   if (!result.accepted) return;
   state = result.state;
   hintIds = [];
-  feedback = { kind: 'info', text: 'Наклейка убрана. Если передумал, нажми «Отменить».' };
+  feedback = { kind: 'info', text: 'Наклейка улетела 🚀 Передумал — жми «Отменить».' };
   render();
 }
 function showResult() {
