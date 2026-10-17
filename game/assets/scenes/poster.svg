@@ -1,13 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 360 480">
- <defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#18212c" opacity=".08"/></pattern><linearGradient id="screen" x2="1" y2="1"><stop stop-color="#ede9ff"/><stop offset="1" stop-color="#d9e8ff"/></linearGradient></defs>
- <rect width="360" height="480" fill="#efeaf9"/><rect width="360" height="480" fill="url(#dots)"/>
+ <defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#18212c" opacity=".06"/></pattern><linearGradient id="screen" x2="1" y2="1"><stop stop-color="#f5edff"/><stop offset="1" stop-color="#dbeaf6"/></linearGradient><linearGradient id="case" x2="1" y2="1"><stop stop-color="#cfbffa"/><stop offset="1" stop-color="#a18bdc"/></linearGradient></defs>
+ <rect width="360" height="480" fill="#f6eee8"/><circle cx="32" cy="102" r="94" fill="#e9e0f8"/><circle cx="336" cy="345" r="91" fill="#f6dfd2"/><rect width="360" height="480" fill="url(#dots)"/>
+ <ellipse cx="185" cy="438" rx="128" ry="10" fill="#18212c" opacity=".08"/>
  <rect x="58" y="22" width="254" height="418" rx="32" fill="#18212c" opacity=".18"/>
- <rect x="48" y="14" width="264" height="418" rx="32" fill="#b2a3ed" stroke="#18212c" stroke-width="4"/>
+ <rect x="48" y="14" width="264" height="418" rx="32" fill="url(#case)" stroke="#18212c" stroke-width="4"/>
+ <path d="M54 96V48Q54 20 82 20H270" fill="none" stroke="#f6efff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
  <rect x="59" y="25" width="242" height="394" rx="25" fill="url(#screen)" stroke="#18212c" stroke-width="2"/>
  <rect x="142" y="31" width="76" height="12" rx="6" fill="#18212c"/>
+ <circle cx="207" cy="37" r="2" fill="#6b6582"/>
+ <path d="M71 101V382" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".5"/>
  <text x="180" y="70" text-anchor="middle" font-family="system-ui,Arial,sans-serif" font-size="22" font-weight="800" fill="#18212c">16:00</text>
  <text x="180" y="90" text-anchor="middle" font-family="system-ui,Arial,sans-serif" font-size="11" font-weight="600" fill="#5d5677">Мои уведомления</text>
  <path d="M45 88H42V120H45M315 102H318V146H315" stroke="#18212c" stroke-width="3" stroke-linecap="round"/>
  <rect x="146" y="404" width="68" height="4" rx="2" fill="#6b6582"/>
  <path d="M23 162L30 169M22 186H32M328 170L337 163M330 188H340" stroke="#b2a3ed" stroke-width="3" stroke-linecap="round"/>
+ <path d="M22 303L28 294L34 303L28 312Z" fill="#e3ff74" stroke="#18212c" stroke-width="1.5" stroke-linejoin="round"/>
+ <circle cx="331" cy="89" r="6" fill="#ffc4b5" stroke="#18212c" stroke-width="1.5"/>
 </svg>

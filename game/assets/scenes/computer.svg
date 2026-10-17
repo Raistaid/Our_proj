@@ -1,19 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 360 480">
-  <defs><pattern id="wall" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#18212c" opacity=".08"/></pattern></defs>
-  <rect width="360" height="480" fill="#e4ecf4"/>
+  <defs><pattern id="wall" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#18212c" opacity=".06"/></pattern><linearGradient id="case" x2="1" y2="1"><stop stop-color="#c9bded"/><stop offset="1" stop-color="#9590b5"/></linearGradient><linearGradient id="screen" x2="0" y2="1"><stop stop-color="#fffaff"/><stop offset="1" stop-color="#eae5fa"/></linearGradient><linearGradient id="desk" x2="0" y2="1"><stop stop-color="#e8cdb0"/><stop offset="1" stop-color="#d8bda1"/></linearGradient></defs>
+  <rect width="360" height="480" fill="#e9edf5"/>
   <rect width="360" height="382" fill="url(#wall)"/>
-  <path d="M0 382H360V480H0Z" fill="#d6c3ab"/>
+  <path d="M0 382H360V480H0Z" fill="url(#desk)"/>
   <path d="M0 382H360" stroke="#18212c" stroke-width="2" opacity=".22"/>
+  <path d="M12 455H72M284 451H342M17 394H71M291 392H348" stroke="#b89e86" stroke-width="1.5" stroke-linecap="round" opacity=".4"/>
+  <ellipse cx="180" cy="403" rx="70" ry="7" fill="#18212c" opacity=".1"/>
   <rect x="22" y="37" width="328" height="344" rx="14" fill="#18212c" opacity=".15"/>
-  <rect x="16" y="30" width="328" height="344" rx="14" fill="#9c9bb6" stroke="#18212c" stroke-width="3"/>
-  <rect x="25" y="43" width="310" height="320" rx="7" fill="#f3f1ff" stroke="#18212c" stroke-width="2"/>
+  <rect x="16" y="30" width="328" height="344" rx="14" fill="url(#case)" stroke="#18212c" stroke-width="3"/>
+  <path d="M24 38H328" stroke="#f5efff" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+  <rect x="25" y="43" width="310" height="320" rx="7" fill="url(#screen)" stroke="#18212c" stroke-width="2"/>
   <path d="M25 79H335" stroke="#d3cfe7" stroke-width="1.5"/>
   <circle cx="43" cy="61" r="8" fill="#b2a3ed"/>
   <path d="M39 61H47M43 57V65" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
   <text x="61" y="65" font-family="system-ui,Arial,sans-serif" font-size="12" font-weight="800" fill="#18212c">Личные сообщения</text>
   <circle cx="304" cy="61" r="2" fill="#6c6589"/><circle cx="312" cy="61" r="2" fill="#6c6589"/><circle cx="320" cy="61" r="2" fill="#6c6589"/>
+  <circle cx="321" cy="369" r="2" fill="#e3ff74"/>
   <path d="M153 375L149 399H211L207 375" fill="#9c9bb6" stroke="#18212c" stroke-width="2"/>
   <path d="M135 401H225" stroke="#18212c" stroke-width="5" stroke-linecap="round"/>
+  <path d="M51 439H305" stroke="#18212c" stroke-width="4" stroke-linecap="round" opacity=".1"/>
   <path d="M64 414H292L309 436H47Z" fill="#fff9e9" stroke="#18212c" stroke-width="2" stroke-linejoin="round"/>
   <path d="M68 421H289M60 429H297M94 416L89 430M120 416L118 430M146 416L145 430M172 416V430M198 416L199 430M224 416L226 430M250 416L253 430M276 416L280 430" stroke="#9c9bb6" stroke-width="2"/>
+  <path d="M150 433H205" stroke="#b2a3ed" stroke-width="2" stroke-linecap="round"/>
 </svg>

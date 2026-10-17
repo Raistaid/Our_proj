@@ -1,6 +1,8 @@
 import { validRect, centeredRect } from './geometry.js';
-import { sensitiveRegions } from './sensitive-text.js';
+import { secretTargetRect } from './sensitive-text.js';
 import { stickerShape, stickerSize, pointInSticker, stickersCoverRect } from './sticker-shapes.js';
+
+export { secretTargetRect };
 
 export function createLevelState(level) {
   return { levelId: level.id, placements: [], history: [], nextId: 1,
@@ -95,7 +97,7 @@ export function evaluateLevel(level, placements) {
   const valid = list.filter(function (p) { return p && validRect(p.rect); })
     .map(function (p) { return { ...p, shape: stickerShape(level, p.stickerId) }; });
   const covered = level.secrets.filter(function (s) {
-    return sensitiveRegions(level, s).every(function (rect) { return stickersCoverRect(valid, rect); });
+    return stickersCoverRect(valid, secretTargetRect(s));
   }).map(function (s) { return s.id; });
   const missing = level.secrets.filter(function (s) {
     return covered.indexOf(s.id) === -1;

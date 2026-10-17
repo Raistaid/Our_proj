@@ -132,7 +132,7 @@ function startLevel(index) {
   screen = 'playing';
   feedback = { kind: 'info', text: currentLevel().mode === 'transfer' ?
     'Этот кадр — полностью твой 😎 Подсказка откроется после первой проверки.' :
-    'Закрой личные слова и цифры. Всё остальное украшай как хочешь 😉' };
+    'Прикрой середину личной записки. Узкий край можно оставить 😉' };
   render();
 }
 function startSession() {

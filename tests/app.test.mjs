@@ -149,7 +149,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
     readFile(new URL('../game/data/content.json', import.meta.url), 'utf8')
   ]);
   const content = JSON.parse(rawContent);
-  assert.equal(content.levels.length, 7);
+  assert.equal(content.levels.length, 6);
   const document = makeDocument(html);
   const messages = [];
   const frames = new Map();
@@ -406,6 +406,14 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         assert.equal(byId('feedback-text').textContent, level.secrets[0].why);
         assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d').length, 1,
           'a sticker on an ordinary note does not distract the hint from sensitive data');
+        const hint = board.calls.find(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d');
+        const [x, y, width, height] = level.secrets[0].rect;
+        const insetX = Math.min(8, width * 360 / 4);
+        const insetY = Math.min(8, height * 480 / 4);
+        const expectedHint = [x * 360 + insetX, y * 480 + insetY,
+          width * 360 - 2 * insetX, height * 480 - 2 * insetY];
+        hint.args.forEach((value, index) => assert.ok(Math.abs(value - expectedHint[index]) < 1e-8,
+          'The visible hint must match the inset scoring target'));
         click('undo');
         assert.equal(byId('sticker-count').textContent, 'Наклеек: 0');
         assert.equal(byId('undo-button').disabled, true);

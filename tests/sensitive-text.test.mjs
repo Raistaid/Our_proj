@@ -1,83 +1,96 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sensitiveRegions, inkRegions } from '../game/src/sensitive-text.js';
-import { noteTextSpec, textLayout, paintNoteText } from '../game/src/note-text.js';
-import { evaluateLevel } from '../game/src/game.js';
+import { secretTargetRect } from '../game/src/sensitive-text.js';
+import { evaluateLevel, getLevelHint, secretTargetRect as gameTargetRect } from '../game/src/game.js';
 import { stickersCoverRect } from '../game/src/sticker-shapes.js';
 
 const zone = { id: 'code', rect: [.1, .1, .4, .16], form: 'paper',
-  lines: ['Код для входа', '12 34'], sensitiveLines: [1] };
-const level = { id: 'sensitive-test', secrets: [zone], keepZones: [], stickers: [{ id: 'sock', shape: 'rectangle' }] };
+  lines: ['Код из СМС', '482 913'], sensitiveLines: [1], why: 'Код нужен только тебе.' };
+const level = { id: 'target-test', secrets: [zone], keepZones: [], stickers: [{ id: 'sock', shape: 'rectangle' }] };
 function masks(regions) { return regions.map((rect, i) => ({ id: String(i), stickerId: 'sock', rect })); }
+function closeRect(actual, expected) {
+  actual.forEach((value, index) => assert.ok(Math.abs(value - expected[index]) < 1e-12,
+    `${index}: expected ${expected[index]}, received ${value}`));
+}
 
-test('Только символы значения обязательны: заголовок, пробелы и края остаются открытыми', () => {
-  const regions = sensitiveRegions(level, zone);
-  assert.equal(regions.length, 4);
-  assert.equal(evaluateLevel(level, masks(regions)).passed, true);
-  assert.equal(stickersCoverRect(masks(regions), zone.rect), false);
-  assert.ok(regions.every(r => r[0] > zone.rect[0] && r[1] > zone.rect[1]));
-  for (let i = 0; i < regions.length; i += 1) {
-    assert.equal(evaluateLevel(level, masks(regions.filter((_, n) => n !== i))).passed, false,
-      'Каждая цифра должна быть закрыта');
+test('Цель отступает ровно на 8 логических пикселей от каждой стороны записки', () => {
+  const target = secretTargetRect(zone);
+  assert.equal(gameTargetRect, secretTargetRect, 'Проверка и подсказка используют одну функцию');
+  closeRect(target, [44 / 360, 56 / 480, 128 / 360, 60.8 / 480]);
+  assert.equal(evaluateLevel(level, masks([target])).passed, true);
+  assert.equal(stickersCoverRect(masks([target]), zone.rect), false, 'Поля записки могут остаться открытыми');
+});
+
+test('Открытый участок у любой границы внутренней цели мешает прохождению', () => {
+  const [x, y, w, h] = secretTargetRect(zone);
+  for (const rect of [
+    [x + 1 / 360, y, w - 1 / 360, h], [x, y, w - 1 / 360, h],
+    [x, y + 1 / 480, w, h - 1 / 480], [x, y, w, h - 1 / 480]
+  ]) {
+    const placed = masks([rect]);
+    assert.deepEqual(evaluateLevel(level, placed).missingSecretIds, [zone.id]);
+    assert.deepEqual(getLevelHint(level, placed), { hintIds: [zone.id], text: zone.why });
   }
 });
 
-test('Заголовок можно закрыть, но он не заменяет скрытие значения', () => {
-  const r = zone.rect;
-  assert.equal(evaluateLevel(level, masks([[r[0], r[1], r[2], .04]])).passed, false);
+test('У маленьких записок отступ ограничен четвертью каждой стороны', () => {
+  const small = { ...zone, rect: [36 / 360, 48 / 480, 16 / 360, 12 / 480] };
+  const target = secretTargetRect(small);
+  closeRect(target, [40 / 360, 51 / 480, 8 / 360, 6 / 480]);
+  assert.equal(evaluateLevel({ ...level, secrets: [small] }, []).passed, false);
+  assert.equal(evaluateLevel({ ...level, secrets: [small] }, masks([target])).passed, true);
+  closeRect(secretTargetRect({ rect: [.1, .1, 16 / 360, 80 / 480] }),
+    [40 / 360, 56 / 480, 8 / 360, 64 / 480]);
+  closeRect(secretTargetRect({ rect: [.1, .1, 144 / 360, 12 / 480] }),
+    [44 / 360, 51 / 480, 128 / 360, 6 / 480]);
 });
 
-test('Все слова адреса, @ и точки почты участвуют в проверке', () => {
-  for (const text of ['Планета Пример, дом 0', 'user@example.test']) {
-    const secret = { ...zone, id: text, lines: [text, 'Подпись'], sensitiveLines: [0] };
-    const frame = { ...level, secrets: [secret] };
-    const regions = sensitiveRegions(frame, secret);
-    assert.equal(regions.length, [...text].filter(c => !/\s/.test(c)).length);
-    assert.equal(evaluateLevel(frame, masks(regions)).passed, true);
-    for (let i = 0; i < regions.length; i += 1) {
-      assert.equal(evaluateLevel(frame, masks(regions.filter((_, n) => n !== i))).passed, false);
+test('Несколько наклеек могут совместно закрыть цель, но щель между ними не засчитывается', () => {
+  const [x, y, w, h] = secretTargetRect(zone);
+  const left = [x, y, w / 2, h];
+  const right = [x + w / 2, y, w / 2, h];
+  assert.equal(evaluateLevel(level, masks([left, right])).passed, true);
+  assert.equal(evaluateLevel(level, masks([[x, y, w * .6, h], right])).passed, true);
+  assert.equal(evaluateLevel(level, masks([left, [right[0] + .5 / 360, y, right[2] - .5 / 360, h]])).passed, false);
+});
+
+test('Форма, текст и чувствительные строки не меняют геометрическую цель', () => {
+  const target = secretTargetRect(zone);
+  for (const form of ['paper', 'phone', 'message', 'tag', 'badge']) {
+    for (const lines of [[], ['482 913'], ['Совсем другой текст', '+7 (999) 123-45-67']]) {
+      const secret = { ...zone, form, lines, sensitiveLines: [0] };
+      assert.deepEqual(secretTargetRect(secret), target);
+      assert.equal(evaluateLevel({ ...level, secrets: [secret] }, masks([target])).passed, true);
     }
   }
+  assert.equal(evaluateLevel(level, masks([[.2, .2, .05, .015]])).passed, false,
+    'Закрытие отдельных цифр не заменяет закрытие внутреннего прямоугольника');
 });
 
-test('Наклейки на любых обычных объектах и подписях не блокируют готовность', () => {
-  const frame = { ...level, keepZones: [
+test('Прозрачные углы круглых и скруглённых наклеек не закрывают цель', () => {
+  const secret = { id: 'small', rect: [.1, .1, .005, .005] };
+  for (const shape of ['circle', 'rounded-square']) {
+    const frame = { ...level, secrets: [secret], stickers: [{ id: 'curved', shape }] };
+    const placement = { stickerId: 'curved', shape: 'rectangle', rect: [.1, .1, .3, .225] };
+    assert.equal(evaluateLevel(frame, [placement]).passed, false);
+    placement.rect = [0, 0, .3, .225];
+    assert.equal(evaluateLevel(frame, [placement]).passed, true);
+  }
+});
+
+test('Обычные объекты и подписи можно закрывать; исходные размеры и текст не меняются', () => {
+  const frame = structuredClone({ ...level, keepZones: [
     { id: 'hero', rect: [.6, .1, .3, .2] }, { id: 'caption', rect: [.1, .8, .8, .1] },
     { id: 'public_note', rect: [.5, .5, .3, .2] }
-  ] };
-  const placed = masks(sensitiveRegions(frame, zone).concat(frame.keepZones.map(z => z.rect)));
-  assert.equal(evaluateLevel(frame, placed).passed, true);
-  assert.deepEqual(evaluateLevel(frame, placed).blockedKeepIds, []);
-});
-
-test('Растр использует каждый пиксель чернил и пропускает прозрачные промежутки', () => {
-  const data = new Uint8ClampedArray(4 * 4 * 2);
-  for (const [x, y, alpha] of [[0, 0, 1], [1, 0, 255], [3, 0, 80], [2, 1, 255]]) {
-    data[(y * 4 + x) * 4 + 3] = alpha;
-  }
-  assert.deepEqual(inkRegions(data, 4, 2, 36, 48), [
-    [.1, .1, 1 / 360, .5 / 480], [(36 + 1.5) / 360, .1, .5 / 360, .5 / 480],
-    [37 / 360, 48.5 / 480, .5 / 360, .5 / 480]
-  ]);
-});
-
-test('Текст для проверки использует ту же вёрстку, что видимая записка', () => {
-  const calls = [];
-  const ctx = new Proxy({ measureText: text => ({ width: text.length * 6 }),
-    fillText: (...args) => calls.push([ctx.font, ...args]) },
-  { get: (target, key) => key in target ? target[key] : () => {} });
-  for (const form of ['paper', 'phone', 'message', 'tag', 'badge']) {
-    const secret = { ...zone, form };
-    const spec = noteTextSpec(level, secret);
-    const runs = textLayout(ctx, secret.lines, spec.box, spec.maxFont, spec);
-    calls.length = 0;
-    paintNoteText(ctx, level, secret, [1]);
-    assert.deepEqual(calls, [[runs[1].font, runs[1].text, runs[1].x, runs[1].y]]);
-  }
-});
-
-test('Прозрачный угол круглой наклейки не скрывает даже один символ', () => {
-  const secret = { id: 'pixel', rect: [.1, .1, .005, .005] };
-  const frame = { ...level, stickers: [{ id: 'cloud', shape: 'circle' }], secrets: [secret] };
-  assert.equal(evaluateLevel(frame, [{ stickerId: 'cloud', rect: [.1, .1, .3, .225] }]).passed, false);
+  ] });
+  const before = structuredClone(frame);
+  Object.freeze(frame.secrets[0].rect);
+  Object.freeze(frame.secrets[0].lines);
+  Object.freeze(frame.secrets[0]);
+  const placed = masks([secretTargetRect(frame.secrets[0]), ...frame.keepZones.map(z => z.rect)]);
+  const report = evaluateLevel(frame, placed);
+  assert.equal(report.passed, true);
+  assert.deepEqual(report.blockedKeepIds, []);
+  assert.deepEqual(getLevelHint(frame, placed), { hintIds: [], text: 'Личное уже закрыто. Можно нажать «Готово».' });
+  assert.deepEqual(frame, before);
 });

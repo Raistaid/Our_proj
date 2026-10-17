@@ -1,8 +1,7 @@
-import { getStickerRect } from './game.js';
+import { getStickerRect, secretTargetRect } from './game.js';
 import { centeredRect, validRect } from './geometry.js';
 export { loadAssets } from './assets.js';
 import { FONT, noteForm, tagGeometry, paintText as drawText, paintNoteText } from './note-text.js';
-import { sensitiveRegions } from './sensitive-text.js';
 export { noteForm } from './note-text.js';
 
 const INK = '#18212c';
@@ -29,11 +28,13 @@ function drawLines(ctx, lines, rect, maxFont, bold) {
 function drawNote(ctx, level, zone) {
   const p = pixels(zone.rect);
   ctx.save();
-  ctx.fillStyle = 'rgba(24,33,44,.12)'; ctx.fillRect(p[0] + 2, p[1] + 3, p[2], p[3]);
+  ctx.fillStyle = 'rgba(24,33,44,.13)';
+  roundedRect(ctx, p[0] + 2, p[1] + 4, p[2], p[3], 5); ctx.fill();
   ctx.fillStyle = /^#[0-9a-fA-F]{6}$/.test(zone.color || '') ? zone.color : '#fff9e9';
-  ctx.strokeStyle = INK; ctx.lineWidth = 1.2;
-  ctx.fillRect(p[0], p[1], p[2], p[3]); ctx.strokeRect(p[0], p[1], p[2], p[3]);
-  ctx.fillStyle = '#b2a3ed'; ctx.fillRect(p[0] + p[2] * 0.37, p[1] - 3, p[2] * 0.26, 6);
+  ctx.strokeStyle = '#6e685c'; ctx.lineWidth = 1;
+  roundedRect(ctx, p[0], p[1], p[2], p[3], 5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.fillRect(p[0] + 4, p[1] + 3, p[2] - 8, 2);
+  ctx.fillStyle = '#c5b6f3'; ctx.fillRect(p[0] + p[2] * 0.35, p[1] - 3, p[2] * 0.30, 7);
   paintNoteText(ctx, level, zone);
   ctx.restore();
 }
@@ -88,7 +89,7 @@ function drawPhone(ctx, level, zone, p, t) {
   ctx.translate(dx, dy);
   roundedRect(ctx, p[0] + 1, p[1] + 1, p[2] - 2, p[3] - 2, 9);
   ctx.fillStyle = '#ffffff'; ctx.fill();
-  ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = '#b4b8ca'; ctx.lineWidth = 1; ctx.stroke();
   // App icon with a tick: the notification "came from the phone".
   roundedRect(ctx, p[0] + 5, p[1] + 5, 12, 12, 3.5);
   ctx.fillStyle = '#21a038'; ctx.fill();
@@ -96,8 +97,10 @@ function drawPhone(ctx, level, zone, p, t) {
   ctx.moveTo(p[0] + 8, p[1] + 11); ctx.lineTo(p[0] + 10.2, p[1] + 13.2); ctx.lineTo(p[0] + 14, p[1] + 8.8);
   ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
   // Header row like a real notification; the lines get the full card width below it.
-  ctx.fillStyle = '#7b8590'; ctx.font = '600 8px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  ctx.fillText('сейчас', p[0] + 21, p[1] + 11);
+  ctx.fillStyle = '#626d7c'; ctx.font = '700 7px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText('СООБЩЕНИЯ', p[0] + 22, p[1] + 11);
+  ctx.fillStyle = '#84909e'; ctx.font = '600 7px ' + FONT; ctx.textAlign = 'right';
+  ctx.fillText('сейчас', p[0] + p[2] - 7, p[1] + 11);
   paintNoteText(ctx, level, zone);
   ctx.restore();
 }
@@ -227,7 +230,8 @@ function entranceTime(canvas, level) {
 function drawCaption(ctx, zone) {
   const p = pixels(zone.rect);
   ctx.save();
-  ctx.fillStyle = '#fff9e9'; ctx.fillRect(p[0], p[1], p[2], p[3]);
+  roundedRect(ctx, p[0], p[1], p[2], p[3], 6);
+  ctx.fillStyle = '#fffdf5'; ctx.fill();
   drawLines(ctx, zone.lines, zone.rect, 15, true);
   ctx.restore();
 }
@@ -350,14 +354,9 @@ export function renderBoard(options) {
   (options.hintIds || []).forEach(function (id) {
     const zone = level.secrets.find(function (s) { return s.id === id; });
     if (!zone) return;
-    const regions = sensitiveRegions(level, zone);
-    const left = Math.min(...regions.map(r => r[0]));
-    const top = Math.min(...regions.map(r => r[1]));
-    const right = Math.max(...regions.map(r => r[0] + r[2]));
-    const bottom = Math.max(...regions.map(r => r[1] + r[3]));
-    const p = pixels([left, top, right - left, bottom - top]);
+    const p = pixels(secretTargetRect(zone));
     ctx.save(); ctx.strokeStyle = '#7a398d'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]);
-    ctx.strokeRect(p[0] - 1, p[1] - 1, p[2] + 2, p[3] + 2); ctx.restore();
+    ctx.strokeRect(...p); ctx.restore();
   });
   if (previewPlacement && !options.preview.placementId) drawSticker(ctx, previewPlacement, assets, true);
   ctx.restore();

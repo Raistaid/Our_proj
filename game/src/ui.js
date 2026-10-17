@@ -121,6 +121,8 @@ export function mountUI(callbacks) {
     show('result-screen', vm.screen === 'result');
     show('error-screen', vm.screen === 'error');
     root.dataset.screen = vm.screen;
+    const sceneCount = document.getElementById('scene-count');
+    if (sceneCount && vm.levelCount) sceneCount.textContent = vm.levelCount + (vm.levelCount === 1 ? ' кадр' : ' кадров');
     show('brand', !playing);
     // Exit is available on every main screen (TZ: CLOSE_EVENT in all main states).
     const exit = root.querySelector('[data-action=close]');

@@ -1,4 +1,4 @@
-// One layout for the visible text and for the privacy check (logical 360 × 480 pixels).
+// Note typography in logical 360 × 480 pixels; scoring uses an independent inset.
 export const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
 const LINE = 1.18;
 const FORMS = ['phone', 'tag', 'paper', 'badge', 'message'];
@@ -35,35 +35,46 @@ export function tagGeometry(level, zone, p = pixels(zone.rect)) {
 export function noteTextSpec(level, zone) {
   const p = pixels(zone.rect);
   const form = noteForm(level, zone);
-  let box = [p[0] + 2, p[1] + 1, p[2] - 4, p[3] - 2];
+  let box = [p[0] + 6, p[1] + 7, p[2] - 12, p[3] - 14];
   let maxFont = 16;
-  if (form === 'phone') box = [p[0] + 2, p[1] + 18, p[2] - 4, p[3] - 20];
-  if (form === 'message') box = [p[0] + 3, p[1] + 3, p[2] - 6, p[3] - 12];
-  if (form === 'badge') box = [p[0] + 8, p[1] + 8, p[2] - 16, p[3] - 16];
+  if (form === 'phone') {
+    const header = p[3] < 56 ? 17 : 20;
+    box = [p[0] + 6, p[1] + header, p[2] - 12, p[3] - header - 6];
+  }
+  if (form === 'message') box = [p[0] + 6, p[1] + 7, p[2] - 12, p[3] - 19];
+  if (form === 'badge') box = [p[0] + 8, p[1] + 9, p[2] - 16, p[3] - 18];
   if (form === 'tag') {
     const side = tagGeometry(level, zone, p).side;
-    box = side === 'top' ? [p[0] + 2, p[1] + 16, p[2] - 4, p[3] - 18] :
-      side === 'right' ? [p[0] + 2, p[1] + 2, p[2] - 18, p[3] - 4] : [p[0] + 16, p[1] + 2, p[2] - 18, p[3] - 4];
+    box = side === 'top' ? [p[0] + 6, p[1] + 16, p[2] - 12, p[3] - 23] :
+      side === 'right' ? [p[0] + 6, p[1] + 7, p[2] - 24, p[3] - 14] : [p[0] + 16, p[1] + 7, p[2] - 22, p[3] - 14];
   }
   if (form !== 'paper') maxFont = 15;
-  return { box, maxFont, boldFirst: form !== 'paper', angle: form === 'badge' ? -0.04 : 0, p };
+  return { box, maxFont, headingFirst: true, angle: form === 'badge' ? -0.04 : 0, p };
 }
 
 export function textLayout(ctx, lines, box, maxFont, opts = {}) {
   if (!lines || !lines.length) return [];
   const padY = lines.length > 1 ? 3 : 1;
-  let font = Math.max(9, Math.min(maxFont, (box[3] - padY * 2) / (lines.length * LINE)));
-  const weight = i => opts.bold || (opts.boldFirst && i === 0) ? '800 ' : '600 ';
+  const hierarchy = opts.headingFirst && lines.length > 1;
+  let font = Math.max(9, Math.min(maxFont, (box[3] - padY * 2) / ((lines.length - (hierarchy ? .24 : 0)) * LINE)));
+  const size = i => hierarchy && i === 0 ? Math.max(9, font * .76) : font;
+  const weight = i => opts.bold || (opts.boldFirst && i === 0) ? '800 ' : hierarchy && i > 0 ? '750 ' : '600 ';
   function tooWide() {
     return lines.some(function (line, i) {
-      ctx.font = weight(i) + font + 'px ' + FONT;
+      ctx.font = weight(i) + size(i) + 'px ' + FONT;
       return ctx.measureText(line).width > box[2] - 8;
     });
   }
   while (font > 9 && tooWide()) font -= 0.5;
-  const top = box[1] + box[3] / 2 - (lines.length - 1) * font * LINE / 2;
-  return lines.map((text, index) => ({ text, index, x: box[0] + 4, y: top + font * LINE * index,
-    font: weight(index) + font + 'px ' + FONT, size: font }));
+  const heights = lines.map((_, i) => size(i) * LINE);
+  let y = box[1] + (box[3] - heights.reduce((a, b) => a + b, 0)) / 2;
+  return lines.map((text, index) => {
+    const middle = y + heights[index] / 2;
+    y += heights[index];
+    return { text, index, x: box[0] + 4, y: middle,
+      font: weight(index) + size(index) + 'px ' + FONT, size: size(index),
+      color: hierarchy && index === 0 ? '#596572' : '#18212c' };
+  });
 }
 
 export function paintText(ctx, lines, box, maxFont, opts = {}, selectedLines) {
@@ -73,6 +84,7 @@ export function paintText(ctx, lines, box, maxFont, opts = {}, selectedLines) {
   for (const run of textLayout(ctx, lines, box, maxFont, opts)) {
     if (selectedLines && !selectedLines.includes(run.index)) continue;
     ctx.font = run.font;
+    ctx.fillStyle = run.color;
     ctx.fillText(run.text, run.x, run.y);
   }
   ctx.restore();

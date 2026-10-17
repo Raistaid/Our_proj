@@ -23,7 +23,7 @@ function solve(level, initial) {
 }
 test('Полный набор проходит проверку схемы', function () {
   assert.deepEqual(validateContent(content), { ok: true, errors: [] });
-  assert.equal(content.levels.length, 7);
+  assert.equal(content.levels.length, 6);
   assert.equal(content.levels.at(-1).mode, 'transfer');
 });
 for (let index = 0; index < content.levels.length; index += 1) {
@@ -423,7 +423,7 @@ test('Сломанные данные, внешний ресурс и прозр
   assert.equal(validateContent(null).ok, false);
 });
 
-test('Small stickers are valid because several stickers may cover sensitive text', function () {
+test('Small stickers are valid because several stickers may cover a secret target', function () {
   for (const size of [{ w: 0.30, h: 0.16 }, { w: 0.40, h: 0.10 }]) {
     const candidate = fresh();
     candidate.defaultStickerSize = size;

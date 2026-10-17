@@ -109,7 +109,7 @@ function fallbackContent() {
     defaultStickerSize: { w: 0.40, h: 0.16 }, isFallback: true,
     stickers: [{ id: 'sock', label: 'Серьёзный носок', src: './assets/stickers/sock.svg', color: '#e4ff69' }],
     levels: [{ id: 'practice', title: 'Пробный кадр',
-      brief: 'Закрой цифры учебного кода.',
+      brief: 'Закрой середину записки с учебным кодом.',
       background: './assets/scenes/room.svg', mode: 'practice',
       secrets: [{ id: 'code', kind: 'code', rect: [0.05, 0.08, 0.38, 0.14],
         lines: ['Учебный код', '000000'], why: 'Код не стоит оставлять в открытом доступе.' }],

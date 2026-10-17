@@ -10,6 +10,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{background:var(--paper)}
+body{background-image:radial-gradient(#18212c0d .7px,transparent .7px);background-size:12px 12px}
 body{margin:0;min-width:300px}
 button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 button:disabled{cursor:default;opacity:.42}
@@ -30,7 +31,7 @@ h1,h2,p{overflow-wrap:break-word}
 .level-meta{display:flex;align-items:center;gap:12px;font-size:12px;text-transform:uppercase;letter-spacing:1.2px;font-weight:800}
 .level-info h2{font-size:24px;letter-spacing:-.6px;line-height:1.15;margin:4px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .progress{display:flex;gap:4px}
-.progress span{width:18px;height:5px;border-radius:6px;background:#deded7}
+.progress span{width:22px;height:6px;border-radius:6px;background:#deded7}
 .progress span.current{background:var(--violet)}.progress span.done{background:#9cbf37}
 .topbar-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .icon-button{border:1.5px solid var(--line);background:transparent;border-radius:999px;min-height:44px;padding:0 15px;font-size:13px;font-weight:700}
@@ -50,6 +51,8 @@ h1,h2,p{overflow-wrap:break-word}
 /* ---------- Start ---------- */
 .start-screen{display:grid;grid-template-columns:1.18fr 1fr;grid-template-areas:"copy art" "actions art";column-gap:40px;align-items:center;min-height:650px;padding:46px 0 50px}
 .intro-copy{grid-area:copy;align-self:end}.intro-art{grid-area:art}.start-actions{grid-area:actions;align-self:start}
+.intro-eyebrow{display:flex;align-items:center;gap:8px;color:var(--muted);margin:0 0 16px;letter-spacing:1.1px}
+.intro-eyebrow span{font-size:22px;color:var(--violet)}
 h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:22px 0 28px;font-weight:900}
 .marker{position:relative;isolation:isolate;white-space:nowrap}
 .marker:before{content:"";position:absolute;z-index:-1;inset:8% -3% 0;background:var(--lime);transform:rotate(-2deg)}
@@ -87,7 +90,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 
 /* How to play */
 .how-to{list-style:none;margin:0 0 22px;padding:0;display:grid;gap:10px;max-width:440px}
-.how-to li{display:flex;gap:12px;align-items:flex-start;background:#fffaf1;border:2px solid var(--ink);border-radius:14px;padding:10px 12px;box-shadow:3px 3px 0 var(--ink);font-size:15px;line-height:1.35}
+.how-to li{display:flex;gap:12px;align-items:center;background:#fffdf6;border:1px solid #d5d0c3;border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.4}
 .how-num{flex:0 0 28px;height:28px;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px}
 .how-to li:nth-child(1) .how-num{background:var(--lime)}
 .how-to li:nth-child(2) .how-num{background:var(--lavender)}
@@ -135,23 +138,23 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 @keyframes turn{to{transform:rotate(360deg)}}
 
 /* ---------- Play ---------- */
-.play-screen{padding:20px 0 28px}
-.play-top{max-width:720px;margin:0 auto 16px;display:grid;gap:10px}
+.play-screen{padding:24px 0 32px}
+.play-top{max-width:780px;margin:0 auto 20px;display:grid;gap:10px}
 .task{margin:0;font-size:18px;line-height:1.35;font-weight:800;text-align:center}
 .app[data-screen=levelPassed] .play-top .feedback,.app[data-screen=levelPassed] .play-top .gesture-help{display:none}
-.game-layout{display:grid;grid-template-columns:minmax(0,400px) 300px;gap:40px;justify-content:center;align-items:start}
+.game-layout{display:grid;grid-template-columns:minmax(0,416px) 324px;gap:40px;justify-content:center;align-items:start}
 .board-stage{display:flex;justify-content:center}
-.board-frame{position:relative;width:100%;border:2px solid var(--ink);border-radius:11px;overflow:hidden;background:#e9e6ff;box-shadow:6px 6px 0 #ded9ea;transition:box-shadow .2s}
+.board-frame{position:relative;width:100%;border:2px solid var(--ink);border-radius:16px;overflow:hidden;background:#e9e6ff;box-shadow:5px 6px 0 #c9bdff,0 16px 32px #18212c12;transition:box-shadow .2s}
 #board{display:block;width:100%;height:auto;aspect-ratio:3/4;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .board-frame.passed{border-color:#4f7a12;box-shadow:6px 6px 0 #b9db54;animation:glow .3s ease-out}
 @keyframes glow{from{box-shadow:0 0 0 6px #e4ff69}to{box-shadow:6px 6px 0 #b9db54}}
 @keyframes stamp{from{opacity:0;transform:scale(.4) rotate(-20deg)}70%{opacity:1;transform:scale(1.12) rotate(4deg)}to{transform:none}}
 
-.workspace{display:flex;flex-direction:column;gap:14px;min-width:0}
+.workspace{display:flex;flex-direction:column;gap:20px;min-width:0;padding:20px;background:#fffdf7;border:1px solid #d8d3c8;border-radius:20px;box-shadow:0 6px 24px #18212c08}
 /* The message panel above the board: bold, informal, clearly highlighted. */
-.feedback{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border:2px solid var(--ink);border-radius:14px;background:#f3ffc4;box-shadow:3px 3px 0 var(--ink)}
+.feedback{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border:1px solid #d2c9e4;border-radius:14px;background:#f1ecff}
 .feedback-symbol{flex:0 0 26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:var(--violet);line-height:1}
-.feedback p{margin:0;font-size:16px;line-height:1.35;font-weight:700;align-self:center}
+.feedback p{margin:0;font-size:15px;line-height:1.45;font-weight:650;align-self:center}
 .feedback[data-kind=warning]{background:var(--warn-bg)}
 .feedback[data-kind=warning] .feedback-symbol{background:var(--ink);color:var(--warn-bg)}
 .feedback[data-kind=success]{background:var(--ok-bg)}
@@ -159,16 +162,17 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .palette-block{order:1}
 .controls{order:2;display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .controls .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:2px solid currentColor;font-size:13px;font-weight:900;line-height:1}
-.check-button{grid-column:1/-1;font-size:17px}
+.check-button{grid-column:1/-1;font-size:17px;background:var(--lime);color:var(--ink);box-shadow:2px 3px 0 var(--ink)}
+.check-button:hover:not(:disabled){background:#d9f456;color:var(--ink)}
 .passed-notice{order:3;display:flex;flex-direction:column;gap:12px;animation:appear .22s ease-out}
 .workspace[data-passed=true] .controls,.workspace[data-passed=true] .palette-block{display:none}
-.palette-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.count-label{font-size:14px;font-weight:800;color:var(--muted)}
+.palette-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
+.count-label{font-size:12px;font-weight:650;color:var(--muted);white-space:nowrap}
 /* Three cards in one row. Each card is the real sticker scaled down: same drawing, same proportions. */
-.palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;touch-action:none;padding:4px}
-.sticker-choice{width:100%;background:#fffaf1;color:var(--ink);border:2px solid var(--line);border-radius:14px;box-shadow:none;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:background .12s,border-color .12s,transform .12s,box-shadow .12s}
+.palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;touch-action:none;padding:4px}
+.sticker-choice{width:100%;min-height:86px;background:#f7f3eb;color:var(--ink);border:2px solid transparent;border-radius:14px;box-shadow:none;padding:10px 5px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:7px;touch-action:none;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:background .12s,border-color .12s,transform .12s,box-shadow .12s}
 .sticker-thumbnail{display:block;width:100%;max-width:var(--sticker-width,144px);height:auto;aspect-ratio:var(--sticker-ratio,1.875);pointer-events:none}
-.sticker-choice span{font-size:14px;line-height:20px;font-weight:800;pointer-events:none}
+.sticker-choice span{font-size:12px;line-height:18px;font-weight:750;pointer-events:none}
 /* The chosen sticker is visible (ТЗ: «явное выбранное состояние»). Driven by aria-pressed,
    which the UI already sets, so no extra class is needed. */
 .sticker-choice[aria-pressed=true]{background:var(--lime);border-color:var(--ink);box-shadow:3px 3px 0 var(--ink);transform:translate(-1px,-1px)}
@@ -300,11 +304,14 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .level-meta{font-size:11px;gap:10px}
  .level-info h2{font-size:18px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
  .icon-button{padding:0 12px;font-size:12px}
+ .settings-button,.close-button{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;box-shadow:1px 2px 0 var(--ink)}
+ .settings-button span{font-size:24px}
  .close-button{font-size:34px}
  .start-screen{grid-template-columns:1fr;grid-template-areas:"copy" "art" "actions";gap:10px;min-height:0;padding:26px 0 0}
  .intro-copy{max-width:480px;margin:auto;width:100%}
  h1{font-size:clamp(39px,11vw,64px);letter-spacing:-2px;margin:18px 0 22px}
  .intro-description{font-size:17px;max-width:410px;margin-bottom:18px}
+ .intro-eyebrow{font-size:10px;margin-bottom:10px}
  .intro-tags{margin-bottom:20px}
  .start-button{width:100%;min-height:56px}
  .intro-art{max-width:310px;width:100%;margin:auto;padding:25px 20px 35px}
@@ -322,19 +329,17 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .task{font-size:16px;text-align:left}
  .game-layout{display:flex;flex-direction:column;gap:12px}
  .board-stage{width:100%}
- /* The whole board shrinks with the screen height, keeping 3:4, so controls stay on screen. */
- .board-frame{margin:0 auto;width:min(100%,400px,max(270px,calc((100vh - var(--play-chrome)) * .75)))}
- @supports(height:100dvh){.board-frame{width:min(100%,400px,max(270px,calc((100dvh - var(--play-chrome)) * .75)))}}
+ /* Preserve readable notes on short phones; the page can scroll to the controls. */
+ .board-frame{margin:0 auto;width:min(100%,400px)}
  .board-frame{box-shadow:4px 4px 0 #ded9ea}
- .workspace{width:100%;max-width:440px;margin:0 auto;gap:10px}
+ .workspace{width:100%;max-width:404px;margin:0 auto;gap:14px;padding:14px 10px;border-radius:16px}
  .feedback{padding:8px 12px;gap:8px}
  .feedback p{font-size:15px;line-height:1.3}
  .feedback-symbol{flex-basis:24px;height:24px;font-size:16px}
- .palette-heading{display:none}
+ .palette-heading{display:flex;margin:0 4px 8px}.palette-heading .eyebrow{font-size:10px;letter-spacing:1px}
  .palette{gap:12px}
- /* On phones the card itself shows the sticker; its name stays in aria-label. */
- .sticker-choice span{display:none}
- .sticker-choice{padding:4px;border-radius:12px}
+ .sticker-choice span{display:block;font-size:11px;line-height:15px}
+ .sticker-choice{min-height:68px;padding:7px 4px;border-radius:12px;gap:4px}
  .gesture-help{font-size:13px;text-align:left}
  .controls{grid-template-columns:1fr 1fr 1.2fr;gap:8px}
  .controls .button{min-height:48px;padding:6px 4px;font-size:14px;border-radius:11px;gap:4px}
