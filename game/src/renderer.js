@@ -338,9 +338,15 @@ export function renderBoard(options) {
   const assets = options.assets;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas недоступен');
+  // options.area = [x, y, width, height] in canvas pixels draws the frame into a part of the
+  // canvas (the poster); by default the frame fills the whole canvas.
+  const area = Array.isArray(options.area) && options.area.length === 4 ? options.area :
+    [0, 0, canvas.width, canvas.height];
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.setTransform(canvas.width / 360, 0, 0, canvas.height / 480, 0, 0);
+  ctx.clearRect(area[0], area[1], area[2], area[3]);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(area[0], area[1], area[2], area[3]); ctx.clip();
+  ctx.setTransform(area[2] / 360, 0, 0, area[3] / 480, area[0], area[1]);
   ctx.globalAlpha = 1;
   ctx.fillStyle = '#e9e6ff'; ctx.fillRect(0, 0, 360, 480);
   const background = assets.images[level.background];
@@ -376,6 +382,7 @@ export function renderBoard(options) {
     ctx.strokeRect(p[0] - 4, p[1] - 4, p[2] + 8, p[3] + 8); ctx.restore();
   });
   if (previewPlacement && !options.preview.placementId) drawSticker(ctx, previewPlacement, assets, true);
+  ctx.restore();
   return { animating: animating };
 }
 

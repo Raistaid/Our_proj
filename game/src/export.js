@@ -67,22 +67,23 @@ export async function createPoster(options) {
     throw new Error('Сначала подготовь кадр');
   }
   // With feed data the poster gets a band below the frame; without it, the frame fills the poster.
+  // Everything is drawn on one canvas, the frame by the same renderBoard.
   const withBand = Boolean(options.feed || options.stats);
-  // The frame is drawn by the same renderBoard first; the poster canvas is created last.
-  const frame = document.createElement('canvas');
-  frame.width = withBand ? BOARD.w : W; frame.height = withBand ? BOARD.h : H;
-  renderBoard({ canvas: frame, level: options.level, placements: options.placements,
-    assets: options.assets, preview: null, hintIds: [] });
-  let canvas = frame;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
   if (withBand) {
-    canvas = document.createElement('canvas');
-    canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#f7f4eb'; ctx.fillRect(0, 0, W, H);
-    // Offset shadow and ink border, like the frame on screen.
+    // Offset shadow under the frame, like on screen.
     ctx.fillStyle = '#c9bdff';
     ctx.fillRect(BOARD.x + 10, BOARD.y + 10, BOARD.w, BOARD.h);
-    ctx.drawImage(frame, BOARD.x, BOARD.y, BOARD.w, BOARD.h);
+  }
+  renderBoard({ canvas: canvas, level: options.level, placements: options.placements,
+    assets: options.assets, preview: null, hintIds: [],
+    area: withBand ? [BOARD.x, BOARD.y, BOARD.w, BOARD.h] : null });
+  if (withBand) {
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.strokeStyle = INK; ctx.lineWidth = 4;
     ctx.strokeRect(BOARD.x, BOARD.y, BOARD.w, BOARD.h);
     drawBand(ctx, options);
