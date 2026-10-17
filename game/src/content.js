@@ -67,8 +67,8 @@ export function validateContent(content) {
         s.rect[1] + s.rect[3] / 2, size.w, size.h) : null;
       if (mask && !containsRect(mask, s.rect)) errors.push(name + 'секрет не помещается под наклейкой');
       keep.forEach(function (k) {
-        if (mask && k && validRect(k.rect) && intersectsRect(mask, k.rect)) {
-          errors.push(name + 'секрет нельзя закрыть, сохранив главный предмет');
+        if (mask && k && k.id !== 'hero' && validRect(k.rect) && intersectsRect(mask, k.rect)) {
+          errors.push(name + 'секрет нельзя закрыть, сохранив обычные записки и подпись');
         }
       });
       secrets.slice(index + 1).forEach(function (other) {

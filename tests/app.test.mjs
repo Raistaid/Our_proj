@@ -149,7 +149,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
     readFile(new URL('../game/data/content.json', import.meta.url), 'utf8')
   ]);
   const content = JSON.parse(rawContent);
-  assert.equal(content.levels.length, 5);
+  assert.equal(content.levels.length, 7);
   const document = makeDocument(html);
   const messages = [];
   const frames = new Map();
@@ -456,7 +456,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
   await playSession(true);
   assert.equal(count('COMPLETED_EVENT'), 1);
   assert.equal(count('FINISH_EVENT'), 1);
-  assert.equal(count('VIBRATION_EVENT'), 5);
+  assert.equal(count('VIBRATION_EVENT'), content.levels.length);
   const firstPoster = document.canvases.at(-1);
   const firstPosterUrl = byId('poster-image').src;
   assert.equal(firstPoster.calls.some(call => call.name === 'drawImage' && call.args[0] === delayedImage), false);
@@ -483,7 +483,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
   await playSession(false, 1);
   assert.equal(count('COMPLETED_EVENT'), 1, 'replay must not award completion again');
   assert.equal(count('FINISH_EVENT'), 1, 'replay must not send FINISH_EVENT again');
-  assert.equal(count('VIBRATION_EVENT'), 10);
+  assert.equal(count('VIBRATION_EVENT'), content.levels.length * 2);
   click('share');
   assert.equal(count('SHARING_EVENT'), 2);
   click('close');

@@ -72,7 +72,7 @@ function drawNote(ctx, zone) {
 // covers the whole note, even while it animates.
 const FORMS = ['phone', 'tag', 'paper'];
 // A badge glued onto an object of the picture; only used when the data asks for it (zone.form).
-const EXTRA_FORMS = ['badge'];
+const EXTRA_FORMS = ['badge', 'message'];
 const BADGE_STICK = 520;
 const KIND_FORM = { code: 'phone', private_location: 'phone', address: 'tag', password: 'paper' };
 const PHONE_IN = 420;
@@ -102,6 +102,21 @@ function clipTo(ctx, p) {
 }
 
 // t: ms since this note started to appear; null means a still picture (poster, tests).
+function drawMessage(ctx, zone, p) {
+  ctx.save();
+  clipTo(ctx, p);
+  roundedRect(ctx, p[0] + 1, p[1] + 1, p[2] - 2, p[3] - 7, 10);
+  ctx.fillStyle = /^#[0-9a-fA-F]{6}$/.test(zone.color || '') ? zone.color : '#ffffff';
+  ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(p[0] + 12, p[1] + p[3] - 7);
+  ctx.lineTo(p[0] + 6, p[1] + p[3] - 1);
+  ctx.lineTo(p[0] + 26, p[1] + p[3] - 7);
+  ctx.fill(); ctx.stroke();
+  drawText(ctx, zone.lines, [p[0] + 3, p[1] + 3, p[2] - 6, p[3] - 12], 15, { boldFirst: true });
+  ctx.restore();
+}
+
 function drawPhone(ctx, zone, p, t) {
   if (t !== null && t < 0) return;
   let dx = 0;
@@ -239,7 +254,9 @@ function drawNotes(ctx, level, now) {
     const form = noteForm(level, zone);
     const p = pixels(zone.rect);
     const t = now === null ? null : now - i * STAGGER;
-    if (form === 'phone') {
+    if (form === 'message') {
+      drawMessage(ctx, zone, p);
+    } else if (form === 'phone') {
       drawPhone(ctx, zone, p, t);
       if (t !== null && t < PHONE_IN + PHONE_BUZZ) animating = true;
     } else if (form === 'tag') {

@@ -211,12 +211,12 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 @keyframes fx-tick{to{transform:rotate(360deg)}}
 @keyframes fx-sun{0%,100%{box-shadow:0 0 0 0 rgba(255,225,122,.85)}50%{box-shadow:0 0 0 9px rgba(255,225,122,0)}}
 /* Notes board: the original robot and its blinking move together to the upper left. */
-.fx-lid{top:10.76%;width:4.34%;aspect-ratio:1;border-radius:50%;background:#b2a3ed;border-bottom:2px solid #18212c;transform:translate(-50%,-50%) scaleY(0);animation:fx-blink 4.6s infinite}
-.fx-lid.l1{left:11.15%}.fx-lid.l2{left:19.82%}
+.fx-lid{width:3.3333%;aspect-ratio:1;border-radius:50%;background:#b2a3ed;border-bottom:2px solid #18212c;transform:translate(-50%,-50%) rotate(-7deg) scaleY(0);animation:fx-blink 4.6s infinite}
+.fx-lid.l1{left:18.8336%;top:13.3483%}.fx-lid.l2{left:25.4506%;top:12.7389%}
 .fx-lamp{left:19.44%;top:41.67%;width:16%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,243,176,.9),rgba(255,243,176,0) 65%);animation:fx-glow 3s ease-in-out infinite}
 .fx-steam{left:87%;top:60%;width:3px;height:5%;border-radius:3px;background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.9));opacity:0;animation:fx-rise 2.6s ease-out infinite}
 .fx-steam.s2{left:90%;animation-delay:1.3s}
-@keyframes fx-blink{0%,90%,96%,100%{transform:translate(-50%,-50%) scaleY(0)}92%,94%{transform:translate(-50%,-50%) scaleY(1)}}
+@keyframes fx-blink{0%,90%,96%,100%{transform:translate(-50%,-50%) rotate(-7deg) scaleY(0)}92%,94%{transform:translate(-50%,-50%) rotate(-7deg) scaleY(1)}}
 @keyframes fx-glow{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes fx-rise{0%{opacity:0;transform:translateY(0) scaleX(1)}25%{opacity:.9}100%{opacity:0;transform:translateY(-26px) scaleX(2.2)}}
 /* poster: steam from the teapot, twinkling garland */
@@ -246,7 +246,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .scene-fx.react .fx-puff.p2{animation-delay:.1s}.scene-fx.react .fx-puff.p3{animation-delay:.2s}
 @keyframes fx-spin{to{transform:rotate(720deg)}}
 @keyframes fx-wink{0%,100%{box-shadow:0 0 0 0 rgba(255,225,122,0)}40%{box-shadow:0 0 0 14px rgba(255,225,122,.9)}}
-@keyframes fx-surprise{0%,30%,60%,100%{transform:translate(-50%,-50%) scaleY(0)}15%,45%{transform:translate(-50%,-50%) scaleY(1)}}
+@keyframes fx-surprise{0%,30%,60%,100%{transform:translate(-50%,-50%) rotate(-7deg) scaleY(0)}15%,45%{transform:translate(-50%,-50%) rotate(-7deg) scaleY(1)}}
 @keyframes fx-burst{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:.85}100%{opacity:0;transform:translate(-50%,-16px) scale(2.2)}}
 /* Frame passed: a short confetti shower */
 .fx-confetti i{position:absolute;top:-6%;width:2.4%;height:1.6%;border-radius:2px;opacity:0}

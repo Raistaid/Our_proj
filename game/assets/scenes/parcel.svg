@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 360 480">
+  <defs><pattern id="wall" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#18212c" opacity=".08"/></pattern></defs>
+  <rect width="360" height="480" fill="#e4ecf4"/>
+  <rect width="360" height="318" fill="url(#wall)"/>
+  <path d="M0 318H360V480H0Z" fill="#d6c3ab"/>
+  <path d="M0 318H360M0 444H360" stroke="#18212c" stroke-width="2" opacity=".22"/>
+  <ellipse cx="181" cy="430" rx="157" ry="10" fill="#18212c" opacity=".12"/>
+  <path d="M26 150L68 89H294L336 150Z" fill="#e9c18e" stroke="#18212c" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="26" y="150" width="310" height="276" rx="4" fill="#dba76f" stroke="#18212c" stroke-width="3"/>
+  <path d="M168 89H196L204 150H160Z" fill="#f7dfab" stroke="#ac8252" stroke-width="1.5"/>
+  <path d="M160 151H204V425H160Z" fill="#f7dfab"/>
+  <path d="M168 157V415M196 157V415" stroke="#ac8252" stroke-width="1" stroke-dasharray="4 5"/>
+  <path d="M46 409V392M40 398L46 392L52 398M65 409V392M59 398L65 392L71 398" fill="none" stroke="#795a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

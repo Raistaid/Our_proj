@@ -101,7 +101,7 @@ export function evaluateLevel(level, placements) {
     return covered.indexOf(s.id) === -1;
   }).map(function (s) { return s.id; });
   const blocked = level.keepZones.filter(function (k) {
-    return valid.some(function (p) { return intersectsRect(p.rect, k.rect); });
+    return k.id !== 'hero' && valid.some(function (p) { return intersectsRect(p.rect, k.rect); });
   }).map(function (k) { return k.id; });
   return { passed: level.secrets.length > 0 && missing.length === 0 &&
     blocked.length === 0 && valid.length === list.length && list.length <= level.maxStickers,

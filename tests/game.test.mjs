@@ -23,7 +23,7 @@ function solve(level, initial) {
 }
 test('Полный набор проходит проверку схемы', function () {
   assert.deepEqual(validateContent(content), { ok: true, errors: [] });
-  assert.equal(content.levels.length, 5);
+  assert.equal(content.levels.length, 7);
   assert.equal(content.levels.at(-1).mode, 'transfer');
 });
 for (let index = 0; index < content.levels.length; index += 1) {
@@ -50,7 +50,7 @@ test('Обычную идею нельзя заклеить даже после 
 });
 
 test('На доске нужно закрыть каждый вид личных данных во всех раскладках', function () {
-  for (const index of [1, 4]) {
+  for (const index of content.levels.flatMap((level, index) => level.background.endsWith('/desk.svg') ? [index] : [])) {
     for (let variant = 0; variant <= content.levels[index].layouts.length; variant += 1) {
       const level = getRuntimeLevel(content, index, variant);
       assert.deepEqual(new Set(level.secrets.map(s => s.kind)),
@@ -137,10 +137,19 @@ test('Частично закрытый секрет не засчитывает
   solved.placements[0].rect[2] /= 2;
   assert.ok(evaluateLevel(level, solved.placements).missingSecretIds.includes(level.secrets[0].id));
 });
-test('Наклейка на главном предмете блокирует готовность', function () {
-  const level = getRuntimeLevel(content, 0);
-  const result = placeSticker(level, solve(level), { stickerId: 'sock', x: 0.5, y: 0.5 });
-  assert.ok(evaluateLevel(level, result.state.placements).blockedKeepIds.includes('hero'));
+test('Наклейка на главном предмете не мешает прохождению и подсказке', function () {
+  for (let index = 0; index < content.levels.length; index += 1) {
+    const level = getRuntimeLevel(content, index);
+    const [x, y, w, h] = level.keepZones.find(z => z.id === 'hero').rect;
+    const result = placeSticker(level, solve(level), { stickerId: 'sock', x: x + w / 2, y: y + h / 2 });
+    assert.equal(result.accepted, true);
+    const report = evaluateLevel(level, result.state.placements);
+    assert.equal(report.blockedKeepIds.includes('hero'), false);
+    // The sticker can also touch an ordinary note; only that note may block the result.
+    const withoutHero = { ...level, keepZones: level.keepZones.filter(z => z.id !== 'hero') };
+    assert.deepEqual(report, evaluateLevel(withoutHero, result.state.placements));
+    assert.deepEqual(getLevelHint(level, result.state.placements), getLevelHint(withoutHero, result.state.placements));
+  }
 });
 test('Координаты и история не изменяют предыдущее состояние', function () {
   const level = getRuntimeLevel(content, 0);
