@@ -57,11 +57,15 @@ test('Тап по масштабированному Canvas даёт относ�
   f.emit('pointerdown'); f.emit('pointerup');
   assert.deepEqual(f.drops, [{ stickerId: 'sock', x: 0.5, y: 0.5 }]);
 });
-test('Тап по палитре только выбирает; перетаскивание добавляет наклейку', function () {
+test('Тап по палитре выбирает стикер для установки касанием кадра', function () {
   const f = fixture();
   f.emit('pointerdown', { target: f.paletteTarget, clientY: 300 });
   f.emit('pointerup', { target: f.paletteTarget, clientY: 300 });
   assert.equal(f.drops.length, 0);
+});
+
+test('Перетаскивание стикера из палитры устанавливает его одним жестом', function () {
+  const f = fixture();
   f.emit('pointerdown', { target: f.paletteTarget, clientY: 300 });
   f.emit('pointermove'); f.emit('pointerup');
   assert.deepEqual(f.drops, [{ stickerId: 'cloud', x: 0.5, y: 0.5 }]);
