@@ -1,4 +1,4 @@
-import { validRect, centeredRect, containsRect, intersectsRect } from './geometry.js';
+import { validRect, intersectsRect } from './geometry.js';
 
 function text(value) { return typeof value === 'string' && value.trim().length > 0; }
 function localAsset(value) {
@@ -62,14 +62,11 @@ export function validateContent(content) {
       if (!s || !validRect(s.rect)) return;
       if (!Array.isArray(s.lines) || !s.lines.length || s.lines.length > 3 ||
           !s.lines.every(text) || !text(s.why)) errors.push(name + 'нет текста или объяснения');
-      const mask = validSize ? centeredRect(s.rect[0] + s.rect[2] / 2,
-        s.rect[1] + s.rect[3] / 2, size.w, size.h) : null;
-      if (mask && !containsRect(mask, s.rect)) errors.push(name + 'секрет не помещается под наклейкой');
-      keep.forEach(function (k) {
-        if (mask && k && k.id !== 'hero' && validRect(k.rect) && intersectsRect(mask, k.rect)) {
-          errors.push(name + 'секрет нельзя закрыть, сохранив обычные записки и подпись');
-        }
-      });
+      if (s.sensitiveLines !== undefined && (!Array.isArray(s.sensitiveLines) || !s.sensitiveLines.length ||
+          !s.sensitiveLines.every(i => Number.isInteger(i) && i >= 0 && i < (s.lines || []).length) ||
+          new Set(s.sensitiveLines).size !== s.sensitiveLines.length)) {
+        errors.push(name + 'некорректные строки с личными данными');
+      }
       secrets.slice(index + 1).forEach(function (other) {
         if (other && validRect(other.rect) && intersectsRect(s.rect, other.rect)) {
           errors.push(name + 'секреты пересекаются');
@@ -112,7 +109,7 @@ function fallbackContent() {
     defaultStickerSize: { w: 0.40, h: 0.16 }, isFallback: true,
     stickers: [{ id: 'sock', label: 'Серьёзный носок', src: './assets/stickers/sock.svg', color: '#e4ff69' }],
     levels: [{ id: 'practice', title: 'Пробный кадр',
-      brief: 'Закрой учебный код. Рюкзак оставь видимым.',
+      brief: 'Закрой цифры учебного кода.',
       background: './assets/scenes/room.svg', mode: 'practice',
       secrets: [{ id: 'code', kind: 'code', rect: [0.05, 0.08, 0.38, 0.14],
         lines: ['Учебный код', '000000'], why: 'Код не стоит оставлять в открытом доступе.' }],

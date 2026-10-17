@@ -289,7 +289,7 @@ export function mountUI(callbacks) {
       resultKey = rKey;
       setText('result-description', vm.isFallback ?
         'Пробный кадр готов. Попробуй открыть игру снова, чтобы получить основной набор.' :
-        'Кадры готовы. Твои идеи остались видны, личное — за кадром.');
+        'Личные данные закрыты. Твой коллаж готов!');
     }
   }
   function setStickerSize(width, height) {

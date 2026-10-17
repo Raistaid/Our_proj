@@ -1,5 +1,6 @@
 import { validRect, centeredRect } from './geometry.js';
-import { stickerShape, stickerSize, pointInSticker, stickerIntersectsRect, stickersCoverRect } from './sticker-shapes.js';
+import { sensitiveRegions } from './sensitive-text.js';
+import { stickerShape, stickerSize, pointInSticker, stickersCoverRect } from './sticker-shapes.js';
 
 export function createLevelState(level) {
   return { levelId: level.id, placements: [], history: [], nextId: 1,
@@ -94,17 +95,14 @@ export function evaluateLevel(level, placements) {
   const valid = list.filter(function (p) { return p && validRect(p.rect); })
     .map(function (p) { return { ...p, shape: stickerShape(level, p.stickerId) }; });
   const covered = level.secrets.filter(function (s) {
-    return stickersCoverRect(valid, s.rect);
+    return sensitiveRegions(level, s).every(function (rect) { return stickersCoverRect(valid, rect); });
   }).map(function (s) { return s.id; });
   const missing = level.secrets.filter(function (s) {
     return covered.indexOf(s.id) === -1;
   }).map(function (s) { return s.id; });
-  const blocked = level.keepZones.filter(function (k) {
-    return k.id !== 'hero' && valid.some(function (p) { return stickerIntersectsRect(p, k.rect); });
-  }).map(function (k) { return k.id; });
   return { passed: level.secrets.length > 0 && missing.length === 0 &&
-    blocked.length === 0 && valid.length === list.length,
-    coveredSecretIds: covered, missingSecretIds: missing, blockedKeepIds: blocked };
+    valid.length === list.length,
+    coveredSecretIds: covered, missingSecretIds: missing, blockedKeepIds: [] };
 }
 
 export function checkLevel(level, state) {
@@ -122,11 +120,6 @@ export function useHint(state) {
 
 export function getLevelHint(level, placements) {
   const report = evaluateLevel(level, placements);
-  const blocked = level.keepZones.find(function (zone) {
-    return report.blockedKeepIds.indexOf(zone.id) !== -1;
-  });
-  // Fix the visible area first; do not highlight a different task at the same time.
-  if (blocked) return { hintIds: [], text: blocked.hint };
   const missing = level.secrets.find(function (zone) {
     return report.missingSecretIds.indexOf(zone.id) !== -1;
   });

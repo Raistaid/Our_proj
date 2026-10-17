@@ -65,7 +65,7 @@ function redraw() {
       level: level, assets: assets });
   });
   const drawn = renderBoard({ canvas: ui.canvas, level: level, placements: state.placements,
-    assets: assets, hintIds: hintIds, preview: preview, animate: true });
+    assets: assets, hintIds: hintIds, preview: preview, animate: screen === 'playing' });
   // Notes play a short entrance animation; keep drawing the current state until it ends.
   if (drawn && drawn.animating) scheduleDraw();
 }
@@ -132,7 +132,7 @@ function startLevel(index) {
   screen = 'playing';
   feedback = { kind: 'info', text: currentLevel().mode === 'transfer' ?
     'Этот кадр — полностью твой 😎 Подсказка откроется после первой проверки.' :
-    'Ищи всё личное и заклеивай! Обычные записки оставь видимыми 😉' };
+    'Закрой личные слова и цифры. Всё остальное украшай как хочешь 😉' };
   render();
 }
 function startSession() {
@@ -193,14 +193,10 @@ function check() {
     audio.play('success');
     bridge.vibrate();
   } else {
-    const blocked = level.keepZones.find(function (zone) {
-      return result.report.blockedKeepIds.indexOf(zone.id) !== -1;
-    });
     const missing = level.secrets.find(function (zone) {
       return result.report.missingSecretIds.indexOf(zone.id) !== -1;
     });
-    feedback = { kind: 'warning', text: blocked ? blocked.hint :
-      missing ? missing.why : 'Проверь расположение наклеек и попробуй ещё раз.' };
+    feedback = { kind: 'warning', text: missing ? missing.why : 'Проверь расположение наклеек и попробуй ещё раз.' };
     audio.play('warning');
   }
   render();
@@ -255,7 +251,7 @@ async function refreshPoster() {
       feed: content.feed || null, stats: statsSummary() });
     if (nonce !== exportNonce || screen !== 'result') return;
     posterDataUrl = image;
-    resultStatus = 'Можно показать коллаж. Все личные записки на нём закрыты.';
+    resultStatus = 'Можно показать коллаж. Все личные данные на нём закрыты.';
   } catch (error) {
     if (nonce !== exportNonce || screen !== 'result') return;
     resultStatus = 'Картинка не собралась. Попробуй ещё один заход.';

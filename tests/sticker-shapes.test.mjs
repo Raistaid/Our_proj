@@ -48,7 +48,7 @@ test('Overlapping circles cover a long secret together, but a gap fails', functi
     keepZones: [{ id: 'visible-corner', rect: [0.10, 0.10, 0.01, 0.01] }] };
   assert.equal(evaluateLevel(level, [a, b]).passed, true);
   level.keepZones[0].rect = [0.20, 0.18, 0.01, 0.01];
-  assert.equal(evaluateLevel(level, [a, b]).passed, false, 'Opaque shape still blocks protected content');
+  assert.equal(evaluateLevel(level, [a, b]).passed, true, 'Ordinary content never blocks completion');
 });
 
 test('Coverage rejects an interior hole even when all four outer corners are covered', function () {

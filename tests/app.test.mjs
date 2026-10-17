@@ -403,9 +403,9 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         assert.equal(byId('feedback').dataset.kind, 'warning');
         board.calls.length = 0;
         click('hint');
-        assert.equal(byId('feedback-text').textContent, publicNote.hint);
-        assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d').length, 0,
-          'a hint about a blocked ordinary note must not highlight a different secret');
+        assert.equal(byId('feedback-text').textContent, level.secrets[0].why);
+        assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d').length, 1,
+          'a sticker on an ordinary note does not distract the hint from sensitive data');
         click('undo');
         assert.equal(byId('sticker-count').textContent, 'Наклеек: 0');
         assert.equal(byId('undo-button').disabled, true);

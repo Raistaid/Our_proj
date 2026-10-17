@@ -37,14 +37,14 @@ for (let index = 0; index < content.levels.length; index += 1) {
     assert.equal(checked.report.blockedKeepIds.length, 0);
   });
 }
-test('Обычную идею нельзя заклеить даже после закрытия всех секретов', function () {
+test('Обычную идею можно заклеить после закрытия всех секретов', function () {
   const level = getRuntimeLevel(content, 0);
   const r = level.keepZones.find(function (z) { return z.id === 'public_note'; }).rect;
   const result = placeSticker(level, solve(level), { stickerId: 'sock',
     x: r[0] + r[2] / 2, y: r[1] + r[3] / 2 });
   const report = evaluateLevel(level, result.state.placements);
-  assert.equal(report.passed, false);
-  assert.ok(report.blockedKeepIds.includes('public_note'));
+  assert.equal(report.passed, true);
+  assert.deepEqual(report.blockedKeepIds, []);
   assert.deepEqual(result.state.placements.at(-1).rect.slice(2), [0.40, 0.16],
     'Обычная записка не меняет фиксированный размер наклейки');
 });
@@ -76,7 +76,7 @@ test('На доске нужно закрыть каждый вид личных
         const note = level.keepZones.find(z => z.id === 'weekend_plan');
         const [x, y, w, h] = note.rect;
         const blocked = placeSticker(level, state, { stickerId: sticker.id, x: x + w / 2, y: y + h / 2 });
-        assert.ok(evaluateLevel(level, blocked.state.placements).blockedKeepIds.includes(note.id));
+        assert.equal(evaluateLevel(level, blocked.state.placements).passed, true);
       }
     }
   }
@@ -230,7 +230,7 @@ test('Moving a sticker off a normal note updates evaluation and undo restores th
   const placed = placeSticker(level, createLevelState(level), {
     stickerId: 'sock', x: note.rect[0] + note.rect[2] / 2, y: note.rect[1] + note.rect[3] / 2
   }).state;
-  assert.ok(evaluateLevel(level, placed.placements).blockedKeepIds.includes(note.id));
+  assert.deepEqual(evaluateLevel(level, placed.placements).blockedKeepIds, []);
   const secret = level.secrets[0];
   const moved = moveSticker(level, placed, {
     placementId: placed.placements[0].id,
@@ -379,13 +379,15 @@ test('Неудачная первая попытка и подсказка со�
   assert.equal(state.hintUsed, true);
 });
 
-test('Подсказка сначала просит освободить обычную записку и не выделяет другой секрет', function () {
+test('Подсказка ищет личные данные независимо от закрытой обычной записки', function () {
   const level = getRuntimeLevel(content, 0);
   const note = level.keepZones.find(function (zone) { return zone.style === 'note'; });
   const placed = placeSticker(level, createLevelState(level), {
     stickerId: 'sock', x: note.rect[0] + note.rect[2] / 2, y: note.rect[1] + note.rect[3] / 2
   }).state;
-  assert.deepEqual(getLevelHint(level, placed.placements), { hintIds: [], text: note.hint });
+  assert.deepEqual(getLevelHint(level, placed.placements), {
+    hintIds: [level.secrets[0].id], text: level.secrets[0].why
+  });
   const undone = undoPlacement(placed);
   assert.deepEqual(getLevelHint(level, undone.placements), {
     hintIds: [level.secrets[0].id], text: level.secrets[0].why
@@ -409,7 +411,7 @@ test('Сломанные данные, внешний ресурс и прозр
     function (c) { c.stickers[0].src = 'https://example.org/sticker.svg'; },
     function (c) { c.stickers[0].color = 'transparent'; },
     function (c) { c.levels[0].secrets[0].rect = [-0.1, 0, 0.5, 0.2]; },
-    function (c) { c.levels[0].secrets[0].rect = [0.3, 0.35, 0.2, 0.2]; },
+    function (c) { c.levels[0].secrets[0].sensitiveLines = [99]; },
     function (c) { c.levels[0].secrets.push(null); },
     function (c) { c.levels[0].keepZones.push(null); },
     function (c) { c.defaultStickerSize.w = '0.3'; }
@@ -421,13 +423,12 @@ test('Сломанные данные, внешний ресурс и прозр
   assert.equal(validateContent(null).ok, false);
 });
 
-test('A finite fixed sticker size that cannot cover the secrets is rejected', function () {
+test('Small stickers are valid because several stickers may cover sensitive text', function () {
   for (const size of [{ w: 0.30, h: 0.16 }, { w: 0.40, h: 0.10 }]) {
     const candidate = fresh();
     candidate.defaultStickerSize = size;
     const result = validateContent(candidate);
-    assert.equal(result.ok, false, JSON.stringify(size) + ' must not create an impossible game');
-    assert.ok(result.errors.some(function (error) { return error.includes('секрет не помещается'); }));
+    assert.equal(result.ok, true);
   }
 });
 test('Мост завершает задание один раз на открытие, включая повторную игру', function () {
