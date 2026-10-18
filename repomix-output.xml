@@ -2032,8 +2032,17 @@ export function fanComments(feed, levelIndex, stickerIds, count, scene) {
   const regular = texts.filter(Boolean).map(function (text, i) {
     return { who: pick(f.names || DEFAULT_FEED.names, levelIndex * 2 + i), text: text };
   });
-  const fixed = f.sceneComments && f.sceneComments[scene] || [];
-  return fixed.concat(regular.filter(comment => !fixed.some(item => item.who === comment.who))).slice(0, count);
+  const fixed = f.sceneComments && scene && f.sceneComments[scene] || [];
+  
+  // Собираем комментарии без использования стрелочных функций для полной совместимости
+  const filteredRegular = regular.filter(function (comment) {
+    return !fixed.some(function (item) { return item.who === comment.who; });
+  });
+  const combined = fixed.concat(filteredRegular);
+  
+  return combined.length > 0 ? combined.slice(0, Math.max(1, count || 2)) : [
+    { who: '@kot_v_shapke', text: 'Классный кадр!' }
+  ];
 }
 
 export function strangerComment(feed, missingKinds) {
@@ -5190,6 +5199,190 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
 });
 </file>
 
+<file path="README.md">
+# Засвет: наклей всё!
+
+HTML5-игра для трека B «Игры» хакатона СберKids «Создаём эмоции». Аудитория — 11–13 лет, контент 0+/6+.
+
+Ребёнок готовит пост для открытой ленты. На вымышленных кадрах вместе с главным предметом случайно оказались личные сведения: адрес, код получения, пароль, место встречи. Нужно найти их, закрыть смешными наклейками и при этом оставить на виду то, ради чего пост и делался.
+
+> **Цель обучения:** после игры ребёнок замечает и скрывает личные сведения на изображении перед его открытой публикацией и отличает их от обычного контента, который можно оставить.
+
+## Как играть
+
+1. **Читай записки.** Код, пароль, адрес и место встречи — это личное.
+2. **Тяни наклейку** (носок, облако или огурец) на личные слова и цифры. Можно и так: выбрать наклейку и коснуться кадра.
+3. **Жми «Готово».** Все символы личных данных должны быть скрыты, а обычные записки и подписи — видны.
+
+Пять кадров. Ошибка объясняется одной конкретной причиной, и кадр можно исправить сразу, без потери попытки.
+
+## Что внутри
+
+**Игровой процесс**
+- 5 разных кадров: рюкзак, доска заметок, телефон, компьютер с перепиской и посылка. Каждая сцена встречается один раз; посылка — самостоятельная финальная проверка.
+- Записки встроены в сцену: уведомление на телефоне, бирка на верёвочке, бейджик на рюкзаке, бумажная записка. Секретные и обычные записки бывают в любой из этих форм, поэтому секрет нельзя угадать по виду, только прочитав.
+- Наклейки закрывают все нарисованные символы личных строк непрозрачными подложками разных форм. Заголовки, пробелы и пустая бумага не участвуют в проверке. Несколько наклеек могут закрывать данные вместе, но щели поверх символов и прозрачные углы не засчитываются. Подсказка обводит личный текст.
+- Обычную записку или подпись разрешено закрыть не более чем на 20% её площади. Ошибка возникает только при превышении 20%; наложения наклеек считаются один раз, прозрачные углы не учитываются. Подсказка сначала объясняет, какую обычную область нужно открыть. Главный предмет можно украшать.
+- В сценах используются читаемые учебные данные: номер телефона, шестизначные коды, вымышленный адрес и тестовая карта.
+- Наклейки можно переносить, убирать за край кадра и отменять.
+- Подсказка по запросу. В последнем, самостоятельном кадре она доступна только после первой проверки.
+
+**Реакции и виральность**
+- **Лента реакций.** Готовый кадр становится постом: лайки считаются, подписчики шутят про наклейки, которые стоят на кадре («Носок в очках — легенда 😂»).
+- **Подозрительный подписчик.** Если секрет остался виден, под объяснением появляется его реплика («Спасибо за код, посылку заберу сам 😏»). Последствие ошибки видно по реакции зрителя, без запугивания.
+- **Звание агента** на финале по итогам игры («Агент Носок», «Мастер маскировки»…) и сумма лайков.
+- **Постер для «Поделиться»:** PNG 720×960 с кадром, званием, лайками и комментарием. Все секреты на нём закрыты.
+
+**Живые сцены**
+- Часы идут, солнце мерцает, робот моргает, лампа светится, над кружкой и чайником поднимается пар, мигает гирлянда.
+- Сцена отвечает на каждую новую наклейку (робот удивлённо моргает, чайник пыхтит), после готового кадра сыплется конфетти.
+- На стартовом экране — анимированное демо «как играть», на первом кадре — палец-подсказка.
+
+**Звук и музыка**
+- Собственные звуки и тихая весёлая мелодия, синтезированные в коде: без файлов и чужой музыки.
+- По умолчанию выключены и включаются в настройках ⚙: там же громкость музыки и эффектов и звуки кнопок. Код рассчитан на то, чтобы звук на iPhone был слышен и в беззвучном режиме.
+
+**Повторная игра**
+- «Ещё один заход» показывает записки в другой раскладке: ответы нельзя запомнить, кадр нужно прочитать заново.
+
+## Почему это учит, а не просто развлекает
+
+- **Применение, а не викторина.** Ребёнок сам решает, что на картинке личное, и сам это прячет. Пройти, не прочитав записки, нельзя.
+- **Осмысленный выбор.** Нужно скрыть личные данные и сохранить обычные идеи и подписи видимыми; закрытие более 20% обычной записки не даёт завершить кадр.
+- **Ошибка объясняется, а не наказывается.** Одна конкретная причина и реакция «зрителя» вместо слова «неправильно».
+- **Перенос навыка.** Последний кадр самостоятельный, а на повторе записки стоят в новых местах.
+
+### Детали механики
+- Пять кадров, три собственные SVG-наклейки и пять фонов.
+- Перетаскивание или выбор наклейки + тап по кадру.
+- Три формы: прямоугольный носок 144 × 76.8 px, круглое облако диаметром 108 px и огурец на квадрате 108 × 108 px со скруглёнными углами. Превью и установленная наклейка совпадают; у края меняется только положение.
+- В панели выбора — компактные иконки персонажей; на кадре наклейка имеет фиксированный размер.
+- Уже поставленную наклейку можно перетащить; перенос не расходует новую наклейку и отменяется кнопкой «Отменить».
+- Чтобы убрать наклейку, перетащите её за край кадра и отпустите. «Отменить» возвращает её на прежнее место.
+- Проверка полного закрытия символов личных данных; обычные записки и подписи нельзя закрывать больше чем на 20% площади каждой области. Главный предмет не блокирует прохождение.
+- Отмена хода, подсказка, объяснение ошибки, повторное прохождение.
+- Последний кадр с подсказкой только после первой проверки.
+- PNG последнего подготовленного кадра 720 × 960.
+- Пять событий приложения через window.postMessage. COMPLETED_EVENT один раз за открытие страницы, включая повторную игру.
+- Звук выключен при старте; синтезируется собственный короткий сигнал после включения.
+- Запасной пробный кадр при недоступном или повреждённом JSON.
+## Соответствие требованиям трека B
+
+| Требование | Как выполнено |
+|---|---|
+| Только чистый HTML, CSS и JavaScript | Ни библиотек, ни фреймворков, ни сборки |
+| Изоляция | Ни одного внешнего запроса: шрифт системный, графика — собственные SVG, звук синтезируется |
+| Вес игры ≤ 5 МБ | Около 200 КБ (проверяется в CI) |
+| Первый экран ≤ 3 с | Около 1,9 с на сети 1,6 Мбит/с (проверяется в CI) |
+| Канал «страница → приложение» | `CLOSE_EVENT`, `FINISH_EVENT`, `COMPLETED_EVENT` (один раз за открытие, повтор не дублирует), `VIBRATION_EVENT` на успех, `SHARING_EVENT` с текстом и PNG |
+| Звук не запускается сам | Выключен до включения в настройках ⚙, есть переключатель и микшер |
+| Без бэкенда и персональных данных | Все данные вымышленные, ничего не уходит с устройства |
+| Ограничения контента | Без чужих персонажей, лотерей, таймеров и тёмных паттернов; 0+/6+ |
+| Телефоны 360–430 точек | Читаемый кадр с прокруткой к действиям, есть горизонтальная раскладка |
+
+## Запуск
+
+**На компьютере** (нужен Node.js), из корня проекта:
+
+```bash
+npm start
+```
+
+Откройте http://localhost:8000. Сервер раздаёт папку `game` без кеша. Другой порт: `npm start -- 8001`. В Windows: `npm.cmd start`.
+
+**С телефона** (нужен Python 3, телефон и компьютер в одной Wi-Fi-сети):
+
+```bash
+python3 -m http.server 8000 --directory game --bind 0.0.0.0
+```
+
+На телефоне откройте `http://IP-КОМПЬЮТЕРА:8000`. В Windows команда может называться `py`. Не открывайте `index.html` двойным кликом: модулям и JSON нужен HTTP.
+
+**В песочнице.** Соберите [Android-](https://github.com/vveidi/sber-hse-hackathon-2026-android) или [iOS-песочницу](https://github.com/vveidi/sber-hse-hackathon-2026-ios) из исходников, без изменений, и вставьте адрес игры на стартовом экране. Порядок проверки и чек-лист — в [docs/09_ANDROID_PLAYTEST.md](docs/09_ANDROID_PLAYTEST.md). На защите игра показывается именно в неизменённой песочнице.
+
+Для продакшена нужна только папка `game`: все пути относительные, её можно положить на любой статический сервер.
+
+Для участника 3 подготовлен [рабочий комплект](docs/08_PARTICIPANT_3_WORKPACK.md): карта содержания и структуры, [протокол Android и проверки с игроками](docs/09_ANDROID_PLAYTEST.md), [предложения по улучшениям](docs/10_IMPROVEMENTS.md), [текст слайдов и речь](docs/11_PITCH_SCRIPT.md), [фактический отчёт проверок](docs/12_VERIFICATION.md).
+
+## Контент без релиза
+
+У записок можно задавать разные `rect` и `rotation` (наклон в градусах от −12 до 12). Наклон одинаково применяется к изображению, символам личных данных и внешнему контуру подсказки. Сцена телефона называется `phone`; её обязательная реакция задаётся в `feed.sceneComments.phone`.
+
+Всё, что видит ребёнок, лежит в [`game/data/content.json`](game/data/content.json). Его можно менять без правки кода:
+
+| Раздел | Что настраивает |
+|---|---|
+| `stickers` | Наклейки: названия, картинки, цвет подложки |
+| `levels` | Кадры: фон, задача, личные записки (`secrets`), обычные объекты и подписи (`keepZones`). `sensitiveLines` задаёт индексы личных строк: проверяются их нарисованные символы. `form` задаёт вид записки (`phone`, `tag`, `badge`, `paper`, `message`), `anchor` — к чему привязана бирка. Для каждой области `keepZones` отдельно проверяется площадь, закрытая объединением непрозрачных частей наклеек; ошибка возникает только при превышении 20%. Область `hero` не блокирует прохождение |
+| `levels[].layouts` | Запасные раскладки записок для повторной игры |
+| `feed` | Лента реакций: ники, комментарии к каждой наклейке, лайки по кадрам, реплики «подозрительного подписчика» для каждого вида секрета, звания |
+| `scenes` | Живые сцены: какие анимации включены в каждой сцене, реакции, конфетти, общая скорость |
+
+После правки запустите `npm run check:content`: проверка находит решение для каждого кадра и каждой раскладки. Испорченный файл не ломает игру: она показывает запасной пробный кадр и не засчитывает прохождение курса.
+
+## Проверки и CI
+
+```bash
+npm test
+```
+```bash
+npm run check:content
+```
+```bash
+npm run check:budget
+```
+
+| Команда | Что проверяет |
+|---|---|
+| `npm test` | Логику, ввод, отрисовку, весь сценарий приложения, переносимость (относительные пути, ни внешних ссылок, ни библиотек) |
+| `npm run check:content` | Валидность `content.json` и то, что у каждого кадра и каждой раскладки есть решение |
+| `npm run check:budget` | Оценку времени первого экрана на медленной мобильной сети |
+
+GitHub Actions запускает эти проверки и контроль веса игры при каждом Pull Request и push в `main`.
+
+## Структура проекта
+
+| Путь | Что находится |
+|---|---|
+| `game/index.html` | Экраны и кнопки |
+| `game/styles/game.css` | Внешний вид, мобильная раскладка, живой слой сцен |
+| `game/data/content.json` | Кадры, тексты, раскладки, лента, настройки сцен |
+| `game/assets/scenes`, `game/assets/stickers` | Собственные SVG: фоны и наклейки |
+| `game/src/app.js` | Сценарий экранов и связь модулей |
+| `game/src/game.js`, `geometry.js` | Правила: размещение, перенос, отмена, проверка |
+| `game/src/input.js` | Палец и мышь, перетаскивание |
+| `game/src/content.js` | Загрузка и валидация данных, раскладки |
+| `game/src/renderer.js` | Отрисовка кадра на Canvas: сцена, записки, наклейки |
+| `game/src/ui.js` | Интерфейс: палитра, сообщения, лента, звание, подсказка-палец |
+| `game/src/feed.js` | Подбор комментариев, реплик и званий |
+| `game/src/export.js` | Постер PNG для «Поделиться» |
+| `game/src/audio.js` | Синтезированные звуки и музыка |
+| `game/src/bridge.js` | События для приложения |
+| `game/src/assets.js` | Загрузка картинок |
+| `tests/`, `tools/` | Автотесты и проверки без внешних библиотек |
+| `docs/` | Документы команды: роли, механики, проверки, питч |
+
+> **Не запускайте `tools/make-assets.py`.** Это исходный генератор графики и `content.json`: он перезапишет текущие рисунки, раскладки, ленту и настройки сцен.
+
+## Команда
+
+| Роль | Зона | Инструкция |
+|---|---|---|
+| 1 | Логика, ввод, интеграция с приложением | [docs/02_ROLE_ENGINE.md](docs/02_ROLE_ENGINE.md) |
+| 2 | Интерфейс, графика, анимации, звук | [docs/03_ROLE_VISUALS.md](docs/03_ROLE_VISUALS.md) |
+| 3 | Контент, проверка на устройстве, защита | [docs/04_ROLE_CONTENT_QA.md](docs/04_ROLE_CONTENT_QA.md) |
+
+Также: [план на троих](docs/01_TEAM_STEPS.md), [механики](docs/05_MECHANICS.md), [проверки](docs/06_QA.md), [сценарий демо](docs/07_DEMO.md), [сценарий питча](docs/11_PITCH_SCRIPT.md).
+
+## Ссылки
+
+- [Задание хакатона](https://kids.hackathon.aam.run/#tracks)
+- [Android-песочница](https://github.com/vveidi/sber-hse-hackathon-2026-android) · [iOS-песочница](https://github.com/vveidi/sber-hse-hackathon-2026-ios)
+- [Таблица для ссылки на репозиторий](https://docs.google.com/spreadsheets/d/1citg00WesqXX21FukhZUDgMMQGMNAL6usle9Afi6r8o/edit?gid=0#gid=0)
+
+Дедлайн загрузки кода — 18 октября, 15:00.
+</file>
+
 <file path="game/data/content.json">
 {
   "schemaVersion": 1,
@@ -6172,190 +6365,6 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
 }
 </file>
 
-<file path="README.md">
-# Засвет: наклей всё!
-
-HTML5-игра для трека B «Игры» хакатона СберKids «Создаём эмоции». Аудитория — 11–13 лет, контент 0+/6+.
-
-Ребёнок готовит пост для открытой ленты. На вымышленных кадрах вместе с главным предметом случайно оказались личные сведения: адрес, код получения, пароль, место встречи. Нужно найти их, закрыть смешными наклейками и при этом оставить на виду то, ради чего пост и делался.
-
-> **Цель обучения:** после игры ребёнок замечает и скрывает личные сведения на изображении перед его открытой публикацией и отличает их от обычного контента, который можно оставить.
-
-## Как играть
-
-1. **Читай записки.** Код, пароль, адрес и место встречи — это личное.
-2. **Тяни наклейку** (носок, облако или огурец) на личные слова и цифры. Можно и так: выбрать наклейку и коснуться кадра.
-3. **Жми «Готово».** Все символы личных данных должны быть скрыты, а обычные записки и подписи — видны.
-
-Пять кадров. Ошибка объясняется одной конкретной причиной, и кадр можно исправить сразу, без потери попытки.
-
-## Что внутри
-
-**Игровой процесс**
-- 5 разных кадров: рюкзак, доска заметок, телефон, компьютер с перепиской и посылка. Каждая сцена встречается один раз; посылка — самостоятельная финальная проверка.
-- Записки встроены в сцену: уведомление на телефоне, бирка на верёвочке, бейджик на рюкзаке, бумажная записка. Секретные и обычные записки бывают в любой из этих форм, поэтому секрет нельзя угадать по виду, только прочитав.
-- Наклейки закрывают все нарисованные символы личных строк непрозрачными подложками разных форм. Заголовки, пробелы и пустая бумага не участвуют в проверке. Несколько наклеек могут закрывать данные вместе, но щели поверх символов и прозрачные углы не засчитываются. Подсказка обводит личный текст.
-- Обычную записку или подпись разрешено закрыть не более чем на 20% её площади. Ошибка возникает только при превышении 20%; наложения наклеек считаются один раз, прозрачные углы не учитываются. Подсказка сначала объясняет, какую обычную область нужно открыть. Главный предмет можно украшать.
-- В сценах используются читаемые учебные данные: номер телефона, шестизначные коды, вымышленный адрес и тестовая карта.
-- Наклейки можно переносить, убирать за край кадра и отменять.
-- Подсказка по запросу. В последнем, самостоятельном кадре она доступна только после первой проверки.
-
-**Реакции и виральность**
-- **Лента реакций.** Готовый кадр становится постом: лайки считаются, подписчики шутят про наклейки, которые стоят на кадре («Носок в очках — легенда 😂»).
-- **Подозрительный подписчик.** Если секрет остался виден, под объяснением появляется его реплика («Спасибо за код, посылку заберу сам 😏»). Последствие ошибки видно по реакции зрителя, без запугивания.
-- **Звание агента** на финале по итогам игры («Агент Носок», «Мастер маскировки»…) и сумма лайков.
-- **Постер для «Поделиться»:** PNG 720×960 с кадром, званием, лайками и комментарием. Все секреты на нём закрыты.
-
-**Живые сцены**
-- Часы идут, солнце мерцает, робот моргает, лампа светится, над кружкой и чайником поднимается пар, мигает гирлянда.
-- Сцена отвечает на каждую новую наклейку (робот удивлённо моргает, чайник пыхтит), после готового кадра сыплется конфетти.
-- На стартовом экране — анимированное демо «как играть», на первом кадре — палец-подсказка.
-
-**Звук и музыка**
-- Собственные звуки и тихая весёлая мелодия, синтезированные в коде: без файлов и чужой музыки.
-- По умолчанию выключены и включаются в настройках ⚙: там же громкость музыки и эффектов и звуки кнопок. Код рассчитан на то, чтобы звук на iPhone был слышен и в беззвучном режиме.
-
-**Повторная игра**
-- «Ещё один заход» показывает записки в другой раскладке: ответы нельзя запомнить, кадр нужно прочитать заново.
-
-## Почему это учит, а не просто развлекает
-
-- **Применение, а не викторина.** Ребёнок сам решает, что на картинке личное, и сам это прячет. Пройти, не прочитав записки, нельзя.
-- **Осмысленный выбор.** Нужно скрыть личные данные и сохранить обычные идеи и подписи видимыми; закрытие более 20% обычной записки не даёт завершить кадр.
-- **Ошибка объясняется, а не наказывается.** Одна конкретная причина и реакция «зрителя» вместо слова «неправильно».
-- **Перенос навыка.** Последний кадр самостоятельный, а на повторе записки стоят в новых местах.
-
-### Детали механики
-- Пять кадров, три собственные SVG-наклейки и пять фонов.
-- Перетаскивание или выбор наклейки + тап по кадру.
-- Три формы: прямоугольный носок 144 × 76.8 px, круглое облако диаметром 108 px и огурец на квадрате 108 × 108 px со скруглёнными углами. Превью и установленная наклейка совпадают; у края меняется только положение.
-- В панели выбора — компактные иконки персонажей; на кадре наклейка имеет фиксированный размер.
-- Уже поставленную наклейку можно перетащить; перенос не расходует новую наклейку и отменяется кнопкой «Отменить».
-- Чтобы убрать наклейку, перетащите её за край кадра и отпустите. «Отменить» возвращает её на прежнее место.
-- Проверка полного закрытия символов личных данных; обычные записки и подписи нельзя закрывать больше чем на 20% площади каждой области. Главный предмет не блокирует прохождение.
-- Отмена хода, подсказка, объяснение ошибки, повторное прохождение.
-- Последний кадр с подсказкой только после первой проверки.
-- PNG последнего подготовленного кадра 720 × 960.
-- Пять событий приложения через window.postMessage. COMPLETED_EVENT один раз за открытие страницы, включая повторную игру.
-- Звук выключен при старте; синтезируется собственный короткий сигнал после включения.
-- Запасной пробный кадр при недоступном или повреждённом JSON.
-## Соответствие требованиям трека B
-
-| Требование | Как выполнено |
-|---|---|
-| Только чистый HTML, CSS и JavaScript | Ни библиотек, ни фреймворков, ни сборки |
-| Изоляция | Ни одного внешнего запроса: шрифт системный, графика — собственные SVG, звук синтезируется |
-| Вес игры ≤ 5 МБ | Около 200 КБ (проверяется в CI) |
-| Первый экран ≤ 3 с | Около 1,9 с на сети 1,6 Мбит/с (проверяется в CI) |
-| Канал «страница → приложение» | `CLOSE_EVENT`, `FINISH_EVENT`, `COMPLETED_EVENT` (один раз за открытие, повтор не дублирует), `VIBRATION_EVENT` на успех, `SHARING_EVENT` с текстом и PNG |
-| Звук не запускается сам | Выключен до включения в настройках ⚙, есть переключатель и микшер |
-| Без бэкенда и персональных данных | Все данные вымышленные, ничего не уходит с устройства |
-| Ограничения контента | Без чужих персонажей, лотерей, таймеров и тёмных паттернов; 0+/6+ |
-| Телефоны 360–430 точек | Читаемый кадр с прокруткой к действиям, есть горизонтальная раскладка |
-
-## Запуск
-
-**На компьютере** (нужен Node.js), из корня проекта:
-
-```bash
-npm start
-```
-
-Откройте http://localhost:8000. Сервер раздаёт папку `game` без кеша. Другой порт: `npm start -- 8001`. В Windows: `npm.cmd start`.
-
-**С телефона** (нужен Python 3, телефон и компьютер в одной Wi-Fi-сети):
-
-```bash
-python3 -m http.server 8000 --directory game --bind 0.0.0.0
-```
-
-На телефоне откройте `http://IP-КОМПЬЮТЕРА:8000`. В Windows команда может называться `py`. Не открывайте `index.html` двойным кликом: модулям и JSON нужен HTTP.
-
-**В песочнице.** Соберите [Android-](https://github.com/vveidi/sber-hse-hackathon-2026-android) или [iOS-песочницу](https://github.com/vveidi/sber-hse-hackathon-2026-ios) из исходников, без изменений, и вставьте адрес игры на стартовом экране. Порядок проверки и чек-лист — в [docs/09_ANDROID_PLAYTEST.md](docs/09_ANDROID_PLAYTEST.md). На защите игра показывается именно в неизменённой песочнице.
-
-Для продакшена нужна только папка `game`: все пути относительные, её можно положить на любой статический сервер.
-
-Для участника 3 подготовлен [рабочий комплект](docs/08_PARTICIPANT_3_WORKPACK.md): карта содержания и структуры, [протокол Android и проверки с игроками](docs/09_ANDROID_PLAYTEST.md), [предложения по улучшениям](docs/10_IMPROVEMENTS.md), [текст слайдов и речь](docs/11_PITCH_SCRIPT.md), [фактический отчёт проверок](docs/12_VERIFICATION.md).
-
-## Контент без релиза
-
-У записок можно задавать разные `rect` и `rotation` (наклон в градусах от −12 до 12). Наклон одинаково применяется к изображению, символам личных данных и внешнему контуру подсказки. Сцена телефона называется `phone`; её обязательная реакция задаётся в `feed.sceneComments.phone`.
-
-Всё, что видит ребёнок, лежит в [`game/data/content.json`](game/data/content.json). Его можно менять без правки кода:
-
-| Раздел | Что настраивает |
-|---|---|
-| `stickers` | Наклейки: названия, картинки, цвет подложки |
-| `levels` | Кадры: фон, задача, личные записки (`secrets`), обычные объекты и подписи (`keepZones`). `sensitiveLines` задаёт индексы личных строк: проверяются их нарисованные символы. `form` задаёт вид записки (`phone`, `tag`, `badge`, `paper`, `message`), `anchor` — к чему привязана бирка. Для каждой области `keepZones` отдельно проверяется площадь, закрытая объединением непрозрачных частей наклеек; ошибка возникает только при превышении 20%. Область `hero` не блокирует прохождение |
-| `levels[].layouts` | Запасные раскладки записок для повторной игры |
-| `feed` | Лента реакций: ники, комментарии к каждой наклейке, лайки по кадрам, реплики «подозрительного подписчика» для каждого вида секрета, звания |
-| `scenes` | Живые сцены: какие анимации включены в каждой сцене, реакции, конфетти, общая скорость |
-
-После правки запустите `npm run check:content`: проверка находит решение для каждого кадра и каждой раскладки. Испорченный файл не ломает игру: она показывает запасной пробный кадр и не засчитывает прохождение курса.
-
-## Проверки и CI
-
-```bash
-npm test
-```
-```bash
-npm run check:content
-```
-```bash
-npm run check:budget
-```
-
-| Команда | Что проверяет |
-|---|---|
-| `npm test` | Логику, ввод, отрисовку, весь сценарий приложения, переносимость (относительные пути, ни внешних ссылок, ни библиотек) |
-| `npm run check:content` | Валидность `content.json` и то, что у каждого кадра и каждой раскладки есть решение |
-| `npm run check:budget` | Оценку времени первого экрана на медленной мобильной сети |
-
-GitHub Actions запускает эти проверки и контроль веса игры при каждом Pull Request и push в `main`.
-
-## Структура проекта
-
-| Путь | Что находится |
-|---|---|
-| `game/index.html` | Экраны и кнопки |
-| `game/styles/game.css` | Внешний вид, мобильная раскладка, живой слой сцен |
-| `game/data/content.json` | Кадры, тексты, раскладки, лента, настройки сцен |
-| `game/assets/scenes`, `game/assets/stickers` | Собственные SVG: фоны и наклейки |
-| `game/src/app.js` | Сценарий экранов и связь модулей |
-| `game/src/game.js`, `geometry.js` | Правила: размещение, перенос, отмена, проверка |
-| `game/src/input.js` | Палец и мышь, перетаскивание |
-| `game/src/content.js` | Загрузка и валидация данных, раскладки |
-| `game/src/renderer.js` | Отрисовка кадра на Canvas: сцена, записки, наклейки |
-| `game/src/ui.js` | Интерфейс: палитра, сообщения, лента, звание, подсказка-палец |
-| `game/src/feed.js` | Подбор комментариев, реплик и званий |
-| `game/src/export.js` | Постер PNG для «Поделиться» |
-| `game/src/audio.js` | Синтезированные звуки и музыка |
-| `game/src/bridge.js` | События для приложения |
-| `game/src/assets.js` | Загрузка картинок |
-| `tests/`, `tools/` | Автотесты и проверки без внешних библиотек |
-| `docs/` | Документы команды: роли, механики, проверки, питч |
-
-> **Не запускайте `tools/make-assets.py`.** Это исходный генератор графики и `content.json`: он перезапишет текущие рисунки, раскладки, ленту и настройки сцен.
-
-## Команда
-
-| Роль | Зона | Инструкция |
-|---|---|---|
-| 1 | Логика, ввод, интеграция с приложением | [docs/02_ROLE_ENGINE.md](docs/02_ROLE_ENGINE.md) |
-| 2 | Интерфейс, графика, анимации, звук | [docs/03_ROLE_VISUALS.md](docs/03_ROLE_VISUALS.md) |
-| 3 | Контент, проверка на устройстве, защита | [docs/04_ROLE_CONTENT_QA.md](docs/04_ROLE_CONTENT_QA.md) |
-
-Также: [план на троих](docs/01_TEAM_STEPS.md), [механики](docs/05_MECHANICS.md), [проверки](docs/06_QA.md), [сценарий демо](docs/07_DEMO.md), [сценарий питча](docs/11_PITCH_SCRIPT.md).
-
-## Ссылки
-
-- [Задание хакатона](https://kids.hackathon.aam.run/#tracks)
-- [Android-песочница](https://github.com/vveidi/sber-hse-hackathon-2026-android) · [iOS-песочница](https://github.com/vveidi/sber-hse-hackathon-2026-ios)
-- [Таблица для ссылки на репозиторий](https://docs.google.com/spreadsheets/d/1citg00WesqXX21FukhZUDgMMQGMNAL6usle9Afi6r8o/edit?gid=0#gid=0)
-
-Дедлайн загрузки кода — 18 октября, 15:00.
-</file>
-
 <file path="game/src/app.js">
 import { loadContent, getRuntimeLevel } from './content.js';
 import { createLevelState, placeSticker, moveSticker, removeSticker, hitTestSticker, undoPlacement, checkLevel, evaluateLevel, useHint, getLevelHint } from './game.js';
@@ -7087,6 +7096,99 @@ export function fitCanvas(canvas) {
 
 <file path="game/src/ui.js">
 import { DEFAULT_FEED, pick, fanComments, strangerComment, agentTitle } from './feed.js';
+// --- БЛИЦ-ТАЙМЕР И ИНТЕРАКТИВНЫЙ ВОРИШКА ---
+const BLITZ_SECONDS = 20;
+let blitzInterval = null;
+let blitzLeft = BLITZ_SECONDS;
+let currentTimedLevel = -1;
+let totalSeconds = 0;
+let blitzWins = 0;
+let lastStickersCount = 0;
+let annoyedTimer = null;
+let bonkTimer = null;
+let bonkBound = false;
+
+function updateBlitzDisplay(el, frame) {
+  if (!el) return;
+  if (blitzLeft > 0) {
+    el.textContent = '⚡ Блиц: ' + blitzLeft + ' с';
+    el.dataset.state = blitzLeft <= 5 ? 'hurry' : 'active';
+    if (frame) frame.classList.toggle('thief-hurry', blitzLeft <= 5);
+  } else {
+    el.textContent = '⏱ В своём темпе';
+    el.dataset.state = 'calm';
+    if (frame) frame.classList.remove('thief-hurry');
+  }
+}
+
+function handleBlitzTimer(vm) {
+  const el = document.getElementById('blitz-timer');
+  const frame = document.getElementById('board-frame');
+  if (frame && !bonkBound && frame.addEventListener) {
+    bonkBound = true;
+    frame.addEventListener('click', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.thief-spy')) {
+        frame.classList.add('thief-bonked');
+        clearTimeout(bonkTimer);
+        bonkTimer = setTimeout(function () { frame.classList.remove('thief-bonked'); }, 1600);
+      }
+    });
+  }
+  if (!el) return;
+
+  if (vm.screen === 'playing') {
+    if (currentTimedLevel !== vm.levelIndex) {
+      currentTimedLevel = vm.levelIndex;
+      blitzLeft = BLITZ_SECONDS;
+      lastStickersCount = 0;
+      if (frame) {
+        frame.classList.remove('thief-annoyed', 'thief-gloat', 'thief-bonked', 'thief-hurry');
+      }
+      if (blitzInterval) clearInterval(blitzInterval);
+      updateBlitzDisplay(el, frame);
+      blitzInterval = setInterval(function () {
+        totalSeconds += 1;
+        if (blitzLeft > 0) blitzLeft -= 1;
+        updateBlitzDisplay(el, frame);
+      }, 1000);
+      if (blitzInterval && typeof blitzInterval.unref === 'function') blitzInterval.unref();
+    }
+    if (frame) {
+      const isWarning = vm.feedback && vm.feedback.kind === 'warning' &&
+        vm.post && vm.post.missingKinds && vm.post.missingKinds.length > 0;
+      frame.classList.toggle('thief-gloat', Boolean(isWarning));
+      if (vm.usedStickers > lastStickersCount) {
+        frame.classList.add('thief-annoyed');
+        clearTimeout(annoyedTimer);
+        annoyedTimer = setTimeout(function () { frame.classList.remove('thief-annoyed'); }, 1300);
+      }
+      lastStickersCount = vm.usedStickers;
+    }
+  } else if (vm.screen === 'levelPassed') {
+    if (blitzInterval) {
+      clearInterval(blitzInterval);
+      blitzInterval = null;
+      if (blitzLeft > 0) blitzWins += 1;
+    }
+    if (frame) frame.classList.remove('thief-hurry', 'thief-annoyed', 'thief-gloat');
+    el.textContent = blitzLeft > 0 ? '⚡ Блиц! +50 ♥' : '✓ Кадр защищён';
+    el.dataset.state = blitzLeft > 0 ? 'bonus' : 'calm';
+  } else {
+    if (blitzInterval) { clearInterval(blitzInterval); blitzInterval = null; }
+    currentTimedLevel = -1;
+    if (vm.screen === 'result') {
+      const summaryEl = document.getElementById('blitz-summary');
+      if (summaryEl) {
+        summaryEl.textContent = '⚡ Блиц-кадров: ' + blitzWins + ' из ' + (vm.levelCount || 5) +
+          ' · Время защиты: ' + Math.max(1, totalSeconds) + ' с';
+      }
+    }
+    if (vm.screen === 'start') {
+      totalSeconds = 0;
+      blitzWins = 0;
+    }
+  }
+}
 import { stickerIntersectsRect } from './sticker-shapes.js';
 
 const SYMBOLS = { info: '✳', warning: '!', success: '✓' };
@@ -7202,6 +7304,7 @@ export function mountUI(callbacks) {
   function setText(id, value) { document.getElementById(id).textContent = value || ''; }
   function show(id, visible) { document.getElementById(id).hidden = !visible; }
   function updateUI(vm) {
+    handleBlitzTimer(vm);
     const playing = vm.screen === 'playing' || vm.screen === 'levelPassed';
     show('loading-screen', vm.screen === 'loading');
     show('start-screen', vm.screen === 'start');
@@ -7405,14 +7508,14 @@ export function mountUI(callbacks) {
   <meta name="description" content="Закрой личное смешными наклейками и подготовь кадр, который можно показать.">
   <title>Засвет</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles/game.css?v=2">
+  <link rel="stylesheet" href="./styles/game.css">
 </head>
 <body>
   <div id="app" class="app">
     <header class="topbar">
       <div class="brand" id="brand"><span class="sber-badge" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span> ЗАСВЕТ</div>
       <div class="level-info" id="level-info" hidden>
-        <div class="level-meta"><span id="level-counter">Уровень 1 / 5</span><div id="progress" class="progress" aria-hidden="true"></div></div>
+        <div class="level-meta"><span id="level-counter">Кадр 1 / 5</span><div id="progress" class="progress" aria-hidden="true"></div><span id="blitz-timer" class="blitz-timer">⚡ 20 с</span></div>
         <h2 id="level-title">Кадр</h2>
       </div>
       <div class="topbar-actions">
@@ -7485,9 +7588,13 @@ export function mountUI(callbacks) {
           <div class="board-stage">
             <div class="board-frame" id="board-frame">
               <!-- Воришка 1 (главный сыщик) -->
-              <div class="thief-spy thief-1" aria-hidden="true">
+              <div class="thief-spy thief-1" aria-hidden="true" title="Нажми, чтобы прогнать!">
                 <div class="thief-bubble">
                   <span class="bubble-look">👀 Ищу код!</span>
+                  <span class="bubble-annoyed">Эй, не закрывай! 😠</span>
+                  <span class="bubble-gloat">Ага, спалился! 😈</span>
+                  <span class="bubble-hurry">Щас заскриню! 📸</span>
+                  <span class="bubble-bonk">Ай! Ухожу! 🤕</span>
                   <span class="bubble-sad">Облом! 🙈</span>
                 </div>
                 <svg class="thief-svg" viewBox="0 0 64 50">
@@ -7515,10 +7622,82 @@ export function mountUI(callbacks) {
                 </svg>
               </div>
 
-              <!-- Воришка 2 (напарник в персиковой шапке) -->
-              <div class="thief-spy thief-2" aria-hidden="true">
+              <!-- Воришка 2 (напарник) -->
+              <div class="thief-spy thief-2" aria-hidden="true" title="Нажми, чтобы прогнать!">
                 <div class="thief-bubble">
                   <span class="bubble-look">👀 Дай списать!</span>
+                  <span class="bubble-annoyed">Опять наклейка! 😠</span>
+                  <span class="bubble-gloat">Вижу секретик! 😈</span>
+                  <span class="bubble-hurry">Скриню экран! 📸</span>
+                  <span class="bubble-bonk">Ой, не палю! 🤕</span>
+                  <span class="bubble-sad">Не вышло! 😤</span>
+                </div>
+                <svg class="thief-svg" viewBox="0 0 64 50">
+                  <path d="M12 40 C12 18, 52 18, 52 40 Z" fill="#18212c"/>
+                  <path d="M10 38 Q32 32 54 38 L54 44 Q32 38 10 44 Z" fill="#ffc4b5"/>
+                  <circle cx="32" cy="14" r="4.5" fill="#c9bdff"/>
+                  <path d="M15 26 Q32 21 49 26 Q51 32 47 34 Q32 29 17 34 Z" fill="#2b3846"/>
+                  <g class="eyes-sneaky">
+                    <ellipse cx="23" cy="28" rx="4.5" ry="3.5" fill="#ffc4b5"/>
+                    <circle cx="24" cy="29" r="1.8" fill="#18212c"/>
+                    <circle cx="22.5" cy="27.5" r="0.8" fill="#ffffff"/>
+                    <ellipse cx="41" cy="28" rx="4.5" ry="3.5" fill="#ffc4b5"/>
+                    <circle cx="42" cy="29" r="1.8" fill="#18212c"/>
+                    <circle cx="40.5" cy="27.5" r="0.8" fill="#ffffff"/>
+                    <path d="M27 36 Q32 39 37 35" stroke="#fff9e9" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  </g>
+                  <g class="eyes-busted">
+                    <path d="M20 26 L26 30 M26 26 L20 30" stroke="#ffc4b5" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M38 26 L44 30 M44 26 L38 30" stroke="#ffc4b5" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M28 37 Q32 33 36 37" stroke="#ffc4b5" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M48 22 C48 20, 50 17, 50 17 C50 17, 52 20, 52 22 A2 2 0 0 1 48 22 Z" fill="#69d2ff"/>
+                  </g>
+                  <ellipse cx="16" cy="43" rx="5" ry="3.5" fill="#ffc4b5" stroke="#18212c" stroke-width="1.5"/>
+                  <ellipse cx="48" cy="43" rx="5" ry="3.5" fill="#ffc4b5" stroke="#18212c" stroke-width="1.5"/>
+                </svg>
+              </div><!-- Воришка 1 (главный сыщик) -->
+              <div class="thief-spy thief-1" aria-hidden="true" title="Нажми, чтобы прогнать!">
+                <div class="thief-bubble">
+                  <span class="bubble-look">👀 Ищу код!</span>
+                  <span class="bubble-annoyed">Эй, не закрывай! 😠</span>
+                  <span class="bubble-gloat">Ага, спалился! 😈</span>
+                  <span class="bubble-hurry">Щас заскриню! 📸</span>
+                  <span class="bubble-bonk">Ай! Ухожу! 🤕</span>
+                  <span class="bubble-sad">Облом! 🙈</span>
+                </div>
+                <svg class="thief-svg" viewBox="0 0 64 50">
+                  <path d="M12 40 C12 18, 52 18, 52 40 Z" fill="#18212c"/>
+                  <path d="M10 38 Q32 32 54 38 L54 44 Q32 38 10 44 Z" fill="#7663af"/>
+                  <circle cx="32" cy="14" r="4.5" fill="#e4ff69"/>
+                  <path d="M15 26 Q32 21 49 26 Q51 32 47 34 Q32 29 17 34 Z" fill="#2b3846"/>
+                  <g class="eyes-sneaky">
+                    <ellipse cx="23" cy="28" rx="4.5" ry="3.5" fill="#e4ff69"/>
+                    <circle cx="22" cy="29" r="1.8" fill="#18212c"/>
+                    <circle cx="23.5" cy="27.5" r="0.8" fill="#ffffff"/>
+                    <ellipse cx="41" cy="28" rx="4.5" ry="3.5" fill="#e4ff69"/>
+                    <circle cx="40" cy="29" r="1.8" fill="#18212c"/>
+                    <circle cx="41.5" cy="27.5" r="0.8" fill="#ffffff"/>
+                    <path d="M27 36 Q32 39 37 35" stroke="#fff9e9" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  </g>
+                  <g class="eyes-busted">
+                    <path d="M20 26 L26 30 M26 26 L20 30" stroke="#e4ff69" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M38 26 L44 30 M44 26 L38 30" stroke="#e4ff69" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M28 37 Q32 33 36 37" stroke="#ffc4b5" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M48 22 C48 20, 50 17, 50 17 C50 17, 52 20, 52 22 A2 2 0 0 1 48 22 Z" fill="#69d2ff"/>
+                  </g>
+                  <ellipse cx="16" cy="43" rx="5" ry="3.5" fill="#7663af" stroke="#18212c" stroke-width="1.5"/>
+                  <ellipse cx="48" cy="43" rx="5" ry="3.5" fill="#7663af" stroke="#18212c" stroke-width="1.5"/>
+                </svg>
+              </div>
+
+              <!-- Воришка 2 (напарник) -->
+              <div class="thief-spy thief-2" aria-hidden="true" title="Нажми, чтобы прогнать!">
+                <div class="thief-bubble">
+                  <span class="bubble-look">👀 Дай списать!</span>
+                  <span class="bubble-annoyed">Опять наклейка! 😠</span>
+                  <span class="bubble-gloat">Вижу секретик! 😈</span>
+                  <span class="bubble-hurry">Скриню экран! 📸</span>
+                  <span class="bubble-bonk">Ой, не палю! 🤕</span>
                   <span class="bubble-sad">Не вышло! 😤</span>
                 </div>
                 <svg class="thief-svg" viewBox="0 0 64 50">
@@ -7545,7 +7724,6 @@ export function mountUI(callbacks) {
                   <ellipse cx="48" cy="43" rx="5" ry="3.5" fill="#ffc4b5" stroke="#18212c" stroke-width="1.5"/>
                 </svg>
               </div>
-              
               <canvas id="board" width="360" height="480" role="img" aria-label="Кадр с записками. Закрой все символы личных данных. Обычные записки и подписи оставь видимыми."></canvas>
               <!-- Live layer over the frame: decoration only, never in the poster, never catches taps. -->
               <div class="scene-fx" id="scene-fx" aria-hidden="true">
@@ -7594,6 +7772,16 @@ export function mountUI(callbacks) {
             <span id="agent-text"></span>
             <span id="sticker-summary"></span>
             <span class="agent-likes" id="agent-likes"></span>
+          </div>
+          <div class="security-recap" id="security-recap">
+            <span class="recap-heading">🛡️ Что ты защитил от засвета:</span>
+            <div class="recap-badges">
+              <span class="recap-badge">💳 Карта и CVC</span>
+              <span class="recap-badge">🔐 Коды и СМС</span>
+              <span class="recap-badge">🏠 Домашний адрес</span>
+              <span class="recap-badge">📱 Телефон и школа</span>
+            </div>
+            <p class="blitz-summary" id="blitz-summary">⚡ Блиц-статистика готова</p>
           </div>
           <p id="result-description">Кадры готовы. Твои идеи остались видны, личное — за кадром.</p>
           <button type="button" class="button button-primary" data-action="share" id="share-button" disabled>Поделиться коллажем ↗</button>
@@ -8023,16 +8211,106 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 
-/* ---------- МУЛЬТЯШНЫЕ ВОРИШКИ (ФИКС ВЕРСТКИ) ---------- */
+/* ---------- БЛИЦ-ТАЙМЕР ---------- */
+.blitz-timer {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  background: var(--lime);
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: background 0.2s, transform 0.2s;
+}
+.blitz-timer[data-state=hurry] {
+  background: var(--pink);
+  animation: timer-pulse 0.6s ease-in-out infinite alternate;
+}
+.blitz-timer[data-state=calm] {
+  background: #fffaf1;
+  box-shadow: none;
+}
+.blitz-timer[data-state=bonus] {
+  background: var(--lavender);
+  transform: scale(1.06);
+}
+@keyframes timer-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+
+/* ---------- ЩИТ БЕЗОПАСНОСТИ НА ФИНАЛЬНОМ ЭКРАНЕ ---------- */
+.security-recap {
+  background: #fffaf1;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 0 0 16px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.recap-heading {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+.recap-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.recap-badge {
+  background: var(--ok-bg);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.blitz-summary {
+  margin: 6px 0 0 !important;
+  font-size: 13px !important;
+  font-weight: 800;
+  color: var(--violet);
+}
+
+/* ---------- ЖИВАЯ ЛЕНТА И МИКРОАНИМАЦИИ ---------- */
+.post-comments li {
+  animation: comment-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.post-comments li:nth-child(2) {
+  animation-delay: 0.18s;
+}
+@keyframes comment-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.post-likes {
+  display: inline-block;
+  animation: heart-beat 0.8s ease-out;
+}
+@keyframes heart-beat {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(1.22); }
+  65% { transform: scale(0.94); }
+}
+
+/* ---------- МУЛЬТЯШНЫЕ ВОРИШКИ 2.0 ---------- */
 .thief-spy {
   position: absolute !important;
   display: none !important;
   width: 76px !important;
   height: 58px !important;
   z-index: 8 !important;
-  pointer-events: none !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
   transform-origin: bottom center !important;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease !important;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease !important;
   animation: thief-wiggle 3.2s ease-in-out infinite !important;
 }
 
@@ -8043,7 +8321,6 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
   filter: drop-shadow(0 4px 3px rgba(24, 33, 44, 0.25)) !important;
 }
 
-/* Облачко с мыслями */
 .thief-bubble {
   position: absolute !important;
   bottom: 100% !important;
@@ -8062,43 +8339,61 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
   animation: bubble-float 2s ease-in-out infinite alternate !important;
 }
 
-.thief-bubble .bubble-sad { display: none !important; }
+.thief-bubble span { display: none !important; }
 .thief-bubble .bubble-look { display: inline-block !important; }
+
+/* 1. Осталось мало времени Блиц */
+.board-frame.thief-hurry .thief-spy { animation: thief-wiggle 0.45s ease-in-out infinite !important; }
+.board-frame.thief-hurry .thief-bubble { background: #fff0bd !important; }
+.board-frame.thief-hurry .thief-bubble span { display: none !important; }
+.board-frame.thief-hurry .thief-bubble .bubble-hurry { display: inline-block !important; }
+
+/* 2. Игрок наклеил стикер (вор недоволен) */
+.board-frame.thief-annoyed .thief-bubble { background: #ffe17a !important; }
+.board-frame.thief-annoyed .thief-bubble span { display: none !important; }
+.board-frame.thief-annoyed .thief-bubble .bubble-annoyed { display: inline-block !important; }
+
+/* 3. Игрок ошибся при проверке (вор злорадствует) */
+.board-frame.thief-gloat .thief-bubble { background: var(--lavender) !important; }
+.board-frame.thief-gloat .thief-bubble span { display: none !important; }
+.board-frame.thief-gloat .thief-bubble .bubble-gloat { display: inline-block !important; }
+
+/* 4. Игрок кликнул по воришке (пасхалка — щелбан) */
+.board-frame.thief-bonked .thief-spy { transform: translateY(16px) scale(0.8) !important; }
+.board-frame.thief-bonked .eyes-sneaky { display: none !important; }
+.board-frame.thief-bonked .eyes-busted { display: block !important; }
+.board-frame.bonked .thief-bubble { background: var(--pink) !important; }
+.board-frame.thief-bonked .thief-bubble span { display: none !important; }
+.board-frame.thief-bonked .thief-bubble .bubble-bonk { display: inline-block !important; }
+
+/* 5. Кадр успешно пройден */
 .eyes-busted { display: none !important; }
 .eyes-sneaky { display: block !important; }
-
-/* При успешном закрытии секретов */
 .board-frame.passed .thief-spy {
   transform: translateY(12px) scale(0.9) !important;
   animation: none !important;
 }
 .board-frame.passed .eyes-sneaky { display: none !important; }
 .board-frame.passed .eyes-busted { display: block !important; }
-.board-frame.passed .thief-bubble {
-  background: var(--pink) !important;
-}
-.board-frame.passed .thief-bubble .bubble-look { display: none !important; }
+.board-frame.passed .thief-bubble { background: var(--pink) !important; }
+.board-frame.passed .thief-bubble span { display: none !important; }
 .board-frame.passed .thief-bubble .bubble-sad { display: inline-block !important; }
 
-/* ==================== ТОЧНАЯ РАССТАНОВКА ПО СЦЕНАМ ==================== */
+/* ==================== КООРДИНАТЫ ПО СЦЕНАМ ==================== */
 
-/* 1. РЮКЗАК (room): сидит на плече рюкзака справа */
+/* 1. РЮКЗАК (room) */
 .board-frame[data-scene=room] .thief-1 {
   display: block !important;
   top: 19% !important;
   left: 64% !important;
-  right: auto !important;
-  bottom: auto !important;
   transform: rotate(10deg) !important;
 }
 
-/* 2. ДОСКА ЗАМЕТОК (desk): сидит строго на карточке "Робот на роликах", облачко слева */
+/* 2. ДОСКА ЗАМЕТОК (desk) */
 .board-frame[data-scene=desk] .thief-1 {
   display: block !important;
-  top: -6px !important;
-  left: 67% !important;
-  right: auto !important;
-  bottom: auto !important;
+  top: -8px !important;
+  left: 66% !important;
   transform: rotate(3deg) !important;
 }
 .board-frame[data-scene=desk] .thief-1 .thief-bubble {
@@ -8110,17 +8405,17 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
   margin-right: 6px !important;
 }
 
-/* 3. ТЕЛЕФОН (poster): сидит СПРАВА на вертикальном ребре корпуса смартфона */
-.board-frame[data-scene=poster] .thief-1 {
+/* 3. ТЕЛЕФОН (phone — твое точное расположение) */
+.board-frame[data-scene=phone] .thief-1 {
   display: block !important;
-  top: 25% !important;
-  right: 3px !important;
+  top: 26% !important;
+  right: 340px !important;
   left: auto !important;
   bottom: auto !important;
   transform: rotate(-90deg) !important;
   transform-origin: center center !important;
 }
-.board-frame[data-scene=poster] .thief-1 .thief-bubble {
+.board-frame[data-scene=phone] .thief-1 .thief-bubble {
   position: absolute !important;
   top: 50% !important;
   right: 100% !important;
@@ -8131,15 +8426,12 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
   margin-right: 8px !important;
 }
 
-/* 4. КОМПЬЮТЕР (computer): 
-   - вор 1 (фиолетовый): на мониторе сверху справа
-   - вор 2 (розовый): лапками сидит СТРОГО НАД зеленым сообщением */
+/* 4. КОМПЬЮТЕР (computer) */
 .board-frame[data-scene=computer] .thief-1 {
   display: block !important;
-  top: -14px !important;
+  top: -12px !important;
   right: 28px !important;
   left: auto !important;
-  bottom: auto !important;
   transform: rotate(3deg) !important;
 }
 .board-frame[data-scene=computer] .thief-1 .thief-bubble {
@@ -8152,21 +8444,16 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 }
 .board-frame[data-scene=computer] .thief-2 {
   display: block !important;
-  top: calc(56% - 46px) !important;
+  top: calc(55.75% - 48px) !important;
   left: 14% !important;
-  right: auto !important;
-  bottom: auto !important;
-  transform: rotate(-3deg) !important;
+  transform: rotate(-2deg) !important;
 }
 
-
-/* 5. ПОСЫЛКА (parcel): выглядывает из створки коробки */
+/* 5. ПОСЫЛКА (parcel) */
 .board-frame[data-scene=parcel] .thief-1 {
   display: block !important;
   top: 11% !important;
   left: 65% !important;
-  right: auto !important;
-  bottom: auto !important;
   transform: rotate(7deg) !important;
 }
 
@@ -8174,7 +8461,6 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
   0%, 100% { margin-top: 0; }
   50% { margin-top: -4px; }
 }
-
 @keyframes bubble-float {
   from { transform: translateX(-50%) translateY(0); }
   to { transform: translateX(-50%) translateY(-3px); }

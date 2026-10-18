@@ -471,7 +471,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 
 /* ---------- ЖИВАЯ ЛЕНТА И МИКРОАНИМАЦИИ ---------- */
 .post-comments li {
-  animation: comment-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation: comment-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 .post-comments li:nth-child(2) {
   animation-delay: 0.18s;
