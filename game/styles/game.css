@@ -400,3 +400,258 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 }
 
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* ---------- БЛИЦ-ТАЙМЕР ---------- */
+.blitz-timer {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  background: var(--lime);
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: background 0.2s, transform 0.2s;
+}
+.blitz-timer[data-state=hurry] {
+  background: var(--pink);
+  animation: timer-pulse 0.6s ease-in-out infinite alternate;
+}
+.blitz-timer[data-state=calm] {
+  background: #fffaf1;
+  box-shadow: none;
+}
+.blitz-timer[data-state=bonus] {
+  background: var(--lavender);
+  transform: scale(1.06);
+}
+@keyframes timer-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+
+/* ---------- ЩИТ БЕЗОПАСНОСТИ НА ФИНАЛЬНОМ ЭКРАНЕ ---------- */
+.security-recap {
+  background: #fffaf1;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 0 0 16px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.recap-heading {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+.recap-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.recap-badge {
+  background: var(--ok-bg);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.blitz-summary {
+  margin: 6px 0 0 !important;
+  font-size: 13px !important;
+  font-weight: 800;
+  color: var(--violet);
+}
+
+/* ---------- ЖИВАЯ ЛЕНТА И МИКРОАНИМАЦИИ ---------- */
+.post-comments li {
+  animation: comment-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.post-comments li:nth-child(2) {
+  animation-delay: 0.18s;
+}
+@keyframes comment-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.post-likes {
+  display: inline-block;
+  animation: heart-beat 0.8s ease-out;
+}
+@keyframes heart-beat {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(1.22); }
+  65% { transform: scale(0.94); }
+}
+
+/* ---------- МУЛЬТЯШНЫЕ ВОРИШКИ 2.0 ---------- */
+.thief-spy {
+  position: absolute !important;
+  display: none !important;
+  width: 76px !important;
+  height: 58px !important;
+  z-index: 8 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  transform-origin: bottom center !important;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease !important;
+  animation: thief-wiggle 3.2s ease-in-out infinite !important;
+}
+
+.thief-svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  filter: drop-shadow(0 4px 3px rgba(24, 33, 44, 0.25)) !important;
+}
+
+.thief-bubble {
+  position: absolute !important;
+  bottom: 100% !important;
+  top: auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin-bottom: 6px !important;
+  background: #ffffff !important;
+  border: 1.8px solid var(--ink) !important;
+  border-radius: 999px !important;
+  padding: 2px 8px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+  box-shadow: 2px 2px 0 var(--ink) !important;
+  animation: bubble-float 2s ease-in-out infinite alternate !important;
+}
+
+.thief-bubble span { display: none !important; }
+.thief-bubble .bubble-look { display: inline-block !important; }
+
+/* 1. Осталось мало времени Блиц */
+.board-frame.thief-hurry .thief-spy { animation: thief-wiggle 0.45s ease-in-out infinite !important; }
+.board-frame.thief-hurry .thief-bubble { background: #fff0bd !important; }
+.board-frame.thief-hurry .thief-bubble span { display: none !important; }
+.board-frame.thief-hurry .thief-bubble .bubble-hurry { display: inline-block !important; }
+
+/* 2. Игрок наклеил стикер (вор недоволен) */
+.board-frame.thief-annoyed .thief-bubble { background: #ffe17a !important; }
+.board-frame.thief-annoyed .thief-bubble span { display: none !important; }
+.board-frame.thief-annoyed .thief-bubble .bubble-annoyed { display: inline-block !important; }
+
+/* 3. Игрок ошибся при проверке (вор злорадствует) */
+.board-frame.thief-gloat .thief-bubble { background: var(--lavender) !important; }
+.board-frame.thief-gloat .thief-bubble span { display: none !important; }
+.board-frame.thief-gloat .thief-bubble .bubble-gloat { display: inline-block !important; }
+
+/* 4. Игрок кликнул по воришке (пасхалка — щелбан) */
+.board-frame.thief-bonked .thief-spy { transform: translateY(16px) scale(0.8) !important; }
+.board-frame.thief-bonked .eyes-sneaky { display: none !important; }
+.board-frame.thief-bonked .eyes-busted { display: block !important; }
+.board-frame.bonked .thief-bubble { background: var(--pink) !important; }
+.board-frame.thief-bonked .thief-bubble span { display: none !important; }
+.board-frame.thief-bonked .thief-bubble .bubble-bonk { display: inline-block !important; }
+
+/* 5. Кадр успешно пройден */
+.eyes-busted { display: none !important; }
+.eyes-sneaky { display: block !important; }
+.board-frame.passed .thief-spy {
+  transform: translateY(12px) scale(0.9) !important;
+  animation: none !important;
+}
+.board-frame.passed .eyes-sneaky { display: none !important; }
+.board-frame.passed .eyes-busted { display: block !important; }
+.board-frame.passed .thief-bubble { background: var(--pink) !important; }
+.board-frame.passed .thief-bubble span { display: none !important; }
+.board-frame.passed .thief-bubble .bubble-sad { display: inline-block !important; }
+
+/* ==================== КООРДИНАТЫ ПО СЦЕНАМ ==================== */
+
+/* 1. РЮКЗАК (room) */
+.board-frame[data-scene=room] .thief-1 {
+  display: block !important;
+  top: 19% !important;
+  left: 64% !important;
+  transform: rotate(10deg) !important;
+}
+
+/* 2. ДОСКА ЗАМЕТОК (desk) */
+.board-frame[data-scene=desk] .thief-1 {
+  display: block !important;
+  top: -8px !important;
+  left: 66% !important;
+  transform: rotate(3deg) !important;
+}
+.board-frame[data-scene=desk] .thief-1 .thief-bubble {
+  bottom: auto !important;
+  top: 10px !important;
+  right: 100% !important;
+  left: auto !important;
+  transform: none !important;
+  margin-right: 6px !important;
+}
+
+/* 3. ТЕЛЕФОН (phone — твое точное расположение) */
+.board-frame[data-scene=phone] .thief-1 {
+  display: block !important;
+  top: 26% !important;
+  right: 340px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: rotate(-90deg) !important;
+  transform-origin: center center !important;
+}
+.board-frame[data-scene=phone] .thief-1 .thief-bubble {
+  position: absolute !important;
+  top: 50% !important;
+  right: 100% !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: translateY(-50%) rotate(90deg) !important;
+  margin: 0 !important;
+  margin-right: 8px !important;
+}
+
+/* 4. КОМПЬЮТЕР (computer) */
+.board-frame[data-scene=computer] .thief-1 {
+  display: block !important;
+  top: -12px !important;
+  right: 28px !important;
+  left: auto !important;
+  transform: rotate(3deg) !important;
+}
+.board-frame[data-scene=computer] .thief-1 .thief-bubble {
+  bottom: auto !important;
+  top: 12px !important;
+  right: 100% !important;
+  left: auto !important;
+  transform: none !important;
+  margin-right: 6px !important;
+}
+.board-frame[data-scene=computer] .thief-2 {
+  display: block !important;
+  top: calc(55.75% - 48px) !important;
+  left: 14% !important;
+  transform: rotate(-2deg) !important;
+}
+
+/* 5. ПОСЫЛКА (parcel) */
+.board-frame[data-scene=parcel] .thief-1 {
+  display: block !important;
+  top: 11% !important;
+  left: 65% !important;
+  transform: rotate(7deg) !important;
+}
+
+@keyframes thief-wiggle {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -4px; }
+}
+@keyframes bubble-float {
+  from { transform: translateX(-50%) translateY(0); }
+  to { transform: translateX(-50%) translateY(-3px); }
+}
