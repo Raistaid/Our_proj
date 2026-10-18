@@ -2,3 +2,6 @@
 node_modules/
 __pycache__/
 qa-output/
+.local/
+android/build/
+*.apk.idsig

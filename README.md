@@ -32,7 +32,9 @@
 
 ## Скачать
 
-**[Скачать ZIP](https://github.com/Raistaid/Zasvet/archive/refs/heads/main.zip)** · [Репозиторий на GitHub](https://github.com/Raistaid/Zasvet)
+**[Скачать на Android](downloads/zasvet-android.apk?raw=true)** · **[Скачать ZIP](https://github.com/Raistaid/Zasvet/archive/refs/heads/main.zip)** · [Репозиторий на GitHub](https://github.com/Raistaid/Zasvet)
+
+Android 8.0 и новее, с обновлённым Android System WebView. APK содержит всю игру и работает без интернета. Скачайте файл на телефон и откройте его для установки. Исходники оболочки и команда повторной сборки — в [android/README.md](android/README.md).
 
 ## Технологии
 
@@ -47,6 +49,7 @@
 | JSON | Уровни, тексты, раскладки и реакции |
 | `window.postMessage` | Связь с мобильной оболочкой |
 | Node.js | Локальный сервер, тесты и проверки |
+| Java и Android WebView | Автономный APK со встроенными файлами игры |
 | GitHub Actions | Автоматическая проверка проекта |
 
 Игра работает без бэкенда, базы данных и регистрации. Внешние библиотеки, шрифты и CDN не используются. Прогресс хранится в памяти страницы и сбрасывается при обновлении.
