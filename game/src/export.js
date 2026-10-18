@@ -52,7 +52,7 @@ function drawBand(ctx, options) {
     ctx.fillStyle = '#f4f1ff'; ctx.fill();
     ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.stroke();
     ctx.textAlign = 'left';
-    const who = comment.who + ' ';
+    const who = comment.who + ': ';
     ctx.font = '800 19px ' + FONT;
     ctx.fillStyle = INK;
     ctx.fillText(who, BOARD.x + 16, y + 25);

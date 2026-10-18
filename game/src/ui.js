@@ -150,7 +150,7 @@ export function mountUI(callbacks) {
     if (playing) {
       setText('level-title', vm.title);
       setText('task', vm.task);
-      setText('level-counter', 'Кадр ' + vm.levelIndex + ' / ' + vm.levelCount);
+      setText('level-counter', 'Уровень ' + vm.levelIndex + ' / ' + vm.levelCount);
       const progress = document.getElementById('progress');
       progress.textContent = '';
       for (let i = 1; i <= vm.levelCount; i += 1) {
@@ -201,7 +201,7 @@ export function mountUI(callbacks) {
       if (stranger) {
         strangerLine.textContent = '';
         const who = document.createElement('b');
-        who.textContent = stranger.who + ' ';
+        who.textContent = stranger.who + ': ';
         strangerLine.appendChild(who);
         const said = document.createElement('span');
         said.textContent = stranger.text;
@@ -252,7 +252,7 @@ export function mountUI(callbacks) {
         fanComments(feed, vm.levelIndex - 1, vm.post ? vm.post.stickerIds : [], 2, frame.dataset.scene).forEach(function (c) {
           const item = document.createElement('li');
           const who = document.createElement('b');
-          who.textContent = c.who + ' ';
+          who.textContent = c.who + ': ';
           item.appendChild(who);
           const said = document.createElement('span');
           said.textContent = c.text;
