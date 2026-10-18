@@ -770,6 +770,7 @@ body:has(.app:is([data-screen=playing],[data-screen=levelPassed])) {
     gap: 8px;
   }
   .app:is([data-screen=playing],[data-screen=levelPassed]) .workspace { width: 100%; padding: 6px 8px; gap: 6px; }
+  .app[data-screen=playing] .workspace { position: sticky; bottom: max(8px, env(safe-area-inset-bottom)); z-index: 10; box-shadow: 0 -4px 20px #18212c20; }
   .app:is([data-screen=playing],[data-screen=levelPassed]) .palette-heading { margin: 0 2px 3px; }
   .app:is([data-screen=playing],[data-screen=levelPassed]) .palette { gap: 6px; padding: 2px; }
   .app:is([data-screen=playing],[data-screen=levelPassed]) .sticker-choice { min-height: 48px; padding: 3px; gap: 1px; }
@@ -902,8 +903,18 @@ body:has(.app:is([data-screen=start],[data-screen=result])) { height: 100%; over
   .app[data-screen=result] .result-copy .button { min-height: 44px; margin-top: 0; padding: 5px; font-size: 14px; }
 }
 @media(max-height:600px) and (orientation:landscape) {
+  /* Let short screens scroll instead of squeezing the title and actions together. */
+  html:has(.app[data-screen=start]),
+  body:has(.app[data-screen=start]) { height: auto; overflow: visible; }
+  .app[data-screen=start] { height: auto; min-height: 100vh; min-height: 100dvh; }
+  .app[data-screen=start] > main { flex: none; }
   .app[data-screen=start] .topbar,.app[data-screen=result] .topbar { min-height: 52px; }
-  .app[data-screen=start] .start-screen { grid-template-columns: 1fr; grid-template-areas: "copy" "actions"; padding: 4px 0; gap: 4px; }
+  .app[data-screen=start] .start-screen { height: auto; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-rows: auto auto; grid-template-areas: "copy art" "actions art"; padding: 16px 0; gap: 12px 20px; }
+  .app[data-screen=start] .intro-copy { align-self: start; }
+  .app[data-screen=start] .intro-art { display: flex; height: auto; width: 100%; max-width: none; align-self: stretch; container-type: inline-size; padding: 24px 12px 12px; }
+  .app[data-screen=start] .demo { width: min(100%, clamp(110px, calc((100svh - 140px) * .61), 210px)); }
+  .app[data-screen=start] .cover-caption { font-size: 10px; padding: 4px 6px; top: 4px; left: 8%; }
+  .app[data-screen=start] .cover-star { width: 36px; height: 36px; right: 8%; }
   .app[data-screen=start] h1 { font-size: 30px; margin: 0 0 6px; }
   .app[data-screen=start] .intro-description { font-size: 14px; margin-bottom: 4px; }
   .app[data-screen=start] .start-button { min-height: 44px; }
