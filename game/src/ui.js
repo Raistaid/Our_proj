@@ -311,6 +311,22 @@ export function mountUI(callbacks) {
       // Micro-reaction to a new placement: only the frame glows; the canvas, its size and input stay untouched.
       // The live layer shows the current scene's animations (scene file name: room, desk, phone…).
       frame.dataset.scene = String(vm.scene || '').split('/').pop().replace(/\.svg$/, '');
+      const phoneReplies = {
+        'bubble-look': '👀 Ищу СМС!',
+        'bubble-annoyed': 'Не прячь! 😠',
+        'bubble-gloat': 'Вижу! 😈',
+        'bubble-hurry': 'Скриню! 📸',
+        'bubble-bonk': 'Ухожу! 🤕',
+        'bubble-sad': 'Облом! 🙈'
+      };
+      frame.querySelectorAll('.thief-1').forEach(function (pet) {
+        Object.keys(phoneReplies).forEach(function (name) {
+          const line = pet.querySelector('.' + name);
+          if (!line) return;
+          if (!line.dataset.defaultText) line.dataset.defaultText = line.textContent;
+          line.textContent = frame.dataset.scene === 'phone' ? phoneReplies[name] : line.dataset.defaultText;
+        });
+      });
       const fx = document.getElementById('scene-fx');
       // content.json → scenes: which live effects run, their speed, reactions and confetti.
       const setup = vm.scenes || {};

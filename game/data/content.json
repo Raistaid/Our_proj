@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "requiredTextFraction": 0.5,
   "board": {
     "width": 360,
     "height": 480
@@ -121,6 +122,7 @@
             "Идея рисунка",
             "Летающий огурец"
           ],
+          "animate": false,
           "style": "note",
           "hint": "Это обычная идея для рисунка. Оставь её видимой.",
           "anchor": [

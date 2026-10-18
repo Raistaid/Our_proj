@@ -11,6 +11,10 @@ export function validateContent(content) {
   const errors = [];
   if (!content || typeof content !== 'object') return { ok: false, errors: ['Нет данных'] };
   if (content.schemaVersion !== 1) errors.push('Неизвестная версия');
+  if (content.requiredTextFraction !== undefined &&
+      (!Number.isFinite(content.requiredTextFraction) || content.requiredTextFraction <= 0 || content.requiredTextFraction > 1)) {
+    errors.push('Доля обязательного текста должна быть больше 0 и не больше 1');
+  }
   if (!content.board || content.board.width !== 360 || content.board.height !== 480) {
     errors.push('Размер кадра должен быть 360 × 480');
   }
@@ -110,6 +114,7 @@ export function applyLayout(level, variant) {
 export function getRuntimeLevel(content, index, variant) {
   return Object.assign({}, applyLayout(content.levels[index], variant || 0), {
     defaultStickerSize: content.defaultStickerSize,
+    requiredTextFraction: content.requiredTextFraction ?? 1,
     stickers: content.stickers,
     allowedStickerIds: content.stickers.map(function (s) { return s.id; })
   });

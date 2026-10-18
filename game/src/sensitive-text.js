@@ -29,7 +29,7 @@ export function inkRegions(data, width, height, left, top, scale = SCALE) {
 
 // Non-DOM tools and test runners use individual glyph bounds. Browsers always use
 // the ink raster; this fallback also keeps the rules usable in a headless CLI.
-function metricRegions(level, zone, ctx) {
+function metricRegions(level, zone, ctx, fraction) {
   const spec = noteTextSpec(level, zone);
   const bounds = noteBounds(zone);
   const measure = ctx || { font: '', measureText(text) {
@@ -41,6 +41,7 @@ function metricRegions(level, zone, ctx) {
   for (const run of textLayout(measure, zone.lines, spec.box, spec.maxFont, spec)) {
     if (!sensitiveLines(zone).includes(run.index)) continue;
     measure.font = run.font;
+    const cutoff = run.x + measure.measureText(run.text).width * fraction;
     let prefix = '';
     for (const char of run.text) {
       const x = run.x + measure.measureText(prefix).width;
@@ -49,7 +50,7 @@ function metricRegions(level, zone, ctx) {
       const m = measure.measureText(char);
       const left = Math.max(spec.box[0], x - (m.actualBoundingBoxLeft || 0));
       const top = Math.max(spec.box[1], run.y - (m.actualBoundingBoxAscent ?? run.size * .45));
-      const right = Math.min(spec.box[0] + spec.box[2], x + (m.actualBoundingBoxRight ?? m.width));
+      const right = Math.min(cutoff, spec.box[0] + spec.box[2], x + (m.actualBoundingBoxRight ?? m.width));
       const bottom = Math.min(spec.box[1] + spec.box[3], run.y + (m.actualBoundingBoxDescent ?? run.size * .45));
       const width = right - left, height = bottom - top;
       if (width <= 0 || height <= 0) continue;
@@ -69,9 +70,10 @@ function metricRegions(level, zone, ctx) {
 }
 
 export function sensitiveRegions(level, zone) {
+  const fraction = level.requiredTextFraction ?? 1;
   // Synthetic geometry-only callers do not carry text.
-  if (!zone.lines || !zone.lines.length) return [zone.rect];
-  const key = JSON.stringify([level.id, level.keepZones, zone]);
+  if (!zone.lines || !zone.lines.length) return [[zone.rect[0], zone.rect[1], zone.rect[2] * fraction, zone.rect[3]]];
+  const key = JSON.stringify([level.id, level.keepZones, zone, fraction]);
   const canvas = canvasSurface();
   const modeKey = (canvas ? 'canvas:' : 'metrics:') + key;
   if (cache.has(modeKey)) return cache.get(modeKey);
@@ -93,14 +95,14 @@ export function sensitiveRegions(level, zone) {
       }
       ctx.translate(p[0] + p[2] / 2, p[1] + p[3] / 2); ctx.rotate(spec.badgeAngle);
       ctx.translate(-p[0] - p[2] / 2, -p[1] - p[3] / 2);
-      paintNoteText(ctx, level, zone, sensitiveLines(zone));
+      paintNoteText(ctx, level, zone, sensitiveLines(zone), fraction);
       const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
       if (image && image.data) regions = inkRegions(image.data, canvas.width, canvas.height, left, top);
     }
   }
-  if (!regions) regions = metricRegions(level, zone, ctx);
+  if (!regions) regions = metricRegions(level, zone, ctx, fraction);
   // Never accept a secret vacuously if a broken canvas/font produced no glyphs.
-  if (!regions.length) regions = [zone.rect];
+  if (!regions.length) regions = [[zone.rect[0], zone.rect[1], zone.rect[2] * fraction, zone.rect[3]]];
   if (cache.size >= 128) cache.clear();
   cache.set(modeKey, regions);
   return regions;

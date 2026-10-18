@@ -140,10 +140,10 @@ test('Crossing any note boundary moves the fixed rectangle continuously without 
     }
   }
 });
-test('Частично закрытый секрет не засчитывается', function () {
+test('Наклейка, не закрывающая обязательную половину секрета, не засчитывается', function () {
   const level = getRuntimeLevel(content, 0);
   const solved = solve(level);
-  solved.placements[0].rect[2] /= 2;
+  solved.placements[0].rect[2] /= 4;
   assert.ok(evaluateLevel(level, solved.placements).missingSecretIds.includes(level.secrets[0].id));
 });
 test('Наклейка на главном предмете не мешает прохождению и подсказке', function () {

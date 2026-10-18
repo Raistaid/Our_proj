@@ -140,3 +140,23 @@ test('Чувствительные символы поворачиваются �
     }
   }
 });
+
+test('The first half of each personal line is sufficient; its uncovered start still fails', () => {
+  for (const value of ['8 (800) 555-55-50', '482 719', 'ул. Облачная, 18', '4276 1234 5678 9012', 'Школа 17, класс 6Б']) {
+    const secret = { ...zone, id: value, lines: ['Персональные данные', value] };
+    const frame = { ...level, requiredTextFraction: 0.5, secrets: [secret] };
+    const full = sensitiveRegions({ ...frame, requiredTextFraction: 1 }, secret);
+    const required = sensitiveRegions(frame, secret);
+    const left = Math.min(...required.map(r => r[0]));
+    const top = Math.min(...required.map(r => r[1]));
+    const right = Math.max(...required.map(r => r[0] + r[2]));
+    const bottom = Math.max(...required.map(r => r[1] + r[3]));
+    const fullRight = Math.max(...full.map(r => r[0] + r[2]));
+    assert.ok(right < fullRight, value);
+    const cover = masks([[left, top, right - left, bottom - top]]);
+    assert.equal(evaluateLevel(frame, cover).passed, true, value);
+    assert.equal(evaluateLevel({ ...frame, requiredTextFraction: 1 }, cover).passed, false, value);
+    cover[0].rect[2] /= 2;
+    assert.equal(evaluateLevel(frame, cover).passed, false, value);
+  }
+});

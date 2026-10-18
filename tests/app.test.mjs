@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { applyLayout } from '../game/src/content.js';
+import { applyLayout, getRuntimeLevel } from '../game/src/content.js';
 import { hintOutline } from '../game/src/hint-outline.js';
 
 // This harness exercises the real app, UI, input, renderer, export and bridge.
@@ -293,7 +293,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
   // variant: which replay layout the app shows (0 = original, 1 = first replay…).
   async function playSession(exerciseMistakes, variant = 0) {
     for (let index = 0; index < content.levels.length; index += 1) {
-      const level = applyLayout(content.levels[index], variant);
+      const level = getRuntimeLevel(content, index, variant);
       assert.equal(root.dataset.screen, 'playing');
       assert.equal(byId('level-title').textContent, level.title);
       assertPaletteMatches();
