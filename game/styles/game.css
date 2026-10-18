@@ -55,8 +55,8 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .intro-description{max-width:420px;font-size:18px;line-height:1.5;margin:0 0 25px}
 .intro-tags{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 30px}
 .intro-tags span{border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700}
-.start-button{min-width:244px;justify-content:space-between;font-size:17px;min-height:56px}
-.start-button span{font-size:24px}
+.start-button{position:relative;min-width:244px;justify-content:center;padding-inline:48px;text-align:center;font-size:17px;min-height:56px}
+.start-button span{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:24px;line-height:1}
 .topbar{position:relative}
 /* Settings and exit: large round buttons, easy to hit with a thumb. */
 .settings-button,.close-button{width:52px;min-width:52px;height:52px;min-height:52px;padding:0;border:2px solid var(--ink);border-radius:50%;background:#fffaf1;display:inline-flex;align-items:center;justify-content:center;line-height:1;box-shadow:2px 2px 0 var(--ink)}
