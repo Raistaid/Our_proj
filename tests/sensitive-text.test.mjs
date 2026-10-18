@@ -141,22 +141,27 @@ test('Чувствительные символы поворачиваются �
   }
 });
 
-test('The first half of each personal line is sufficient; its uncovered start still fails', () => {
-  for (const value of ['8 (800) 555-55-50', '482 719', 'ул. Облачная, 18', '4276 1234 5678 9012', 'Школа 17, класс 6Б']) {
-    const secret = { ...zone, id: value, lines: ['Персональные данные', value] };
-    const frame = { ...level, requiredTextFraction: 0.5, secrets: [secret] };
-    const full = sensitiveRegions({ ...frame, requiredTextFraction: 1 }, secret);
-    const required = sensitiveRegions(frame, secret);
-    const left = Math.min(...required.map(r => r[0]));
-    const top = Math.min(...required.map(r => r[1]));
-    const right = Math.max(...required.map(r => r[0] + r[2]));
-    const bottom = Math.max(...required.map(r => r[1] + r[3]));
-    const fullRight = Math.max(...full.map(r => r[0] + r[2]));
-    assert.ok(right < fullRight, value);
-    const cover = masks([[left, top, right - left, bottom - top]]);
-    assert.equal(evaluateLevel(frame, cover).passed, true, value);
-    assert.equal(evaluateLevel({ ...frame, requiredTextFraction: 1 }, cover).passed, false, value);
-    cover[0].rect[2] /= 2;
-    assert.equal(evaluateLevel(frame, cover).passed, false, value);
+test('Any half of a personal value counts, including the right half and separate stickers', () => {
+  const secret = { ...zone, lines: ['Персональные данные', '12345678'] };
+  const frame = { ...level, requiredTextFraction: 0.5, secrets: [secret] };
+  const regions = sensitiveRegions(frame, secret);
+  assert.equal(regions.length, 8);
+  for (const indices of [[0,1,2,3], [4,5,6,7], [0,2,5,7]]) {
+    const cover = masks(indices.map(i => regions[i]));
+    assert.equal(evaluateLevel(frame, cover).passed, true);
+    assert.equal(evaluateLevel({ ...frame, requiredTextFraction: 1 }, cover).passed, false);
+    assert.equal(evaluateLevel(frame, cover.slice(1)).passed, false);
   }
+  const repeated = masks([regions[0], regions[1], regions[0], regions[1]]);
+  assert.equal(evaluateLevel(frame, repeated).passed, false, 'Overlapping stickers count only once');
+});
+
+test('The 50% threshold includes exactly half, rejects 49%, and excludes transparent corners', () => {
+  const frame = { ...level, requiredTextFraction: 0.5, secrets: [{ id: 'value', rect: [.1,.1,.4,.2] }] };
+  for (const fraction of [.49, .5, .51, 1]) {
+    assert.equal(evaluateLevel(frame, masks([[.1,.1,.4*fraction,.2]])).passed, fraction >= .5);
+  }
+  const circle = { stickerId:'cloud', rect:[.1,.1,.2,.2] };
+  const round = { ...frame, stickers:[{id:'cloud',shape:'circle'}] };
+  assert.equal(evaluateLevel(round,[circle]).passed,false);
 });

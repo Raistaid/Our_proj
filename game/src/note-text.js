@@ -102,21 +102,14 @@ export function paintText(ctx, lines, box, maxFont, opts = {}, selectedLines) {
     if (selectedLines && !selectedLines.includes(run.index)) continue;
     ctx.font = run.font;
     ctx.fillStyle = run.color;
-    ctx.save();
-    if (opts.requiredTextFraction < 1) {
-      ctx.beginPath();
-      ctx.rect(run.x, box[1], ctx.measureText(run.text).width * opts.requiredTextFraction, box[3]);
-      ctx.clip();
-    }
     ctx.fillText(run.text, run.x, run.y);
-    ctx.restore();
   }
   ctx.restore();
 }
 
-export function paintNoteText(ctx, level, zone, selectedLines, requiredTextFraction = 1) {
+export function paintNoteText(ctx, level, zone, selectedLines) {
   const spec = noteTextSpec(level, zone);
-  paintText(ctx, zone.lines, spec.box, spec.maxFont, { ...spec, requiredTextFraction }, selectedLines);
+  paintText(ctx, zone.lines, spec.box, spec.maxFont, spec, selectedLines);
 }
 
 export function sensitiveLines(zone) {
