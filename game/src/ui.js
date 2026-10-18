@@ -215,7 +215,7 @@ export function mountUI(callbacks) {
       const frame = document.getElementById('board-frame');
       frame.classList.toggle('passed', passed);
       // Micro-reaction to a new placement: only the frame glows; the canvas, its size and input stay untouched.
-      // The live layer shows the current scene's animations (scene file name: room, desk, poster…).
+      // The live layer shows the current scene's animations (scene file name: room, desk, phone…).
       frame.dataset.scene = String(vm.scene || '').split('/').pop().replace(/\.svg$/, '');
       const fx = document.getElementById('scene-fx');
       // content.json → scenes: which live effects run, their speed, reactions and confetti.
@@ -249,7 +249,7 @@ export function mountUI(callbacks) {
         setText('post-author', feed.author || DEFAULT_FEED.author);
         const list = document.getElementById('post-comments');
         list.textContent = '';
-        fanComments(feed, vm.levelIndex - 1, vm.post ? vm.post.stickerIds : [], 2).forEach(function (c) {
+        fanComments(feed, vm.levelIndex - 1, vm.post ? vm.post.stickerIds : [], 2, frame.dataset.scene).forEach(function (c) {
           const item = document.createElement('li');
           const who = document.createElement('b');
           who.textContent = c.who + ' ';

@@ -1,4 +1,5 @@
 import { validRect, intersectsRect } from './geometry.js';
+import { noteBounds } from './note-text.js';
 
 function text(value) { return typeof value === 'string' && value.trim().length > 0; }
 function localAsset(value) {
@@ -57,6 +58,16 @@ export function validateContent(content) {
       if (!zone || !text(zone.id) || ids.has(zone.id) || !validRect(zone.rect)) {
         errors.push(name + 'некорректная область');
       } else ids.add(zone.id);
+      if (zone && zone.rotation !== undefined) {
+        if (!Number.isFinite(zone.rotation) || Math.abs(zone.rotation) > 12) {
+          errors.push(name + 'некорректный наклон записки');
+        } else if (validRect(zone.rect)) {
+          const b = noteBounds(zone);
+          if (!validRect([b[0] / 360, b[1] / 480, b[2] / 360, b[3] / 480])) {
+            errors.push(name + 'повёрнутая записка выходит за кадр');
+          }
+        }
+      }
     });
     secrets.forEach(function (s, index) {
       if (!s || !validRect(s.rect)) return;

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { applyLayout } from '../game/src/content.js';
-import { sensitiveRegions } from '../game/src/sensitive-text.js';
+import { hintOutline } from '../game/src/hint-outline.js';
 
 // This harness exercises the real app, UI, input, renderer, export and bridge.
 // Canvas drawing is recorded, not rasterized: device rendering and native sharing
@@ -407,7 +407,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         board.calls.length = 0;
         click('hint');
         assert.equal(byId('feedback-text').textContent, publicNote.hint);
-        assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d').length, 0,
+        assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#e6006f').length, 0,
           'The player should uncover the ordinary note before another secret is highlighted');
         click('undo');
         assert.equal(byId('sticker-count').textContent, 'Наклеек: 0');
@@ -415,15 +415,10 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         board.calls.length = 0;
         click('hint');
         assert.equal(byId('feedback-text').textContent, level.secrets[0].why);
-        assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d').length, 1,
+        assert.equal(board.calls.filter(call => call.name === 'strokeRect' && call.strokeStyle === '#e6006f').length, 1,
           'after undo the hint may highlight the missing secret');
-        const hint = board.calls.find(call => call.name === 'strokeRect' && call.strokeStyle === '#7a398d');
-        const regions = sensitiveRegions(level, level.secrets[0]);
-        const left = Math.min(...regions.map(r => r[0]));
-        const top = Math.min(...regions.map(r => r[1]));
-        const right = Math.max(...regions.map(r => r[0] + r[2]));
-        const bottom = Math.max(...regions.map(r => r[1] + r[3]));
-        const expectedHint = [left * 360, top * 480, (right - left) * 360, (bottom - top) * 480];
+        const hint = board.calls.find(call => call.name === 'strokeRect' && call.strokeStyle === '#e6006f');
+        const expectedHint = hintOutline(level, level.secrets[0]).rect;
         hint.args.forEach((value, index) => assert.ok(Math.abs(value - expectedHint[index]) < 1e-8,
           'The visible hint must enclose the sensitive symbols'));
       }

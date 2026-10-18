@@ -203,7 +203,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
    not part of the poster PNG. Each scene shows its own group. */
 .scene-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .scene-fx>div{position:absolute;inset:0;display:none}
-.board-frame[data-scene=room] .fx-room,.board-frame[data-scene=desk] .fx-desk,.board-frame[data-scene=poster] .fx-poster{display:block}
+.board-frame[data-scene=room] .fx-room,.board-frame[data-scene=desk] .fx-desk,.board-frame[data-scene=phone] .fx-phone{display:block}
 .scene-fx span{position:absolute;display:block}
 /* Hidden where a sticker covers it: the live layer must never peek out from under a sticker. */
 .scene-fx span.covered{visibility:hidden}

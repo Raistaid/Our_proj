@@ -1,8 +1,8 @@
 import { getStickerRect } from './game.js';
-import { sensitiveRegions } from './sensitive-text.js';
+import { hintOutline, HINT_COLOR, HINT_WIDTH } from './hint-outline.js';
 import { centeredRect, validRect } from './geometry.js';
 export { loadAssets } from './assets.js';
-import { FONT, noteForm, tagGeometry, paintText as drawText, paintNoteText } from './note-text.js';
+import { FONT, noteForm, tagGeometry, noteRotation, rotatePoint, paintText as drawText, paintNoteText } from './note-text.js';
 export { noteForm } from './note-text.js';
 
 const INK = '#18212c';
@@ -121,12 +121,13 @@ function drawPhone(ctx, level, zone, p, t) {
 function drawTagString(ctx, level, zone) {
   const p = pixels(zone.rect);
   const g = tagGeometry(level, zone, p);
+  const hole = rotatePoint(g.hole, p, noteRotation(zone));
   ctx.save();
   ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
   ctx.beginPath();
-  ctx.moveTo(g.hole[0], g.hole[1]);
+  ctx.moveTo(hole[0], hole[1]);
   const sag = g.side === 'top' ? 0 : 16;
-  ctx.quadraticCurveTo((g.hole[0] + g.anchor[0]) / 2, Math.max(g.hole[1], g.anchor[1]) + sag, g.anchor[0], g.anchor[1]);
+  ctx.quadraticCurveTo((hole[0] + g.anchor[0]) / 2, Math.max(hole[1], g.anchor[1]) + sag, g.anchor[0], g.anchor[1]);
   ctx.stroke();
   ctx.beginPath(); ctx.arc(g.anchor[0], g.anchor[1], 3, 0, Math.PI * 2);
   ctx.fillStyle = INK; ctx.fill();
@@ -205,6 +206,10 @@ function drawNotes(ctx, level, now) {
     const form = noteForm(level, zone);
     const p = pixels(zone.rect);
     const t = now === null ? null : now - i * STAGGER;
+    ctx.save();
+    ctx.translate(p[0] + p[2] / 2, p[1] + p[3] / 2);
+    ctx.rotate(noteRotation(zone));
+    ctx.translate(-p[0] - p[2] / 2, -p[1] - p[3] / 2);
     if (form === 'message') {
       drawMessage(ctx, level, zone, p);
     } else if (form === 'phone') {
@@ -219,6 +224,7 @@ function drawNotes(ctx, level, now) {
     } else {
       drawNote(ctx, level, zone);
     }
+    ctx.restore();
   });
   return animating;
 }
@@ -365,14 +371,12 @@ export function renderBoard(options) {
   (options.hintIds || []).forEach(function (id) {
     const zone = level.secrets.find(function (s) { return s.id === id; });
     if (!zone) return;
-    const regions = sensitiveRegions(level, zone);
-    const left = Math.min(...regions.map(r => r[0]));
-    const top = Math.min(...regions.map(r => r[1]));
-    const right = Math.max(...regions.map(r => r[0] + r[2]));
-    const bottom = Math.max(...regions.map(r => r[1] + r[3]));
-    const p = pixels([left, top, right - left, bottom - top]);
-    ctx.save(); ctx.strokeStyle = '#7a398d'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]);
-    ctx.strokeRect(...p); ctx.restore();
+    const outline = hintOutline(level, zone);
+    ctx.save(); ctx.strokeStyle = HINT_COLOR; ctx.lineWidth = HINT_WIDTH; ctx.setLineDash([]);
+    ctx.translate(...outline.center); ctx.rotate(outline.angle);
+    ctx.translate(-outline.center[0], -outline.center[1]);
+    ctx.strokeRect(...outline.rect);
+    ctx.restore();
   });
   if (previewPlacement && !options.preview.placementId) drawSticker(ctx, previewPlacement, assets, true);
   ctx.restore();

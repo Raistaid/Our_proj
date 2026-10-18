@@ -14,6 +14,22 @@ export function noteForm(level, zone) {
 
 export function pixels(rect) { return [rect[0] * 360, rect[1] * 480, rect[2] * 360, rect[3] * 480]; }
 
+export function noteRotation(zone) { return (zone.rotation || 0) * Math.PI / 180; }
+
+export function rotatePoint(point, rect, angle) {
+  const cx = rect[0] + rect[2] / 2, cy = rect[1] + rect[3] / 2;
+  return [cx + (point[0] - cx) * Math.cos(angle) - (point[1] - cy) * Math.sin(angle),
+    cy + (point[0] - cx) * Math.sin(angle) + (point[1] - cy) * Math.cos(angle)];
+}
+
+export function noteBounds(zone) {
+  const p = pixels(zone.rect), angle = noteRotation(zone);
+  const corners = [[p[0], p[1]], [p[0] + p[2], p[1]], [p[0], p[1] + p[3]], [p[0] + p[2], p[1] + p[3]]]
+    .map(point => rotatePoint(point, p, angle));
+  const x = Math.min(...corners.map(point => point[0])), y = Math.min(...corners.map(point => point[1]));
+  return [x, y, Math.max(...corners.map(point => point[0])) - x, Math.max(...corners.map(point => point[1])) - y];
+}
+
 export function tagGeometry(level, zone, p = pixels(zone.rect)) {
   let anchor;
   if (Array.isArray(zone.anchor) && zone.anchor.length === 2 && zone.anchor.every(Number.isFinite)) {
@@ -49,7 +65,8 @@ export function noteTextSpec(level, zone) {
       side === 'right' ? [p[0] + 6, p[1] + 7, p[2] - 24, p[3] - 14] : [p[0] + 16, p[1] + 7, p[2] - 22, p[3] - 14];
   }
   if (form !== 'paper') maxFont = 15;
-  return { box, maxFont, headingFirst: true, angle: form === 'badge' ? -0.04 : 0, p };
+  const rotation = noteRotation(zone), badgeAngle = form === 'badge' ? -0.04 : 0;
+  return { box, maxFont, headingFirst: true, angle: rotation + badgeAngle, rotation, badgeAngle, p };
 }
 
 export function textLayout(ctx, lines, box, maxFont, opts = {}) {

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { getRuntimeLevel } from '../game/src/content.js';
+import { validateContent } from '../game/src/content.js';
 import { intersectsRect } from '../game/src/geometry.js';
 
 const content = JSON.parse(await readFile(new URL('../game/data/content.json', import.meta.url), 'utf8'));
@@ -15,14 +16,14 @@ test('Пять разных сцен без повторов; последний
 });
 
 test('Одна сцена телефона содержит СМС, личный номер и адрес', function () {
-  const phones = content.levels.filter(level => level.background.endsWith('/poster.svg'));
+  const phones = content.levels.filter(level => level.background.endsWith('/phone.svg'));
   assert.equal(phones.length, 1, 'Повторная сцена с телефоном не нужна');
   const phone = phones[0];
   assert.deepEqual(new Set(phone.secrets.map(secret => secret.kind)), new Set(['code', 'phone', 'address']));
   const sms = phone.secrets.find(secret => secret.kind === 'code');
   assert.match(sms.lines[0], /СМС/);
   assert.match(sms.lines[1], /^[1-9]\d{2} \d{3}$/);
-  assert.match(phone.secrets.find(secret => secret.kind === 'phone').lines[1], /^\+1 202 555-01\d{2}$/);
+  assert.equal(phone.secrets.find(secret => secret.kind === 'phone').lines[1], '8 (800) 555-55-50');
 });
 
 test('Учебные данные содержат читаемые значения вместо нулевых заглушек', function () {
@@ -36,7 +37,7 @@ test('Учебные данные содержат читаемые значен
 });
 
 test('Секреты и обычные записки телефона разделены в каждой раскладке', function () {
-  const index = content.levels.findIndex(level => level.background.endsWith('/poster.svg'));
+  const index = content.levels.findIndex(level => level.background.endsWith('/phone.svg'));
   for (let variant = 0; variant <= content.levels[index].layouts.length; variant += 1) {
     const level = getRuntimeLevel(content, index, variant);
     const ordinary = level.keepZones.filter(zone => zone.style === 'note');
@@ -44,4 +45,24 @@ test('Секреты и обычные записки телефона разд�
       for (const note of ordinary) assert.equal(intersectsRect(secret.rect, note.rect), false);
     }
   }
+});
+
+test('Заметки разных размеров и наклонов остаются в кадре при повторной игре', () => {
+  assert.deepEqual(validateContent(content), { ok: true, errors: [] });
+  const notes = content.levels.flatMap(l => l.secrets.concat(l.keepZones.filter(z => z.style === 'note')));
+  assert.ok(new Set(notes.map(z => z.rect.slice(2).join(','))).size >= 8);
+  assert.ok(notes.some(z => z.rotation > 0));
+  assert.ok(notes.some(z => z.rotation < 0));
+  const broken = structuredClone(content);
+  broken.levels[0].secrets[0].rotation = 90;
+  assert.equal(validateContent(broken).ok, false);
+});
+
+test('Везде используется выбранный номер и реплика про звонок', () => {
+  for (const level of content.levels) {
+    for (const secret of level.secrets.filter(s => s.kind === 'phone')) {
+      assert.equal(secret.lines[1], '8 (800) 555-55-50');
+    }
+  }
+  assert.equal(content.feed.strangers.phone.text, 'Теперь у меня есть твой номер. Позвоню тебе.');
 });

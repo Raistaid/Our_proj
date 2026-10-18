@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { agentTitle } from '../game/src/feed.js';
+import { agentTitle, fanComments } from '../game/src/feed.js';
+import { readFile } from 'node:fs/promises';
 
 test('Звание выбирает самого частого героя независимо от порядка и нулей', () => {
   for (const [id, title] of Object.entries({ sock: 'Мастер носков', cloud: 'Повелитель облаков', cucumber: 'Огуречный ниндзя' })) {
@@ -17,4 +18,16 @@ test('Равенство двух или трёх лидеров даёт зва
 
 test('Награда обращается к игроку', () => {
   assert.equal(agentTitle(null, { stickerCounts: { cloud: 7 } }).text, 'Ты прикрыл секреты 7 раз!');
+});
+
+test('В сцене phone всегда пишет 67vadim6767: Лютая имба', async () => {
+  const content = JSON.parse(await readFile(new URL('../game/data/content.json', import.meta.url), 'utf8'));
+  for (const ids of [['sock'], ['cloud'], ['cucumber'], ['sock', 'cloud', 'cucumber']]) {
+    const comments = fanComments(content.feed, 2, ids, 2, 'phone');
+    assert.deepEqual(comments[0], { who: '@67vadim6767', text: 'Лютая имба' });
+    assert.equal(comments.filter(c => c.who === '@67vadim6767').length, 1);
+    assert.equal(comments.length, 2);
+  }
+  assert.equal(content.feed.names.includes('@pixel_dasha'), false);
+  assert.equal(fanComments(content.feed, 0, ['sock'], 2, 'room').some(c => c.text === 'Лютая имба'), false);
 });

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sensitiveRegions, inkRegions } from '../game/src/sensitive-text.js';
-import { noteTextSpec, textLayout, paintNoteText } from '../game/src/note-text.js';
+import { noteTextSpec, textLayout, paintNoteText, rotatePoint, pixels } from '../game/src/note-text.js';
 import { evaluateLevel } from '../game/src/game.js';
 import { stickersCoverRect } from '../game/src/sticker-shapes.js';
 import { getLevelHint } from '../game/src/game.js';
@@ -122,4 +122,21 @@ test('Прозрачный угол круглой наклейки не скр�
   const secret = { id: 'pixel', rect: [.1, .1, .005, .005] };
   const frame = { ...level, stickers: [{ id: 'cloud', shape: 'circle' }], secrets: [secret] };
   assert.equal(evaluateLevel(frame, [{ stickerId: 'cloud', rect: [.1, .1, .3, .225] }]).passed, false);
+});
+
+test('Чувствительные символы поворачиваются вместе с любой формой записки', () => {
+  for (const form of ['paper', 'phone', 'message', 'tag', 'badge']) {
+    const original = { ...zone, rect: [.2, .25, .36, .18], form, lines: ['Код', '123'] };
+    const base = sensitiveRegions(level, original);
+    for (const rotation of [-5, 4]) {
+      const turned = sensitiveRegions(level, { ...original, rotation });
+      assert.equal(turned.length, base.length);
+      for (let i = 0; i < base.length; i++) {
+        const [x, y, w, h] = base[i];
+        const expected = rotatePoint([(x + w / 2) * 360, (y + h / 2) * 480], pixels(original.rect), rotation * Math.PI / 180);
+        assert.ok(Math.abs((turned[i][0] + turned[i][2] / 2) * 360 - expected[0]) < 1e-8);
+        assert.ok(Math.abs((turned[i][1] + turned[i][3] / 2) * 480 - expected[1]) < 1e-8);
+      }
+    }
+  }
 });

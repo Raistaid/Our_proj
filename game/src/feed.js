@@ -12,16 +12,18 @@ export function pick(list, index) { return list && list.length ? list[index % li
 
 // Fan comments: first one per sticker used in the frame, then a general one. Deterministic,
 // so the same frame always gets the same reactions (no randomness, no lottery).
-export function fanComments(feed, levelIndex, stickerIds, count) {
+export function fanComments(feed, levelIndex, stickerIds, count, scene) {
   const f = feed || DEFAULT_FEED;
   const fans = f.fans || DEFAULT_FEED.fans;
   const seen = [];
   (stickerIds || []).forEach(function (id) { if (seen.indexOf(id) === -1) seen.push(id); });
   const texts = seen.map(function (id) { return pick(fans[id], levelIndex); }).filter(Boolean);
   texts.push(pick(fans.any, levelIndex));
-  return texts.filter(Boolean).slice(0, count).map(function (text, i) {
+  const regular = texts.filter(Boolean).map(function (text, i) {
     return { who: pick(f.names || DEFAULT_FEED.names, levelIndex * 2 + i), text: text };
   });
+  const fixed = f.sceneComments && f.sceneComments[scene] || [];
+  return fixed.concat(regular.filter(comment => !fixed.some(item => item.who === comment.who))).slice(0, count);
 }
 
 export function strangerComment(feed, missingKinds) {

@@ -5,6 +5,8 @@ import { createLevelState, placeSticker, moveSticker, removeSticker, hitTestStic
 import { validateContent, getRuntimeLevel, loadContent } from '../game/src/content.js';
 import { validRect, containsRect, intersectsRect } from '../game/src/geometry.js';
 import { createBridge } from '../game/src/bridge.js';
+import { sensitiveRegions } from '../game/src/sensitive-text.js';
+import { stickersCoverRect } from '../game/src/sticker-shapes.js';
 
 const content = JSON.parse(await readFile(new URL('../game/data/content.json', import.meta.url), 'utf8'));
 const fresh = function () { return structuredClone(content); };
@@ -16,7 +18,7 @@ function solve(level, initial) {
       stickerId: 'sock', x: r[0] + r[2] / 2, y: r[1] + r[3] / 2
     });
     assert.equal(placed.accepted, true);
-    assert.equal(containsRect(placed.state.placements.at(-1).rect, secret.rect), true);
+    assert.equal(sensitiveRegions(level, secret).every(rect => stickersCoverRect(placed.state.placements, rect)), true);
     state = placed.state;
   }
   return state;
