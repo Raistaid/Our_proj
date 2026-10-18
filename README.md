@@ -32,11 +32,18 @@
 
 ## Скачать
 
-**[Скачать ZIP](downloads/zasvet-game.zip?raw=true)** · **[Скачать на Android](downloads/zasvet-android.apk?raw=true)**
+**[Скачать ZIP](downloads/zasvet-game.zip?raw=true)** · **[Скачать на Android](downloads/zasvet-android.apk?raw=true)** · **[iOS-песочница (ZIP)](downloads/zasvet-ios.zip?raw=true)**
 
 ZIP игры содержит готовые HTML5-файлы с `index.html` в корне. Android 8.0 и новее, с обновлённым Android System WebView. Готовый APK содержит игру и работает без интернета; скачайте его на телефон и откройте для установки. Исходники этой оболочки — в [android/README.md](android/README.md).
 
-Для проверки контракта Сбера доступны [ZIP исходников Android-песочницы](downloads/zasvet-android.zip?raw=true) со встроенной игрой и [инструкция для Android Studio](android-sandbox/README.md).
+Для проверки контракта Сбера есть две песочницы на основе проектов хакатона. Обе запускают встроенную игру без сервера, показывают журнал событий и обрабатывают системные действия.
+
+| Платформа | Исходники | Запуск |
+|---|---|---|
+| Android 8.0+ | [ZIP Android-песочницы](downloads/zasvet-android.zip?raw=true) | [Android Studio, JDK 21, SDK 36.1](android-sandbox/README.md) |
+| iOS 15+ | [ZIP iOS-песочницы](downloads/zasvet-ios.zip?raw=true) | [Xcode 26, iPhone или симулятор](ios-sandbox/README.md) |
+
+ZIP песочниц содержит исходники проектов. Для iOS откройте `ios-sandbox/HackathonSandbox.xcodeproj`, выберите схему `HackathonSandbox` и нажмите Run. Кнопка **«Играть в „Засвет“»** запускает игру; ввод URL и тестовая страница контракта доступны на том же экране.
 
 ## Технологии
 
@@ -53,6 +60,7 @@ ZIP игры содержит готовые HTML5-файлы с `index.html` в
 | Node.js | Локальный сервер, тесты и проверки |
 | Java и Android WebView | Автономный APK со встроенными файлами игры |
 | Kotlin, Jetpack Compose и AndroidX WebKit | Песочница Сбера с журналом событий и встроенной игрой |
+| Swift, SwiftUI и WKWebView | iOS-песочница Сбера с тем же контрактом событий |
 | GitHub Actions | Автоматическая проверка проекта |
 
 Игра работает без бэкенда, базы данных и регистрации. Внешние библиотеки, шрифты и CDN не используются. Прогресс хранится в памяти страницы и сбрасывается при обновлении.
@@ -69,8 +77,10 @@ npm run check:content
 npm run check:budget
 ```
 
-Команды проверяют игровую логику, корректность и решаемость раскладок, а также расчётный бюджет загрузки первого экрана. GitHub Actions дополнительно контролирует размер игры — до 5 МиБ. Расчёт загрузки не заменяет замер на реальном устройстве.
+Команды проверяют игровую логику, корректность и решаемость раскладок, а также расчётный бюджет загрузки первого экрана. GitHub Actions дополнительно контролирует размер игры — до 5 МиБ, актуальность ZIP-архивов, компиляцию и тесты обеих мобильных песочниц. Расчёт загрузки не заменяет замер на реальном устройстве.
 
-Мобильная оболочка обрабатывает события `CLOSE_EVENT`, `COMPLETED_EVENT`, `FINISH_EVENT`, `VIBRATION_EVENT` и `SHARING_EVENT`. В [android-sandbox](android-sandbox) находится песочница «Засвета» на основе [Android-проекта хакатона](https://github.com/vveidi/sber-hse-hackathon-2026-android): встроенная игра, журнал событий, тактильный отклик и системный обмен PNG-постером. Также доступна исходная [iOS-песочница](https://github.com/vveidi/sber-hse-hackathon-2026-ios).
+Архивы обновляются командой `python3 tools/package-downloads.py` и проверяются через `python3 tools/package-downloads.py --check`. iOS-проект на Mac с Xcode и установленным симулятором проверяется командой `python3 tools/check-ios.py` без подписи и выпуска IPA.
+
+Мобильные оболочки обрабатывают события `CLOSE_EVENT`, `COMPLETED_EVENT`, `FINISH_EVENT`, `VIBRATION_EVENT` и `SHARING_EVENT`. В [android-sandbox](android-sandbox) и [ios-sandbox](ios-sandbox) находятся песочницы «Засвета» на основе [Android-](https://github.com/vveidi/sber-hse-hackathon-2026-android) и [iOS-проектов хакатона](https://github.com/vveidi/sber-hse-hackathon-2026-ios): встроенная игра, журнал событий, тактильный отклик и системный обмен PNG-постером. Каждое открытие игры создаёт новую сессию без сохранения прогресса.
 
 > `tools/make-assets.py` — исторический генератор, который перезаписывает текущую графику и контент. Для запуска игры он не нужен.

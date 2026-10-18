@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create reproducible game and Android source ZIPs without building an APK."""
+"""Create reproducible game and mobile sandbox source ZIPs without app installers."""
 
 import argparse
 import io
@@ -11,6 +11,12 @@ ANDROID_FILES = (
     ".gitattributes", ".gitignore", "README.md", "README.upstream.md", "UPSTREAM.md", "CONTEXT.md",
     "build.gradle.kts", "settings.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat",
     "app/.gitignore", "app/build.gradle.kts",
+)
+IOS_FILES = (
+    ".gitignore", "README.md", "README.upstream.md", "UPSTREAM.md", "CONTEXT.md",
+    "HackathonSandbox.xcodeproj/project.pbxproj",
+    "HackathonSandbox.xcodeproj/project.xcworkspace/contents.xcworkspacedata",
+    "HackathonSandbox.xcodeproj/xcshareddata/xcschemes/HackathonSandbox.xcscheme",
 )
 
 
@@ -26,7 +32,7 @@ def archive(entries):
     output = io.BytesIO()
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipped:
         for name, path in sorted(entries):
-            if path.suffix in (".apk", ".aab", ".jks", ".keystore"):
+            if path.suffix in (".apk", ".aab", ".ipa", ".jks", ".keystore", ".p12", ".mobileprovision"):
                 raise ValueError(f"Not a source file: {path}")
             info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
             info.create_system = 3
@@ -49,7 +55,19 @@ def main():
         for path in android_files
     ]
     android_entries.extend(("zasvet-android/game/" + name, path) for name, path in game_files)
-    for filename, entries in (("zasvet-game.zip", game_files), ("zasvet-android.zip", android_entries)):
+    ios_files = [ROOT / "ios-sandbox" / name for name in IOS_FILES]
+    for folder in ("Config", "HackathonSandbox", "HackathonSandboxTests"):
+        ios_files.extend(files_in(ROOT / "ios-sandbox" / folder))
+    ios_entries = [
+        ("zasvet-ios/ios-sandbox/" + path.relative_to(ROOT / "ios-sandbox").as_posix(), path)
+        for path in ios_files
+    ]
+    ios_entries.extend(("zasvet-ios/game/" + name, path) for name, path in game_files)
+    for filename, entries in (
+        ("zasvet-game.zip", game_files),
+        ("zasvet-android.zip", android_entries),
+        ("zasvet-ios.zip", ios_entries),
+    ):
         destination = ROOT / "downloads" / filename
         data = archive(entries)
         if args.check:

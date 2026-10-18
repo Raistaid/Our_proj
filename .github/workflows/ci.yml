@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   downloads:
-    name: ZIP игры и Android-исходников актуальны
+    name: ZIP игры и мобильных песочниц актуальны
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -26,6 +26,17 @@ jobs:
         with:
           python-version: '3.14'
       - run: python3 tools/package-downloads.py --check
+
+  ios:
+    name: iOS — компиляция и тесты в симуляторе
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - run: python3 tools/check-ios.py
 
   android:
     name: Android — компиляция, тесты и lint без APK
