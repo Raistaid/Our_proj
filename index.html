@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f4eb">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Закрой личное смешными наклейками и подготовь кадр, который можно показать.">
+  <title>Засвет</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles/game.css">
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="topbar">
+      <div class="brand" id="brand"><span class="sber-badge" aria-hidden="true"><img src="./assets/sber-mark.svg" alt=""></span> ЗАСВЕТ</div>
+      <div class="level-info" id="level-info" hidden>
+        <div class="level-meta"><span id="level-counter">Кадр 1 / 5</span><div id="progress" class="progress" aria-hidden="true"></div><span id="blitz-timer" class="blitz-timer">⚡ 20 с</span></div>
+        <h2 id="level-title">Кадр</h2>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" class="icon-button settings-button" data-action="settings" aria-expanded="false" aria-controls="settings-panel" aria-label="Настройки"><svg class="settings-icon" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M29.93 14.63 L29.93 17.37 L26.05 19.05 L25.26 20.95 L26.82 24.88 L24.88 26.82 L20.95 25.26 L19.05 26.05 L17.37 29.93 L14.63 29.93 L12.95 26.05 L11.05 25.26 L7.12 26.82 L5.18 24.88 L6.74 20.95 L5.95 19.05 L2.07 17.37 L2.07 14.63 L5.95 12.95 L6.74 11.05 L5.18 7.12 L7.12 5.18 L11.05 6.74 L12.95 5.95 L14.63 2.07 L17.37 2.07 L19.05 5.95 L20.95 6.74 L24.88 5.18 L26.82 7.12 L25.26 11.05 L26.05 12.95Z M21 16a5 5 0 1 0-10 0a5 5 0 1 0 10 0Z"/></svg></button>
+        <button type="button" class="icon-button close-button" data-action="close" aria-label="Выйти из игры"><svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"/></svg></button>
+      </div>
+      <div class="settings-panel" id="settings-panel" role="dialog" aria-label="Настройки" hidden>
+        <b class="settings-title">Настройки</b>
+        <button type="button" class="switch-row" data-action="sound" aria-pressed="false"><span class="sound-icon" aria-hidden="true">🔇</span><span class="switch-text">Звук и музыка</span><span class="switch" aria-hidden="true"></span></button>
+        <div class="mixer" id="mixer">
+          <label class="slider-row"><span>🎵 Музыка</span><input type="range" id="music-volume" min="0" max="100" step="5" value="60"></label>
+          <label class="slider-row"><span>✨ Эффекты</span><input type="range" id="effects-volume" min="0" max="100" step="5" value="50"></label>
+          <button type="button" class="switch-row" data-action="clicks" aria-pressed="false"><span aria-hidden="true">👆</span><span class="switch-text">Звуки кнопок</span><span class="switch" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </header>
+    <main>
+      <section id="loading-screen" class="loading-screen">
+        <div class="loader-spark" aria-hidden="true">✳</div>
+        <p role="status">Готовим кадры и серьёзный носок…</p>
+      </section>
+      <section id="start-screen" class="start-screen" hidden>
+        <div class="intro-copy">
+          <h1>ЛИЧНОЕ —<br><span class="marker">ЗА КАДРОМ</span></h1>
+          <p class="intro-description">Найди персональные данные и прикрой их смешными наклейками. Обычные идеи и подписи оставь видимыми.</p>
+          <ol class="how-to" aria-label="Как играть">
+            <li><span class="how-num" aria-hidden="true">1</span><span><b>Читай записки.</b> Код, пароль, адрес — это личное.</span></li>
+            <li><span class="how-num" aria-hidden="true">2</span><span><b>Прикрой личное.</b> Закрой каждый секрет.</span></li>
+            <li><span class="how-num" aria-hidden="true">3</span><span><b>Жми «Готово».</b> Секреты скрыты, обычные записки и подписи видны.</span></li>
+          </ol>
+        </div>
+        <div class="intro-art" aria-hidden="true">
+          <div class="cover-caption">смотри, как играть</div>
+          <div class="demo">
+            <div class="demo-picture">
+              <img src="./assets/scenes/room.svg" alt="" class="demo-bg">
+              <div class="demo-note demo-badge"><b>Адрес дома</b>ул. Облачная, 18</div>
+              <div class="demo-note demo-phone"><i></i><b>Код получения</b>738 291</div>
+              <div class="demo-note demo-public"><b>Идея рисунка</b>Летающий огурец</div>
+              <div class="demo-caption">Рюкзак готов к приключению</div>
+            </div>
+            <div class="demo-sticker demo-sticker-1"><img src="./assets/stickers/sock.svg" alt=""></div>
+            <div class="demo-sticker demo-sticker-2"><img src="./assets/stickers/cloud.svg" alt=""></div>
+            <div class="demo-done">✓ Кадр готов!</div>
+            <div class="demo-palette">
+              <span class="demo-tile tile-sock"><img src="./assets/stickers/sock.svg" alt=""></span>
+              <span class="demo-tile tile-cloud"><img src="./assets/stickers/cloud.svg" alt=""></span>
+              <span class="demo-tile tile-cucumber"><img src="./assets/stickers/cucumber.svg" alt=""></span>
+            </div>
+            <span class="demo-finger"></span>
+          </div>
+          <svg class="cover-star" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50.0,8.0 61.2,36.6 91.8,38.4 68.1,57.9 75.9,87.6 50.0,71.0 24.1,87.6 31.9,57.9 8.2,38.4 38.8,36.6" transform="translate(5 5)" fill="#18212c"/><polygon points="50.0,8.0 61.2,36.6 91.8,38.4 68.1,57.9 75.9,87.6 50.0,71.0 24.1,87.6 31.9,57.9 8.2,38.4 38.8,36.6" fill="#c9bdff" stroke="#18212c" stroke-width="5" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="start-actions">
+          <button type="button" class="button button-primary start-button" data-action="start">Играть <span aria-hidden="true">↗</span></button>
+          <p class="small-note" id="start-note">Все данные в сценах вымышленные. Звук и музыка — в настройках ⚙.</p>
+        </div>
+      </section>
+      <section id="play-screen" class="play-screen" hidden>
+        <div class="play-top">
+          <p id="task" class="task"></p>
+          <p class="gesture-help" id="gesture-help">Тяни наклейку на кадр или просто коснись его. Двигать можно, а чтобы убрать — утащи за край.</p>
+          <div id="feedback" class="feedback" role="status" aria-live="polite">
+            <span class="feedback-symbol" id="feedback-symbol" aria-hidden="true">✳</span><div class="feedback-body"><p id="feedback-text">Секреты прикрываем. Обычные идеи оставляем.</p><p class="stranger" id="stranger" hidden></p></div>
+          </div>
+        </div>
+        <div class="game-layout" id="game-layout">
+          <span class="tutorial-hand" id="tutorial-hand" aria-hidden="true" hidden><span>👆</span></span>
+          <div class="board-stage">
+            <div class="board-frame" id="board-frame">
+              <!-- Воришка 1 (главный сыщик) -->
+              <div class="thief-spy thief-1" aria-hidden="true" title="Нажми, чтобы прогнать!">
+                <div class="thief-bubble">
+                  <span class="bubble-look">👀 Ищу код!</span>
+                  <span class="bubble-annoyed">Эй, не закрывай! 😠</span>
+                  <span class="bubble-gloat">Ага, спалился! 😈</span>
+                  <span class="bubble-hurry">Щас заскриню! 📸</span>
+                  <span class="bubble-bonk">Ай! Ухожу! 🤕</span>
+                  <span class="bubble-sad">Облом! 🙈</span>
+                </div>
+                <svg class="thief-svg" viewBox="0 0 64 50">
+                  <path d="M12 40 C12 18, 52 18, 52 40 Z" fill="#18212c"/>
+                  <path d="M10 38 Q32 32 54 38 L54 44 Q32 38 10 44 Z" fill="#7663af"/>
+                  <circle cx="32" cy="14" r="4.5" fill="#e4ff69"/>
+                  <path d="M15 26 Q32 21 49 26 Q51 32 47 34 Q32 29 17 34 Z" fill="#2b3846"/>
+                  <g class="eyes-sneaky">
+                    <ellipse cx="23" cy="28" rx="4.5" ry="3.5" fill="#e4ff69"/>
+                    <circle cx="22" cy="29" r="1.8" fill="#18212c"/>
+                    <circle cx="23.5" cy="27.5" r="0.8" fill="#ffffff"/>
+                    <ellipse cx="41" cy="28" rx="4.5" ry="3.5" fill="#e4ff69"/>
+                    <circle cx="40" cy="29" r="1.8" fill="#18212c"/>
+                    <circle cx="41.5" cy="27.5" r="0.8" fill="#ffffff"/>
+                    <path d="M27 36 Q32 39 37 35" stroke="#fff9e9" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  </g>
+                  <g class="eyes-busted">
+                    <path d="M20 26 L26 30 M26 26 L20 30" stroke="#e4ff69" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M38 26 L44 30 M44 26 L38 30" stroke="#e4ff69" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M28 37 Q32 33 36 37" stroke="#ffc4b5" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M48 22 C48 20, 50 17, 50 17 C50 17, 52 20, 52 22 A2 2 0 0 1 48 22 Z" fill="#69d2ff"/>
+                  </g>
+                  <ellipse cx="16" cy="43" rx="5" ry="3.5" fill="#7663af" stroke="#18212c" stroke-width="1.5"/>
+                  <ellipse cx="48" cy="43" rx="5" ry="3.5" fill="#7663af" stroke="#18212c" stroke-width="1.5"/>
+                </svg>
+              </div>
+
+              <!-- Воришка 2 (напарник) -->
+              <div class="thief-spy thief-2" aria-hidden="true" title="Нажми, чтобы прогнать!">
+                <div class="thief-bubble">
+                  <span class="bubble-look">👀 Дай списать!</span>
+                  <span class="bubble-annoyed">Опять наклейка! 😠</span>
+                  <span class="bubble-gloat">Вижу секретик! 😈</span>
+                  <span class="bubble-hurry">Скриню экран! 📸</span>
+                  <span class="bubble-bonk">Ой, не палю! 🤕</span>
+                  <span class="bubble-sad">Не вышло! 😤</span>
+                </div>
+                <svg class="thief-svg" viewBox="0 0 64 50">
+                  <path d="M12 40 C12 18, 52 18, 52 40 Z" fill="#18212c"/>
+                  <path d="M10 38 Q32 32 54 38 L54 44 Q32 38 10 44 Z" fill="#ffc4b5"/>
+                  <circle cx="32" cy="14" r="4.5" fill="#c9bdff"/>
+                  <path d="M15 26 Q32 21 49 26 Q51 32 47 34 Q32 29 17 34 Z" fill="#2b3846"/>
+                  <g class="eyes-sneaky">
+                    <ellipse cx="23" cy="28" rx="4.5" ry="3.5" fill="#ffc4b5"/>
+                    <circle cx="24" cy="29" r="1.8" fill="#18212c"/>
+                    <circle cx="22.5" cy="27.5" r="0.8" fill="#ffffff"/>
+                    <ellipse cx="41" cy="28" rx="4.5" ry="3.5" fill="#ffc4b5"/>
+                    <circle cx="42" cy="29" r="1.8" fill="#18212c"/>
+                    <circle cx="40.5" cy="27.5" r="0.8" fill="#ffffff"/>
+                    <path d="M27 36 Q32 39 37 35" stroke="#fff9e9" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  </g>
+                  <g class="eyes-busted">
+                    <path d="M20 26 L26 30 M26 26 L20 30" stroke="#ffc4b5" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M38 26 L44 30 M44 26 L38 30" stroke="#ffc4b5" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M28 37 Q32 33 36 37" stroke="#ffc4b5" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M48 22 C48 20, 50 17, 50 17 C50 17, 52 20, 52 22 A2 2 0 0 1 48 22 Z" fill="#69d2ff"/>
+                  </g>
+                  <ellipse cx="16" cy="43" rx="5" ry="3.5" fill="#ffc4b5" stroke="#18212c" stroke-width="1.5"/>
+                  <ellipse cx="48" cy="43" rx="5" ry="3.5" fill="#ffc4b5" stroke="#18212c" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <canvas id="board" width="360" height="480" role="img" aria-label="Кадр с записками. Закрой каждый секрет. Обычные записки и подписи оставь видимыми."></canvas>
+              <!-- Live layer over the frame: decoration only, never in the poster, never catches taps. -->
+              <div class="scene-fx" id="scene-fx" aria-hidden="true">
+                <div class="fx-room"><span class="fx-clock-hand"></span><span class="fx-sun"></span></div>
+                <div class="fx-desk"><span class="fx-lid l1"></span><span class="fx-lid l2"></span><span class="fx-lamp"></span><span class="fx-steam s1"></span><span class="fx-steam s2"></span></div>
+                <div class="fx-phone"><span class="fx-puff p1"></span><span class="fx-puff p2"></span><span class="fx-puff p3"></span><span class="fx-bulb b1"></span><span class="fx-bulb b2"></span><span class="fx-bulb b3"></span><span class="fx-bulb b4"></span><span class="fx-bulb b5"></span><span class="fx-bulb b6"></span><span class="fx-bulb b7"></span><span class="fx-bulb b8"></span></div>
+                <div class="fx-confetti"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+            </div>
+          </div>
+          <aside class="workspace">
+            <div class="palette-block">
+              <div class="palette-heading"><span class="eyebrow">Твоя команда</span><span id="sticker-count" class="count-label">Наклеек: 0</span></div>
+              <div id="palette" class="palette" role="group" aria-label="Выбери наклейку"></div>
+            </div>
+            <div class="controls">
+              <button type="button" class="button button-secondary" data-action="undo" id="undo-button" disabled>Отменить <span class="btn-icon" aria-hidden="true">↶</span></button>
+              <button type="button" class="button button-secondary" data-action="hint" id="hint-button">Подсказка <span class="btn-icon" aria-hidden="true">?</span></button>
+              <button type="button" class="button button-primary check-button" data-action="check" id="check-button">Готово <span aria-hidden="true">✓</span></button>
+            </div>
+            <div id="passed-notice" class="passed-notice" hidden>
+              <div class="passed-card">
+                <span class="passed-mark" aria-hidden="true">✓</span>
+                <div class="passed-copy">
+                  <strong>Секреты закрыты</strong>
+                  <p id="success-text"></p>
+                </div>
+              </div>
+              <div class="post" id="post" aria-label="Реакции на твой пост">
+                <div class="post-head"><span class="post-avatar" aria-hidden="true">✳</span><b id="post-author">@мой_пост</b><span class="post-time">· сейчас</span><span class="post-likes" id="post-likes">♥ 0</span></div>
+                <ul class="post-comments" id="post-comments"></ul>
+              </div>
+              <button type="button" class="button button-primary next-button" data-action="next" id="next-button">Следующий кадр ↗</button>
+            </div>
+            <p class="fallback-note" id="fallback-note" hidden>Основные кадры не загрузились. Пока можно попробовать один.</p>
+          </aside>
+        </div>
+      </section>
+      <section id="result-screen" class="result-screen" hidden>
+        <div class="result-copy">
+          <span class="eyebrow">Наклейки справились</span>
+          <h2>СЕКРЕТЫ<br><span class="marker">ПРИКРЫТЫ.</span></h2>
+          <div class="agent-title" id="agent-title" hidden>
+            <span class="agent-label">Твоё звание</span>
+            <b id="agent-name"></b>
+            <span id="agent-text"></span>
+            <span id="sticker-summary"></span>
+            <span class="agent-likes" id="agent-likes"></span>
+          </div>
+          <div class="security-recap" id="security-recap">
+            <span class="recap-heading">🛡️ Что ты защитил от засвета:</span>
+            <div class="recap-badges">
+              <span class="recap-badge">💳 Карта и CVC</span>
+              <span class="recap-badge">🔐 Коды и СМС</span>
+              <span class="recap-badge">🏠 Домашний адрес</span>
+              <span class="recap-badge">📱 Телефон и школа</span>
+            </div>
+            <p class="blitz-summary" id="blitz-summary">⚡ Блиц-статистика готова</p>
+          </div>
+          <p id="result-description">Кадры готовы. Твои идеи остались видны, личное — за кадром.</p>
+          <button type="button" class="button button-primary" data-action="home" id="share-button">Вернуться на главный экран</button>
+          <button type="button" class="button button-secondary" data-action="replay">Ещё один заход ↶</button>
+          <p id="result-status" class="small-note" role="status">Готовим твой постер…</p>
+        </div>
+        <div class="poster-frame">
+          <img id="poster-image" alt="Твой коллаж: личные сведения закрыты наклейками" hidden>
+          <div id="poster-placeholder" class="poster-placeholder">✳<span>Твой коллаж</span></div>
+        </div>
+      </section>
+      <section id="error-screen" class="error-screen" hidden>
+        <span class="loader-spark" aria-hidden="true">✳</span>
+        <h2>Кадр пока не открылся</h2>
+        <p>Попробуем ещё раз?</p>
+        <button type="button" class="button button-primary" data-action="reload">Открыть снова ↻</button>
+      </section>
+    </main>
+    <footer class="footer"><span>Наклей всё. Но с умом.</span><span>Личное остаётся личным.</span></footer>
+  </div>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

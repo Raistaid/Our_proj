@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 360 480">
+  <defs><pattern id="wall" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#18212c" opacity=".06"/></pattern><linearGradient id="cardboard" x2="1" y2="1"><stop stop-color="#e9bc8d"/><stop offset="1" stop-color="#d3a06e"/></linearGradient><linearGradient id="wall-light" x2="0" y2="1"><stop stop-color="#f1ecfa"/><stop offset="1" stop-color="#e5eaf1"/></linearGradient></defs>
+  <rect width="360" height="480" fill="url(#wall-light)"/>
+  <rect width="360" height="318" fill="url(#wall)"/>
+  <path d="M0 318H360V480H0Z" fill="#d6c3ab"/>
+  <path d="M0 318H360M0 444H360" stroke="#18212c" stroke-width="2" opacity=".22"/>
+  <path d="M0 321H360" stroke="#fff9e9" stroke-width="3" opacity=".6"/>
+  <ellipse cx="181" cy="430" rx="157" ry="10" fill="#18212c" opacity=".12"/>
+  <path d="M26 150L68 89H294L336 150Z" fill="#e9c18e" stroke="#18212c" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="26" y="150" width="310" height="276" rx="4" fill="url(#cardboard)" stroke="#18212c" stroke-width="3"/>
+  <path d="M33 157H151M212 157H329M33 158V411" fill="none" stroke="#ffe1b6" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  <path d="M328 165V418H214M148 418H79" fill="none" stroke="#9f744c" stroke-width="2" stroke-linecap="round" opacity=".4"/>
+  <path d="M168 89H196L204 150H160Z" fill="#f7dfab" stroke="#ac8252" stroke-width="1.5"/>
+  <path d="M160 151H204V425H160Z" fill="#f7dfab"/>
+  <path d="M168 157V415M196 157V415" stroke="#ac8252" stroke-width="1" stroke-dasharray="4 5"/>
+  <path d="M177 97L176 141M174 163V411" stroke="#fff2cf" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+  <path d="M51 139L76 102H155M212 103H284L307 137" fill="none" stroke="#ffe1b6" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+  <path d="M76 167H112M45 223V242M314 302V322M283 413H310" stroke="#a77e55" stroke-width="1.5" stroke-linecap="round" opacity=".35"/>
+  <path d="M46 409V392M40 398L46 392L52 398M65 409V392M59 398L65 392L71 398" fill="none" stroke="#795a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Ordinary delivery details stay separate from the editable private labels. -->
+  <g font-family="system-ui,Arial,sans-serif" fill="#795a3a">
+    <text x="84" y="125" font-size="8" font-weight="800" transform="rotate(-3 84 125)">КОМИКС-ПОЧТА</text>
+    <text x="220" y="128" font-size="7" font-weight="700">ПОДАРОК ВНУТРИ</text>
+    <rect x="45" y="393" width="94" height="22" rx="3" fill="#fff9e9" stroke="#ad875e"/>
+    <g stroke="#453a30">
+      <path d="M51 397V406M55 397V406M61 397V406M65 397V406M71 397V406M78 397V406M82 397V406M89 397V406M94 397V406M103 397V406M108 397V406M116 397V406M121 397V406M131 397V406" stroke-width="1.5"/>
+      <path d="M58 397V406M75 397V406M98 397V406M112 397V406M126 397V406" stroke-width="2.5"/>
+    </g>
+    <text x="92" y="412" text-anchor="middle" font-size="4.5">УЧЕБНЫЙ ШТРИХКОД</text>
+    <text x="220" y="406" font-size="7" font-weight="700">МАССА 0,4 КГ</text>
+    <text x="220" y="416" font-size="6">Упаковано с заботой ♡</text>
+    <g transform="translate(298 209) rotate(7)">
+      <rect x="-17" y="-15" width="34" height="32" rx="3" fill="none" stroke="#977145" stroke-width="1.2"/>
+      <path d="M-9-6Q0-18 9-6Z M0-6V9Q0 13-4 10" fill="none" stroke="#977145" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+    <text x="294" y="238" text-anchor="middle" font-size="5">БЕРЕЧЬ ОТ ВОДЫ</text>
+  </g>
+</svg>

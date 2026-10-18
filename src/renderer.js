@@ -1,0 +1,396 @@
+import { getStickerRect } from './game.js';
+import { hintOutline, HINT_COLOR, HINT_WIDTH } from './hint-outline.js';
+import { centeredRect, validRect } from './geometry.js';
+export { loadAssets } from './assets.js';
+import { FONT, noteForm, tagGeometry, noteRotation, rotatePoint, paintText as drawText, paintNoteText } from './note-text.js';
+export { noteForm } from './note-text.js';
+
+const INK = '#18212c';
+export function roundedRect(ctx, x, y, w, h, radius) {
+  const r = Math.min(radius, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function pixels(rect) {
+  return [rect[0] * 360, rect[1] * 480, rect[2] * 360, rect[3] * 480];
+}
+
+function drawLines(ctx, lines, rect, maxFont, bold) {
+  const p = pixels(rect);
+  drawText(ctx, lines, [p[0] + 2, p[1] + 1, p[2] - 4, p[3] - 2], maxFont, { bold: bold });
+}
+
+function drawNote(ctx, level, zone) {
+  const p = pixels(zone.rect);
+  ctx.save();
+  ctx.fillStyle = 'rgba(24,33,44,.13)';
+  roundedRect(ctx, p[0] + 2, p[1] + 4, p[2], p[3], 5); ctx.fill();
+  ctx.fillStyle = /^#[0-9a-fA-F]{6}$/.test(zone.color || '') ? zone.color : '#fff9e9';
+  ctx.strokeStyle = '#6e685c'; ctx.lineWidth = 1;
+  roundedRect(ctx, p[0], p[1], p[2], p[3], 5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.fillRect(p[0] + 4, p[1] + 3, p[2] - 8, 2);
+  ctx.fillStyle = '#c5b6f3'; ctx.fillRect(p[0] + p[2] * 0.35, p[1] - 3, p[2] * 0.30, 7);
+  paintNoteText(ctx, level, zone);
+  ctx.restore();
+}
+
+// ---------- Notes that belong to the scene ----------
+// A note is a phone notification, a luggage tag tied to the main object, or paper.
+// The form never depends on whether the note is private: ordinary notes use the same forms,
+// so the child has to read the text. Every form stays inside its rect, so a sticker
+// covers the whole note, even while it animates.
+const BADGE_STICK = 520;
+const PHONE_IN = 420;
+const PHONE_BUZZ = 480;
+const TAG_SWING = 1300;
+const STAGGER = 220;
+
+function easeOutBack(x) {
+  const c = 1.70158;
+  return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2);
+}
+
+function clipTo(ctx, p) {
+  ctx.beginPath(); ctx.rect(p[0], p[1], p[2], p[3]); ctx.clip();
+}
+
+// t: ms since this note started to appear; null means a still picture (poster, tests).
+function drawMessage(ctx, level, zone, p) {
+  ctx.save();
+  clipTo(ctx, p);
+  const left = p[0] + 1, right = p[0] + p[2] - 1;
+  const top = p[1] + 1, bottom = p[1] + p[3] - 6;
+  const outgoing = zone.rect[0] + zone.rect[2] / 2 >= .5;
+  // One outline keeps the tail joined to the bubble without a line across its base.
+  ctx.beginPath();
+  ctx.moveTo(left + 10, top); ctx.lineTo(right - 10, top);
+  ctx.quadraticCurveTo(right, top, right, top + 10);
+  ctx.lineTo(right, bottom - 10); ctx.quadraticCurveTo(right, bottom, right - 10, bottom);
+  if (outgoing) {
+    ctx.lineTo(right - 12, bottom); ctx.lineTo(right - 5, bottom + 5); ctx.lineTo(right - 26, bottom);
+  } else {
+    ctx.lineTo(left + 26, bottom); ctx.lineTo(left + 5, bottom + 5); ctx.lineTo(left + 12, bottom);
+  }
+  ctx.lineTo(left + 10, bottom); ctx.quadraticCurveTo(left, bottom, left, bottom - 10);
+  ctx.lineTo(left, top + 10); ctx.quadraticCurveTo(left, top, left + 10, top);
+  ctx.closePath();
+  ctx.fillStyle = /^#[0-9a-fA-F]{6}$/.test(zone.color || '') ? zone.color : '#ffffff';
+  ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  paintNoteText(ctx, level, zone);
+  ctx.restore();
+}
+
+function drawPhone(ctx, level, zone, p, t) {
+  if (t !== null && t < 0) return;
+  let dx = 0;
+  let dy = 0;
+  if (t !== null) {
+    dy = -(1 - easeOutBack(Math.min(1, t / PHONE_IN))) * p[3];
+    const buzz = t - PHONE_IN;
+    if (buzz > 0 && buzz < PHONE_BUZZ) dx = Math.sin(buzz / 22) * 2.2 * (1 - buzz / PHONE_BUZZ);
+  }
+  ctx.save();
+  clipTo(ctx, p);
+  ctx.translate(dx, dy);
+  roundedRect(ctx, p[0] + 1, p[1] + 1, p[2] - 2, p[3] - 2, 9);
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  ctx.strokeStyle = '#b4b8ca'; ctx.lineWidth = 1; ctx.stroke();
+  // App icon with a tick: the notification "came from the phone".
+  roundedRect(ctx, p[0] + 5, p[1] + 5, 12, 12, 3.5);
+  ctx.fillStyle = '#21a038'; ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(p[0] + 8, p[1] + 11); ctx.lineTo(p[0] + 10.2, p[1] + 13.2); ctx.lineTo(p[0] + 14, p[1] + 8.8);
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+  // Header row like a real notification; the lines get the full card width below it.
+  ctx.fillStyle = '#626d7c'; ctx.font = '700 7px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText('СООБЩЕНИЯ', p[0] + 22, p[1] + 11);
+  ctx.fillStyle = '#84909e'; ctx.font = '600 7px ' + FONT; ctx.textAlign = 'right';
+  ctx.fillText('сейчас', p[0] + p[2] - 7, p[1] + 11);
+  paintNoteText(ctx, level, zone);
+  ctx.restore();
+}
+
+// zone.anchor ([x, y] in board fractions) ties the tag to a point of the picture, e.g. a zipper.
+// Without it the string goes to the main object. A tag right below its anchor hangs by its top.
+function drawTagString(ctx, level, zone) {
+  const p = pixels(zone.rect);
+  const g = tagGeometry(level, zone, p);
+  const hole = rotatePoint(g.hole, p, noteRotation(zone));
+  ctx.save();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(hole[0], hole[1]);
+  const sag = g.side === 'top' ? 0 : 16;
+  ctx.quadraticCurveTo((hole[0] + g.anchor[0]) / 2, Math.max(hole[1], g.anchor[1]) + sag, g.anchor[0], g.anchor[1]);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(g.anchor[0], g.anchor[1], 3, 0, Math.PI * 2);
+  ctx.fillStyle = INK; ctx.fill();
+  ctx.restore();
+}
+
+function drawTag(ctx, level, zone, p, t) {
+  const g = tagGeometry(level, zone, p);
+  const angle = t === null || t < 0 ? 0 : 0.1 * Math.exp(-t / 450) * Math.sin(t / 110);
+  const x0 = p[0] + 1; const y0 = p[1] + 1; const x1 = p[0] + p[2] - 1; const y1 = p[1] + p[3] - 1;
+  const cut = Math.min(13, p[3] / 3);
+  ctx.save();
+  clipTo(ctx, p);
+  ctx.translate(g.hole[0], g.hole[1]); ctx.rotate(angle); ctx.translate(-g.hole[0], -g.hole[1]);
+  ctx.beginPath();
+  if (g.side === 'top') {
+    ctx.moveTo(x0, y0 + cut); ctx.lineTo(x0 + cut, y0); ctx.lineTo(x1 - cut, y0);
+    ctx.lineTo(x1, y0 + cut); ctx.lineTo(x1, y1); ctx.lineTo(x0, y1);
+  } else if (g.side === 'right') {
+    ctx.moveTo(x0, y0); ctx.lineTo(x1 - cut, y0); ctx.lineTo(x1, y0 + cut);
+    ctx.lineTo(x1, y1 - cut); ctx.lineTo(x1 - cut, y1); ctx.lineTo(x0, y1);
+  } else {
+    ctx.moveTo(x1, y0); ctx.lineTo(x0 + cut, y0); ctx.lineTo(x0, y0 + cut);
+    ctx.lineTo(x0, y1 - cut); ctx.lineTo(x0 + cut, y1); ctx.lineTo(x1, y1);
+  }
+  ctx.closePath();
+  ctx.fillStyle = '#f6d58a'; ctx.fill();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(g.hole[0], g.hole[1], 5.5, 0, Math.PI * 2);
+  ctx.strokeStyle = '#c99a3c'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(g.hole[0], g.hole[1], 3.2, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff9e9'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  paintNoteText(ctx, level, zone);
+  ctx.restore();
+}
+
+// Badge glued onto the picture: it pops on and settles, always inside its rect.
+function drawBadge(ctx, level, zone, p, t) {
+  let scale = 1;
+  let angle = -0.04;
+  if (t !== null) {
+    if (t < 0) return;
+    const k = Math.min(1, t / BADGE_STICK);
+    scale = 0.6 + 0.4 * easeOutBack(k);
+    angle = -0.04 - 0.12 * (1 - k);
+  }
+  const cx = p[0] + p[2] / 2;
+  const cy = p[1] + p[3] / 2;
+  ctx.save();
+  clipTo(ctx, p);
+  ctx.translate(cx, cy); ctx.rotate(angle); ctx.scale(scale, scale); ctx.translate(-cx, -cy);
+  roundedRect(ctx, p[0] + 3, p[1] + 3, p[2] - 6, p[3] - 6, 10);
+  ctx.fillStyle = '#fff3b0'; ctx.fill();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.6; ctx.stroke();
+  // Stitched edge: it is sewn / glued onto the backpack.
+  roundedRect(ctx, p[0] + 7, p[1] + 7, p[2] - 14, p[3] - 14, 7);
+  ctx.setLineDash([4, 3]); ctx.strokeStyle = '#c99a3c'; ctx.lineWidth = 1.4; ctx.stroke();
+  ctx.setLineDash([]);
+  paintNoteText(ctx, level, zone);
+  ctx.restore();
+}
+
+function textZones(level) {
+  return level.keepZones.filter(function (zone) { return zone.lines && zone.style === 'note'; })
+    .concat(level.secrets);
+}
+
+// Draws every note; returns true while an entrance animation is still running.
+function drawNotes(ctx, level, now) {
+  const zones = textZones(level);
+  let animating = false;
+  zones.forEach(function (zone) {
+    if (noteForm(level, zone) === 'tag') drawTagString(ctx, level, zone);
+  });
+  zones.forEach(function (zone, i) {
+    const form = noteForm(level, zone);
+    const p = pixels(zone.rect);
+    const t = now === null || zone.animate === false ? null : now - i * STAGGER;
+    ctx.save();
+    ctx.translate(p[0] + p[2] / 2, p[1] + p[3] / 2);
+    ctx.rotate(noteRotation(zone));
+    ctx.translate(-p[0] - p[2] / 2, -p[1] - p[3] / 2);
+    if (form === 'message') {
+      drawMessage(ctx, level, zone, p);
+    } else if (form === 'phone') {
+      drawPhone(ctx, level, zone, p, t);
+      if (t !== null && t < PHONE_IN + PHONE_BUZZ) animating = true;
+    } else if (form === 'tag') {
+      drawTag(ctx, level, zone, p, t);
+      if (t !== null && t < TAG_SWING) animating = true;
+    } else if (form === 'badge') {
+      drawBadge(ctx, level, zone, p, t);
+      if (t !== null && t < BADGE_STICK) animating = true;
+    } else {
+      drawNote(ctx, level, zone);
+    }
+    ctx.restore();
+  });
+  return animating;
+}
+
+// Entrance timing per canvas and level: the animation runs once when a scene appears.
+const entrances = new WeakMap();
+function entranceTime(canvas, level) {
+  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const reduce = typeof window !== 'undefined' && window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return null;
+  const entry = entrances.get(canvas);
+  if (!entry || entry.levelId !== level.id) {
+    entrances.set(canvas, { levelId: level.id, start: now });
+    return 0;
+  }
+  return now - entry.start;
+}
+
+function drawCaption(ctx, zone) {
+  const p = pixels(zone.rect);
+  ctx.save();
+  roundedRect(ctx, p[0], p[1], p[2], p[3], 6);
+  ctx.fillStyle = '#fffdf5'; ctx.fill();
+  drawLines(ctx, zone.lines, zone.rect, 15, true);
+  ctx.restore();
+}
+
+function drawSticker(ctx, placement, assets, preview) {
+  const p = pixels(placement.rect);
+  const sticker = assets.stickers[placement.stickerId] || { color: '#e4ff69' };
+  ctx.save();
+  // Clip the opaque backing and artwork to the same physical shape.
+  ctx.globalAlpha = preview ? 0.65 : 1;
+  stickerPath(ctx, p, sticker.shape || 'rectangle');
+  ctx.clip();
+  ctx.fillStyle = sticker.color || '#e4ff69';
+  ctx.fillRect(p[0], p[1], p[2], p[3]);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.8;
+  stickerPath(ctx, p, sticker.shape || 'rectangle'); ctx.stroke();
+  // Preview, placed artwork and exported artwork share the same fixed size.
+  const img = assets.images[sticker.src];
+  if (img) {
+    const size = Math.min(p[2] * 0.82, p[3] * 0.9);
+    ctx.drawImage(img, p[0] + (p[2] - size) / 2, p[1] + (p[3] - size) / 2, size, size);
+  } else {
+    ctx.fillStyle = INK; ctx.font = '700 12px ' + FONT; ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle'; ctx.fillText('ПРИКРЫТО', p[0] + p[2] / 2, p[1] + p[3] / 2);
+  }
+  ctx.restore();
+}
+
+function stickerPath(ctx, p, shape) {
+  const [x, y, w, h] = p;
+  ctx.beginPath();
+  if (shape === 'circle') {
+    ctx.arc(x + w / 2, y + h / 2, w / 2, 0, Math.PI * 2);
+  } else if (shape === 'rounded-square') {
+    const r = Math.min(w, h) * 0.18;
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+  } else ctx.rect(x, y, w, h);
+  ctx.closePath();
+}
+
+// Palette cards use the exact same drawing and proportions as placed stickers.
+export function renderStickerCard(options) {
+  const canvas = options.canvas;
+  const rect = getStickerRect(options.level, { x: 0.5, y: 0.5, stickerId: options.stickerId });
+  const ctx = canvas.getContext('2d');
+  if (!ctx || !rect) return;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const scale = Math.min(canvas.width / (rect[2] * 360), canvas.height / (rect[3] * 480));
+  ctx.setTransform(scale, 0, 0, scale,
+    (canvas.width - rect[2] * 360 * scale) / 2, (canvas.height - rect[3] * 480 * scale) / 2);
+  drawSticker(ctx, { stickerId: options.stickerId, rect: [0, 0, rect[2], rect[3]] }, options.assets, false);
+}
+
+function drawMissingBackground(ctx, level) {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(24,33,44,.08)'; ctx.lineWidth = 1;
+  for (let x = 0; x <= 360; x += 24) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 480); ctx.stroke(); }
+  for (let y = 0; y <= 480; y += 24) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(360, y); ctx.stroke(); }
+  level.keepZones.forEach(function (zone) {
+    if (zone.lines) return;
+    const p = pixels(zone.rect);
+    ctx.fillStyle = '#b2a3ed'; ctx.strokeStyle = INK; ctx.lineWidth = 3;
+    roundedRect(ctx, p[0], p[1], p[2], p[3], 24); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = INK; ctx.font = '800 17px ' + FONT; ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('ГЛАВНЫЙ ПРЕДМЕТ', p[0] + p[2] / 2, p[1] + p[3] / 2 - 10);
+    ctx.font = '600 13px ' + FONT;
+    ctx.fillText('украшай как хочешь', p[0] + p[2] / 2, p[1] + p[3] / 2 + 12);
+  });
+  ctx.restore();
+}
+
+export function renderBoard(options) {
+  const canvas = options.canvas;
+  const level = options.level;
+  const assets = options.assets;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas недоступен');
+  // options.area = [x, y, width, height] in canvas pixels draws the frame into a part of the
+  // canvas (the poster); by default the frame fills the whole canvas.
+  const area = Array.isArray(options.area) && options.area.length === 4 ? options.area :
+    [0, 0, canvas.width, canvas.height];
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(area[0], area[1], area[2], area[3]);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(area[0], area[1], area[2], area[3]); ctx.clip();
+  ctx.setTransform(area[2] / 360, 0, 0, area[3] / 480, area[0], area[1]);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#e9e6ff'; ctx.fillRect(0, 0, 360, 480);
+  const background = assets.images[level.background];
+  if (background) ctx.drawImage(background, 0, 0, 360, 480);
+  else drawMissingBackground(ctx, level);
+  level.keepZones.forEach(function (zone) {
+    if (zone.lines && zone.style !== 'note') drawCaption(ctx, zone);
+  });
+  // options.animate: the caller redraws while this returns { animating: true }.
+  // The renderer itself never schedules frames.
+  const animating = drawNotes(ctx, level, options.animate ? entranceTime(canvas, level) : null);
+  const placements = options.placements || [];
+  let previewPlacement = null;
+  if (options.preview) {
+    const point = options.preview;
+    const original = point.placementId ? placements.find(function (p) { return p.id === point.placementId; }) : null;
+    const rect = original && Number.isFinite(point.x) && Number.isFinite(point.y) ?
+      centeredRect(point.x, point.y, original.rect[2], original.rect[3]) :
+      !point.placementId ? getStickerRect(level, point) : null;
+    if (rect && validRect(rect)) previewPlacement = { stickerId: original ? original.stickerId : point.stickerId, rect: rect };
+  }
+  placements.forEach(function (placement) {
+    if (options.preview && options.preview.removing && options.preview.placementId === placement.id) return;
+    if (previewPlacement && options.preview.placementId === placement.id) {
+      drawSticker(ctx, previewPlacement, assets, true);
+    } else drawSticker(ctx, placement, assets, false);
+  });
+  (options.hintIds || []).forEach(function (id) {
+    const zone = level.secrets.find(function (s) { return s.id === id; });
+    if (!zone) return;
+    const outline = hintOutline(level, zone);
+    ctx.save(); ctx.strokeStyle = HINT_COLOR; ctx.lineWidth = HINT_WIDTH; ctx.setLineDash([]);
+    ctx.translate(...outline.center); ctx.rotate(outline.angle);
+    ctx.translate(-outline.center[0], -outline.center[1]);
+    ctx.strokeRect(...outline.rect);
+    ctx.restore();
+  });
+  if (previewPlacement && !options.preview.placementId) drawSticker(ctx, previewPlacement, assets, true);
+  ctx.restore();
+  return { animating: animating };
+}
+
+export function fitCanvas(canvas) {
+  const bounds = canvas.getBoundingClientRect();
+  if (!bounds.width || !bounds.height) return false;
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  const width = Math.max(1, Math.round(bounds.width * ratio));
+  const height = Math.max(1, Math.round(bounds.height * ratio));
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width; canvas.height = height;
+  }
+  return true;
+}
