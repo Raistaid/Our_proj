@@ -284,7 +284,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .post-time{color:var(--muted)}
 .post-likes{margin-left:auto;font-weight:900;color:#d2366a;font-variant-numeric:tabular-nums}
 .post-comments{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
-.post-comments li{font-size:14px;line-height:1.35;padding:6px 9px;background:#f4f1ff;border-radius:10px;opacity:0;animation:comment-in .3s ease-out forwards}
+.post-comments li{min-width:0;overflow-wrap:anywhere;font-size:14px;line-height:1.35;padding:6px 9px;background:#f4f1ff;border-radius:10px;opacity:0;animation:comment-in .3s ease-out forwards}
 .post-comments li:nth-child(1){animation-delay:.35s}.post-comments li:nth-child(2){animation-delay:.9s}
 .post-comments b{font-weight:800}
 @keyframes comment-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -348,7 +348,7 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .passed-card .passed-mark{flex-basis:30px;height:30px;font-size:18px}
  .post{padding:8px 10px}
  .post-comments{margin-top:5px;gap:4px}
- .post-comments li{font-size:13px;padding:5px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .post-comments li{font-size:13px;padding:5px 8px}
  /* On phones the success card is one line; the post below carries the reactions. */
  .passed-copy p{display:none}
  .passed-notice{gap:8px}
