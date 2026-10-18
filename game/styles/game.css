@@ -488,195 +488,160 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
   65% { transform: scale(0.94); }
 }
 
-/* ---------- МУЛЬТЯШНЫЕ ВОРИШКИ 2.0 ---------- */
+/* ---------- Characters scale with the scene in every orientation ---------- */
+.board-frame { container-type: inline-size; }
 .thief-spy {
-  position: absolute !important;
-  display: none !important;
-  width: 76px !important;
-  height: 58px !important;
-  z-index: 8 !important;
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  transform-origin: bottom center !important;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease !important;
-  animation: thief-wiggle 3.2s ease-in-out infinite !important;
+  position: absolute;
+  display: none;
+  width: 21.1%;
+  height: auto;
+  aspect-ratio: 64 / 50;
+  z-index: 8;
+  pointer-events: auto;
+  cursor: pointer;
+  transform-origin: bottom center;
+  transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), opacity .25s ease;
+  animation: thief-wiggle 3.2s ease-in-out infinite;
 }
-
 .thief-svg {
-  width: 100% !important;
-  height: 100% !important;
-  display: block !important;
-  filter: drop-shadow(0 4px 3px rgba(24, 33, 44, 0.25)) !important;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform: rotate(var(--thief-angle, 0deg));
+  filter: drop-shadow(0 1cqw .8cqw #18212c40);
 }
-
 .thief-bubble {
-  position: absolute !important;
-  bottom: 100% !important;
-  top: auto !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  margin-bottom: 6px !important;
-  background: #ffffff !important;
-  border: 1.8px solid var(--ink) !important;
-  border-radius: 999px !important;
-  padding: 2px 8px !important;
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  white-space: nowrap !important;
-  box-shadow: 2px 2px 0 var(--ink) !important;
-  animation: bubble-float 2s ease-in-out infinite alternate !important;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 38cqw;
+  margin-bottom: 1.5cqw;
+  background: #fff;
+  border: .5cqw solid var(--ink);
+  border-radius: 4cqw;
+  padding: .6cqw 2cqw;
+  font-size: 3cqw;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: normal;
+  box-shadow: .6cqw .6cqw 0 var(--ink);
+  animation: bubble-float 2s ease-in-out infinite alternate;
 }
+.thief-bubble span { display: none; }
+.thief-bubble .bubble-look { display: inline-block; }
 
-.thief-bubble span { display: none !important; }
-.thief-bubble .bubble-look { display: inline-block !important; }
+.board-frame.thief-hurry .thief-spy { animation-duration: .45s; }
+.board-frame.thief-hurry .thief-bubble { background: #fff0bd; }
+.board-frame.thief-hurry .thief-bubble span { display: none; }
+.board-frame.thief-hurry .thief-bubble .bubble-hurry { display: inline-block; }
 
-/* 1. Осталось мало времени Блиц */
-.board-frame.thief-hurry .thief-spy { animation: thief-wiggle 0.45s ease-in-out infinite !important; }
-.board-frame.thief-hurry .thief-bubble { background: #fff0bd !important; }
-.board-frame.thief-hurry .thief-bubble span { display: none !important; }
-.board-frame.thief-hurry .thief-bubble .bubble-hurry { display: inline-block !important; }
+.board-frame.thief-annoyed .thief-bubble { background: #ffe17a; }
+.board-frame.thief-annoyed .thief-bubble span { display: none; }
+.board-frame.thief-annoyed .thief-bubble .bubble-annoyed { display: inline-block; }
 
-/* 2. Игрок наклеил стикер (вор недоволен) */
-.board-frame.thief-annoyed .thief-bubble { background: #ffe17a !important; }
-.board-frame.thief-annoyed .thief-bubble span { display: none !important; }
-.board-frame.thief-annoyed .thief-bubble .bubble-annoyed { display: inline-block !important; }
+.board-frame.thief-gloat .thief-bubble { background: var(--lavender); }
+.board-frame.thief-gloat .thief-bubble span { display: none; }
+.board-frame.thief-gloat .thief-bubble .bubble-gloat { display: inline-block; }
 
-/* 3. Игрок ошибся при проверке (вор злорадствует) */
-.board-frame.thief-gloat .thief-bubble { background: var(--lavender) !important; }
-.board-frame.thief-gloat .thief-bubble span { display: none !important; }
-.board-frame.thief-gloat .thief-bubble .bubble-gloat { display: inline-block !important; }
+/* Wrapper effects preserve the scene-specific rotation on the SVG. */
+.board-frame.thief-bonked .thief-spy { transform: translateY(4cqw) scale(.8); }
+.board-frame.thief-bonked .eyes-sneaky { display: none; }
+.board-frame.thief-bonked .eyes-busted { display: block; }
+.board-frame.thief-bonked .thief-bubble { background: var(--pink); }
+.board-frame.thief-bonked .thief-bubble span { display: none; }
+.board-frame.thief-bonked .thief-bubble .bubble-bonk { display: inline-block; }
 
-/* 4. Игрок кликнул по воришке (пасхалка — щелбан) */
-.board-frame.thief-bonked .thief-spy { transform: translateY(16px) scale(0.8) !important; }
-.board-frame.thief-bonked .eyes-sneaky { display: none !important; }
-.board-frame.thief-bonked .eyes-busted { display: block !important; }
-.board-frame.bonked .thief-bubble { background: var(--pink) !important; }
-.board-frame.thief-bonked .thief-bubble span { display: none !important; }
-.board-frame.thief-bonked .thief-bubble .bubble-bonk { display: inline-block !important; }
+.eyes-busted { display: none; }
+.eyes-sneaky { display: block; }
+.board-frame.passed .thief-spy { transform: translateY(3cqw) scale(.9); animation: none; }
+.board-frame.passed .eyes-sneaky { display: none; }
+.board-frame.passed .eyes-busted { display: block; }
+.board-frame.passed .thief-bubble { background: var(--pink); }
+.board-frame.passed .thief-bubble span { display: none; }
+.board-frame.passed .thief-bubble .bubble-sad { display: inline-block; }
 
-/* 5. Кадр успешно пройден */
-.eyes-busted { display: none !important; }
-.eyes-sneaky { display: block !important; }
-.board-frame.passed .thief-spy {
-  transform: translateY(12px) scale(0.9) !important;
-  animation: none !important;
-}
-.board-frame.passed .eyes-sneaky { display: none !important; }
-.board-frame.passed .eyes-busted { display: block !important; }
-.board-frame.passed .thief-bubble { background: var(--pink) !important; }
-.board-frame.passed .thief-bubble span { display: none !important; }
-.board-frame.passed .thief-bubble .bubble-sad { display: inline-block !important; }
-
-/* ==================== КООРДИНАТЫ ПО СЦЕНАМ ==================== */
-
-/* 1. РЮКЗАК (room) */
+/* Anchors reserve enough room for the character and its longest reply. */
 .board-frame[data-scene=room] .thief-1 {
-  display: block !important;
-  top: 19% !important;
-  left: 64% !important;
-  transform: rotate(10deg) !important;
+  display: block;
+  top: 19%;
+  left: 64%;
+  --thief-angle: 10deg;
 }
-
-/* 2. ДОСКА ЗАМЕТОК (desk) */
 .board-frame[data-scene=desk] .thief-1 {
-  display: block !important;
-  top: -8px !important;
-  left: 66% !important;
-  transform: rotate(3deg) !important;
+  display: block;
+  top: -1.6%;
+  left: 66%;
+  --thief-angle: 3deg;
 }
 .board-frame[data-scene=desk] .thief-1 .thief-bubble {
-  bottom: auto !important;
-  top: 10px !important;
-  right: 100% !important;
-  left: auto !important;
-  transform: none !important;
-  margin-right: 6px !important;
+  bottom: auto;
+  top: 30%;
+  right: 100%;
+  left: auto;
+  transform: none;
+  margin: 0 1.5cqw 0 0;
 }
-
-/* Keep the phone character and its speech inside the scene's left margin. */
 .board-frame[data-scene=phone] .thief-1 {
-  display: block !important;
-  top: 26% !important;
-  width: 18% !important;
-  max-width: 76px;
-  height: auto !important;
-  aspect-ratio: 76 / 58;
-  right: auto !important;
-  left: 1% !important;
-  bottom: auto !important;
-  transform: none !important;
-  transform-origin: center center !important;
-}
-.board-frame[data-scene=phone] .thief-1 .thief-svg {
-  transform: rotate(-90deg);
+  display: block;
+  top: 26%;
+  left: 1%;
+  --thief-angle: -90deg;
 }
 .board-frame[data-scene=phone] .thief-1 .thief-bubble {
-  position: absolute !important;
-  top: calc(100% + 8px) !important;
-  right: auto !important;
-  left: 0 !important;
-  bottom: auto !important;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 4px !important;
-  border-radius: 10px !important;
-  white-space: normal !important;
-  overflow-wrap: anywhere;
-  text-align: center;
-  line-height: 1.25;
-  transform: none !important;
-  animation: none !important;
-  margin: 0 !important;
+  top: calc(100% + 1.5cqw);
+  bottom: auto;
+  left: 0;
+  width: 18cqw;
+  max-width: 18cqw;
+  padding: 1cqw;
+  border-radius: 3cqw;
+  transform: none;
+  margin: 0;
 }
-
-/* 4. КОМПЬЮТЕР (computer) */
 .board-frame[data-scene=computer] .thief-1 {
-  display: block !important;
-  top: -12px !important;
-  right: 28px !important;
-  left: auto !important;
-  transform: rotate(3deg) !important;
+  display: block;
+  top: 1.5%;
+  right: 8%;
+  --thief-angle: 3deg;
 }
 .board-frame[data-scene=computer] .thief-1 .thief-bubble {
-  bottom: auto !important;
-  top: 12px !important;
-  right: 100% !important;
-  left: auto !important;
-  transform: none !important;
-  margin-right: 6px !important;
+  bottom: auto;
+  top: 0;
+  right: 100%;
+  left: auto;
+  transform: none;
+  margin: 0 1.5cqw 0 0;
 }
 .board-frame[data-scene=computer] .thief-2 {
-  display: block !important;
-  top: 76% !important;
-  left: 9% !important;
-  transform: rotate(-2deg) !important;
+  display: block;
+  top: 76%;
+  left: 9%;
+  --thief-angle: -2deg;
 }
 .board-frame[data-scene=computer] .thief-2 .thief-bubble {
-  top: 0 !important;
-  bottom: auto !important;
-  left: 100% !important;
-  transform: none !important;
-  animation: none !important;
-  margin-left: 4px !important;
-  max-width: 128px;
-  white-space: normal !important;
+  top: 0;
+  bottom: auto;
+  left: 100%;
+  transform: none;
+  margin: 0 0 0 1.2cqw;
 }
-
-/* 5. ПОСЫЛКА (parcel) */
 .board-frame[data-scene=parcel] .thief-1 {
-  display: block !important;
-  top: 11% !important;
-  left: 65% !important;
-  transform: rotate(7deg) !important;
+  display: block;
+  top: 11%;
+  left: 65%;
+  --thief-angle: 7deg;
 }
-
 @keyframes thief-wiggle {
   0%, 100% { margin-top: 0; }
-  50% { margin-top: -4px; }
+  50% { margin-top: -1cqw; }
 }
 @keyframes bubble-float {
-  from { transform: translateX(-50%) translateY(0); }
-  to { transform: translateX(-50%) translateY(-3px); }
+  from { translate: 0 0; }
+  to { translate: 0 -.8cqw; }
 }
 
 /* Fit desktop and landscape screens; portrait phones keep the scrolling layout. */
