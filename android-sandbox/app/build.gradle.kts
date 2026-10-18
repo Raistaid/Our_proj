@@ -1,3 +1,6 @@
+import javax.inject.Inject
+import org.gradle.api.file.FileSystemOperations
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -35,21 +38,39 @@ android {
     buildFeatures {
         compose = true
     }
-    sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/zasvetAssets"))
 }
 
 // Keep game/ as the only source of game files, both in the repository and the source ZIP.
-val gameDirectory = rootProject.file("../game")
-val syncGameAssets by tasks.registering(Sync::class) {
-    inputs.file(gameDirectory.resolve("index.html"))
-    from(gameDirectory) {
-        into("game")
-        exclude(".DS_Store")
+abstract class SyncGameAssets @Inject constructor(
+    private val fileSystem: FileSystemOperations,
+) : DefaultTask() {
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val gameDirectory: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun sync() {
+        fileSystem.sync {
+            from(gameDirectory) {
+                into("game")
+                exclude(".DS_Store")
+            }
+            into(outputDirectory)
+        }
     }
-    into(layout.buildDirectory.dir("generated/zasvetAssets"))
 }
-tasks.named("preBuild") {
-    dependsOn(syncGameAssets)
+
+val syncGameAssets = tasks.register<SyncGameAssets>("syncGameAssets") {
+    gameDirectory.set(rootProject.layout.projectDirectory.dir("../game"))
+    outputDirectory.set(layout.buildDirectory.dir("generated/zasvetAssets"))
+}
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(syncGameAssets, SyncGameAssets::outputDirectory)
+    }
 }
 
 dependencies {
