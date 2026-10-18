@@ -38,7 +38,7 @@
     {
       "id": "frame_01",
       "title": "Рюкзак выходит в свет",
-      "brief": "Спрячь цифры кода и слова домашнего адреса.",
+      "brief": "Спрячь цифры кода и домашнего адреса.",
       "background": "./assets/scenes/room.svg",
       "mode": "practice",
       "secrets": [
