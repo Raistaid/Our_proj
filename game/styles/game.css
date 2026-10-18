@@ -62,7 +62,8 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
 .topbar{position:relative}
 /* Settings and exit: large round buttons, easy to hit with a thumb. */
 .settings-button,.close-button{width:52px;min-width:52px;height:52px;min-height:52px;padding:0;border:2px solid var(--ink);border-radius:50%;background:#fffaf1;display:inline-flex;align-items:center;justify-content:center;line-height:1;box-shadow:2px 2px 0 var(--ink)}
-.settings-button span{font-size:28px;line-height:1}
+.settings-icon{width:36px;height:36px;display:block}
+.home-icon{width:28px;height:28px;display:block}
 .close-button{font-size:34px;font-weight:600}
 .settings-button[aria-expanded=true]{background:var(--lime);border-color:var(--ink)}
 /* Settings: sound on/off, mixer (music, effects) and button sounds */
@@ -304,7 +305,8 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
  .level-info h2{font-size:18px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
  .icon-button{padding:0 12px;font-size:12px}
  .settings-button,.close-button{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;box-shadow:1px 2px 0 var(--ink)}
- .settings-button span{font-size:24px}
+ .settings-icon{width:32px;height:32px}
+ .home-icon{width:24px;height:24px}
  .close-button{font-size:34px}
  .start-screen{grid-template-columns:1fr;grid-template-areas:"copy" "art" "actions";gap:10px;min-height:0;padding:26px 0 0}
  .intro-copy{max-width:480px;margin:auto;width:100%}
