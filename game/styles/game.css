@@ -679,7 +679,8 @@ h1{font-size:clamp(42px,5.4vw,70px);letter-spacing:-3px;line-height:.98;margin:2
   to { transform: translateX(-50%) translateY(-3px); }
 }
 
-/* Fit the active game to the visible viewport, including Safari's changing bars. */
+/* Fit desktop and landscape screens; portrait phones keep the scrolling layout. */
+@media(min-width:761px), (orientation:landscape) {
 html:has(.app:is([data-screen=playing],[data-screen=levelPassed])),
 body:has(.app:is([data-screen=playing],[data-screen=levelPassed])) {
   height: 100%;
@@ -750,8 +751,10 @@ body:has(.app:is([data-screen=playing],[data-screen=levelPassed])) {
   padding: 12px;
   gap: 10px;
 }
+}
 @media(max-width:760px) and (orientation:portrait) {
-  .app:is([data-screen=playing],[data-screen=levelPassed]) { padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right)); }
+  /* Leave room beside the draggable board to swipe the page with one finger. */
+  .app:is([data-screen=playing],[data-screen=levelPassed]) { padding-inline: max(24px, env(safe-area-inset-left)) max(24px, env(safe-area-inset-right)); }
   .app:is([data-screen=playing],[data-screen=levelPassed]) .topbar { min-height: 60px; gap: 6px; }
   .app:is([data-screen=playing],[data-screen=levelPassed]) .level-info h2 { font-size: 18px; margin-top: 3px; }
   .app:is([data-screen=playing],[data-screen=levelPassed]) .level-meta { gap: 6px; font-size: 10px; letter-spacing: .4px; }
@@ -829,7 +832,8 @@ body:has(.app:is([data-screen=playing],[data-screen=levelPassed])) {
 .app:is([data-screen=playing],[data-screen=levelPassed]) #level-counter,
 .app:is([data-screen=playing],[data-screen=levelPassed]) .blitz-timer { white-space: nowrap; flex-shrink: 0; }
 
-/* The introduction and result use the same viewport-sized shell. */
+/* The introduction and result also scroll naturally on portrait phones. */
+@media(min-width:761px), (orientation:landscape) {
 html:has(.app:is([data-screen=start],[data-screen=result])),
 body:has(.app:is([data-screen=start],[data-screen=result])) { height: 100%; overflow: hidden; }
 .app:is([data-screen=start],[data-screen=result]) {
@@ -857,6 +861,7 @@ body:has(.app:is([data-screen=start],[data-screen=result])) { height: 100%; over
 .app[data-screen=start] .how-to li { padding: 7px 10px; font-size: 14px; line-height: 1.25; }
 .app[data-screen=start] .small-note { margin-top: 6px; font-size: 12px; line-height: 1.25; }
 .app[data-screen=result] .result-screen { height: 100%; min-height: 0; padding: 12px 0; gap: 20px; }
+}
 @media(max-width:760px) and (orientation:portrait) {
   .app[data-screen=start] .start-screen { grid-template-areas: "copy" "art" "actions"; grid-template-rows: auto minmax(0, 1fr) auto; gap: 6px; padding: 8px 0 0; }
   .app[data-screen=start] .intro-art { max-width: none; padding: 0; }
