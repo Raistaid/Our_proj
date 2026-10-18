@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тестовая страница моста</title>
+<style>
+  :root { color-scheme: light dark; --accent: #21a038; --muted: #8a8a8e; --card: rgba(127,127,127,.12); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: calc(env(safe-area-inset-top) + 56px) 16px calc(env(safe-area-inset-bottom) + 24px);
+    font: 16px/1.4 -apple-system, system-ui, sans-serif;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 24px 0 8px; }
+  p { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
+  button {
+    display: block; width: 100%; margin: 0 0 8px; padding: 12px 14px;
+    border: 0; border-radius: 12px; background: var(--card); color: inherit;
+    font: inherit; text-align: left;
+  }
+  button.primary { background: var(--accent); color: #fff; }
+  button code { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  button.primary code { color: rgba(255,255,255,.8); }
+  a { color: var(--accent); }
+  #last { font: 12px/1.4 ui-monospace, Menlo, monospace; white-space: pre-wrap; word-break: break-all; background: var(--card); border-radius: 12px; padding: 10px 12px; min-height: 3em; }
+</style>
+</head>
+<body>
+<h1>Тестовая страница моста</h1>
+<p>Каждая кнопка вызывает <code>window.postMessage(message, "*")</code>. Что сделало приложение — в логе событий (кнопка справа сверху).</p>
+
+<h2>Последнее отправленное</h2>
+<div id="last">—</div>
+
+<h2>События контракта</h2>
+<button class="primary" data-message='{"type":"CLOSE_EVENT"}'>Закрыть экран<code>CLOSE_EVENT</code></button>
+<button class="primary" data-message='{"type":"FINISH_EVENT"}'>Игра завершена<code>FINISH_EVENT</code></button>
+<button class="primary" data-message='{"type":"COMPLETED_EVENT"}'>Игра пройдена<code>COMPLETED_EVENT — второе нажатие даст предупреждение</code></button>
+<button class="primary" data-message='{"type":"VIBRATION_EVENT"}'>Вибрация<code>VIBRATION_EVENT</code></button>
+<button class="primary" id="share-full">Поделиться текстом и картинкой<code>SHARING_EVENT + text + image (data URL из canvas)</code></button>
+<button class="primary" data-message='{"type":"SHARING_EVENT","text":"Я прошёл игру за 3 минуты!"}'>Поделиться только текстом<code>SHARING_EVENT + text</code></button>
+<button class="primary" id="share-image">Поделиться только картинкой<code>SHARING_EVENT + image</code></button>
+
+<h2>Другие форматы сообщения</h2>
+<button data-message='{"type":"SHARING_EVENT","params":{"text":"Текст в params"}}'>Поля в params<code>{ type, params: { text } }</code></button>
+<button data-message='{"data":{"type":"SHARING_EVENT","params":{"text":"Текст в data.params"}}}'>Поля в data.params<code>{ data: { type, params: { text } } }</code></button>
+<button id="json-string">JSON-строка вместо объекта<code>postMessage('{"type":"VIBRATION_EVENT"}')</code></button>
+
+<h2>Ошибки — должны попасть в лог</h2>
+<button data-message='{"type":"SHARING_EVENT"}'>Поделиться без text и image<code>Некорректное сообщение</code></button>
+<button data-message='{"type":"SHARING_EVENT","text":"Картинка битая","image":"data:image/png;base64,AAAA"}'>Битая картинка<code>Шерилка с текстом + предупреждение</code></button>
+<button data-message='{"type":"LEVEL_UP_EVENT"}'>Неизвестное событие<code>LEVEL_UP_EVENT</code></button>
+<button data-message='{"score":42}'>Сообщение без type<code>{ score: 42 }</code></button>
+<button id="plain-string">Просто строка<code>postMessage("hello")</code></button>
+
+<h2>Запреты хакатона</h2>
+<button id="open-window">Новое окно<code>window.open(...)</code></button>
+<button id="navigate">Переход на внешний сайт<code>location.href = ...</code></button>
+
+<script>
+  (function () {
+    var last = document.getElementById('last');
+
+    function send(message) {
+      last.textContent = typeof message === 'string' ? message : JSON.stringify(message, null, 2);
+      window.postMessage(message, '*');
+    }
+
+    function trophyImage() {
+      var canvas = document.createElement('canvas');
+      canvas.width = 600;
+      canvas.height = 400;
+      var ctx = canvas.getContext('2d');
+      var gradient = ctx.createLinearGradient(0, 0, 600, 400);
+      gradient.addColorStop(0, '#21a038');
+      gradient.addColorStop(1, '#0b6bcb');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 600, 400);
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 120px -apple-system, sans-serif';
+      ctx.fillText('★', 300, 200);
+      ctx.font = 'bold 40px -apple-system, sans-serif';
+      ctx.fillText('Игра пройдена!', 300, 300);
+      return canvas.toDataURL('image/png');
+    }
+
+    function shortened(message) {
+      var copy = JSON.parse(JSON.stringify(message));
+      if (copy.image) { copy.image = copy.image.slice(0, 40) + '…'; }
+      return copy;
+    }
+
+    document.querySelectorAll('[data-message]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        send(JSON.parse(button.getAttribute('data-message')));
+      });
+    });
+
+    document.getElementById('share-full').addEventListener('click', function () {
+      var message = { type: 'SHARING_EVENT', text: 'Я прошёл игру!', image: trophyImage() };
+      window.postMessage(message, '*');
+      last.textContent = JSON.stringify(shortened(message), null, 2);
+    });
+
+    document.getElementById('share-image').addEventListener('click', function () {
+      var message = { type: 'SHARING_EVENT', image: trophyImage() };
+      window.postMessage(message, '*');
+      last.textContent = JSON.stringify(shortened(message), null, 2);
+    });
+
+    document.getElementById('json-string').addEventListener('click', function () {
+      send('{"type":"VIBRATION_EVENT"}');
+    });
+
+    document.getElementById('plain-string').addEventListener('click', function () {
+      send('hello');
+    });
+
+    document.getElementById('open-window').addEventListener('click', function () {
+      last.textContent = "window.open('https://example.com')";
+      window.open('https://example.com', '_blank');
+    });
+
+    document.getElementById('navigate').addEventListener('click', function () {
+      last.textContent = "location.href = 'https://example.com'";
+      location.href = 'https://example.com';
+    });
+  })();
+</script>
+</body>
+</html>

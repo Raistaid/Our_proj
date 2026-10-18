@@ -32,9 +32,11 @@
 
 ## Скачать
 
-**[Скачать на Android](downloads/zasvet-android.apk?raw=true)** · **[Скачать ZIP](https://github.com/Raistaid/Zasvet/archive/refs/heads/main.zip)** · [Репозиторий на GitHub](https://github.com/Raistaid/Zasvet)
+**[Скачать ZIP](downloads/zasvet-game.zip?raw=true)** · **[Скачать на Android](downloads/zasvet-android.apk?raw=true)**
 
-Android 8.0 и новее, с обновлённым Android System WebView. APK содержит всю игру и работает без интернета. Скачайте файл на телефон и откройте его для установки. Исходники оболочки и команда повторной сборки — в [android/README.md](android/README.md).
+ZIP игры содержит готовые HTML5-файлы с `index.html` в корне. Android 8.0 и новее, с обновлённым Android System WebView. Готовый APK содержит игру и работает без интернета; скачайте его на телефон и откройте для установки. Исходники этой оболочки — в [android/README.md](android/README.md).
+
+Для проверки контракта Сбера доступны [ZIP исходников Android-песочницы](downloads/zasvet-android.zip?raw=true) со встроенной игрой и [инструкция для Android Studio](android-sandbox/README.md).
 
 ## Технологии
 
@@ -50,6 +52,7 @@ Android 8.0 и новее, с обновлённым Android System WebView. APK
 | `window.postMessage` | Связь с мобильной оболочкой |
 | Node.js | Локальный сервер, тесты и проверки |
 | Java и Android WebView | Автономный APK со встроенными файлами игры |
+| Kotlin, Jetpack Compose и AndroidX WebKit | Песочница Сбера с журналом событий и встроенной игрой |
 | GitHub Actions | Автоматическая проверка проекта |
 
 Игра работает без бэкенда, базы данных и регистрации. Внешние библиотеки, шрифты и CDN не используются. Прогресс хранится в памяти страницы и сбрасывается при обновлении.
@@ -68,6 +71,6 @@ npm run check:budget
 
 Команды проверяют игровую логику, корректность и решаемость раскладок, а также расчётный бюджет загрузки первого экрана. GitHub Actions дополнительно контролирует размер игры — до 5 МиБ. Расчёт загрузки не заменяет замер на реальном устройстве.
 
-Мобильная оболочка обрабатывает события `CLOSE_EVENT`, `COMPLETED_EVENT`, `FINISH_EVENT`, `VIBRATION_EVENT` и `SHARING_EVENT`. Для интеграции доступны отдельные [Android-](https://github.com/vveidi/sber-hse-hackathon-2026-android) и [iOS-песочницы](https://github.com/vveidi/sber-hse-hackathon-2026-ios).
+Мобильная оболочка обрабатывает события `CLOSE_EVENT`, `COMPLETED_EVENT`, `FINISH_EVENT`, `VIBRATION_EVENT` и `SHARING_EVENT`. В [android-sandbox](android-sandbox) находится песочница «Засвета» на основе [Android-проекта хакатона](https://github.com/vveidi/sber-hse-hackathon-2026-android): встроенная игра, журнал событий, тактильный отклик и системный обмен PNG-постером. Также доступна исходная [iOS-песочница](https://github.com/vveidi/sber-hse-hackathon-2026-ios).
 
 > `tools/make-assets.py` — исторический генератор, который перезаписывает текущую графику и контент. Для запуска игры он не нужен.
