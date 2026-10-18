@@ -171,7 +171,7 @@ export function mountUI(callbacks) {
   let resultKey = '';
   const actions = { start: 'onStart', close: 'onClose', sound: 'onSoundToggle',
     undo: 'onUndo', hint: 'onHint', check: 'onCheck', next: 'onNext',
-    replay: 'onReplay', share: 'onShare', reload: 'onReload' };
+    replay: 'onReplay', home: 'onHome', reload: 'onReload' };
   const panel = document.getElementById('settings-panel');
   const gear = root.querySelector('[data-action=settings]');
   let lastAudio = { music: 0.6, effects: 0.5, clicks: false };
@@ -380,7 +380,6 @@ export function mountUI(callbacks) {
       if (vm.posterDataUrl && poster.getAttribute('src') !== vm.posterDataUrl) poster.src = vm.posterDataUrl;
       show('poster-image', Boolean(vm.posterDataUrl));
       show('poster-placeholder', !vm.posterDataUrl);
-      document.getElementById('share-button').disabled = !vm.canShare;
       setText('result-status', vm.resultStatus);
       const counts = vm.stats && vm.stats.stickerCounts || {};
       const total = Object.values(counts).reduce(function (sum, n) { return sum + n; }, 0);
