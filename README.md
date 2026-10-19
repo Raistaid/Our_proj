@@ -8,6 +8,7 @@
 
 ВШЭ × Сбер · трек B «Игры» · команда **noMad**.
 
+**Участники:** [@Raistaid](https://github.com/Raistaid) · [@meazuk1](https://github.com/meazuk1) · [@swag-alot](https://github.com/swag-alot) · [@P-aralla-x](https://github.com/P-aralla-x).
 
 Версия **0.0.2**. Готовые APK и ZIP опубликованы в [GitHub Releases](https://github.com/Raistaid/Zasvet/releases/latest).
 
