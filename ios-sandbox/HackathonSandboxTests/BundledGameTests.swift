@@ -81,7 +81,9 @@ final class BundledGameTests: XCTestCase {
 		webView.load(URLRequest(url: PageAddress.bundledGame))
 		await fulfillment(of: [loaded], timeout: 30)
 		XCTAssertNil(navigation.error)
-		let result = try await webView.callAsyncJavaScript("""
+		let executed = expectation(description: "Game modules finish exporting and sending events")
+		var scriptResult: Result<Any, Error>?
+		webView.callAsyncJavaScript("""
 		for (let attempt = 0; attempt < 200; attempt++) {
 		  if (document.getElementById('start-screen')?.hidden === false) break;
 		  await new Promise(resolve => setTimeout(resolve, 50));
@@ -110,7 +112,12 @@ final class BundledGameTests: XCTestCase {
 		bridge.sharePoster('Я прошёл «Засвет»!', poster);
 		bridge.closeGame();
 		return poster.length > 2000;
-		""", arguments: [:], in: nil, in: .page)
+		""", arguments: [:], in: nil, in: .page) { result in
+			scriptResult = result
+			executed.fulfill()
+		}
+		await fulfillment(of: [executed], timeout: 30)
+		let result = try XCTUnwrap(scriptResult).get()
 		XCTAssertEqual(result as? Bool, true)
 		await fulfillment(of: [received], timeout: 10)
 		XCTAssertEqual(recorder.events.map(\.type), [.completed, .finish, .vibration, .sharing, .close])

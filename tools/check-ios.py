@@ -24,7 +24,7 @@ def main():
     _, device = max(candidates, key=lambda item: (item[0], item[1]["name"]))
     print(f"Testing on {device['name']} ({device['udid']})", flush=True)
     output = Path(tempfile.mkdtemp(prefix="zasvet-ios-", dir=os.environ.get("RUNNER_TEMP")))
-    subprocess.run([
+    result = subprocess.run([
         "xcodebuild", "test", "-quiet",
         "-project", str(ROOT / "ios-sandbox/HackathonSandbox.xcodeproj"),
         "-scheme", "HackathonSandbox",
@@ -33,7 +33,13 @@ def main():
         "-derivedDataPath", str(output / "DerivedData"),
         "-resultBundlePath", str(output / "TestResults.xcresult"),
         "CODE_SIGNING_ALLOWED=NO",
-    ], check=True, cwd=ROOT)
+    ], cwd=ROOT)
+    result_bundle = output / "TestResults.xcresult"
+    if result_bundle.exists():
+        subprocess.run([
+            "xcrun", "xcresulttool", "get", "test-results", "summary", "--path", str(result_bundle),
+        ], check=False)
+    raise SystemExit(result.returncode)
 
 
 if __name__ == "__main__":
