@@ -1,6 +1,8 @@
+<img src="game/assets/app-icon.png" width="80" height="80" alt="Иконка приложения Засвет">
+
 # Засвет: наклей всё! — 0.0.2
 
-Версия исходников **0.0.2**, ветка `releases`. Готовый APK в `downloads` сохранён от предыдущей сборки.
+Версия **0.0.2**. Готовые APK и ZIP опубликованы в [GitHub Releases](https://github.com/Raistaid/Zasvet/releases/latest).
 
 Игра для трека B «Игры» хакатона СберKids «Создаём эмоции». HTML5-страница для браузера и WebView: пять бытовых сцен, в которых нужно заметить персональные данные и спрятать их под смешными наклейками перед публикацией.
 
@@ -34,7 +36,7 @@
 
 ## Скачать
 
-**[Скачать ZIP](downloads/zasvet-game.zip?raw=true)** · **[Скачать на Android](downloads/zasvet-android.apk?raw=true)** · **[iOS-песочница (ZIP)](downloads/zasvet-ios.zip?raw=true)**
+**[Скачать APK и ZIP в Releases](https://github.com/Raistaid/Zasvet/releases/latest)**
 
 ZIP игры содержит готовые HTML5-файлы с `index.html` в корне. Android 8.0 и новее, с обновлённым Android System WebView. Готовый APK содержит игру и работает без интернета; скачайте его на телефон и откройте для установки. Исходники этой оболочки — в [android/README.md](android/README.md).
 
@@ -42,8 +44,8 @@ ZIP игры содержит готовые HTML5-файлы с `index.html` в
 
 | Платформа | Исходники | Запуск |
 |---|---|---|
-| Android 8.0+ | [ZIP Android-песочницы](downloads/zasvet-android.zip?raw=true) | [Android Studio, JDK 21, SDK 36.1](android-sandbox/README.md) |
-| iOS 15+ | [ZIP iOS-песочницы](downloads/zasvet-ios.zip?raw=true) | [Xcode 26, iPhone или симулятор](ios-sandbox/README.md) |
+| Android 8.0+ | [Android-песочница](android-sandbox) | [Android Studio, JDK 21, SDK 36.1](android-sandbox/README.md) |
+| iOS 15+ | [iOS-песочница](ios-sandbox) | [Xcode 26, iPhone или симулятор](ios-sandbox/README.md) |
 
 ZIP песочниц содержит исходники проектов. Для iOS откройте `ios-sandbox/HackathonSandbox.xcodeproj`, выберите схему `HackathonSandbox` и нажмите Run. Кнопка **«Играть в „Засвет“»** запускает игру; ввод URL и тестовая страница контракта доступны на том же экране.
 

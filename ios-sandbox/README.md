@@ -5,7 +5,7 @@
 ## Запуск
 
 1. На Mac установите Xcode 26 и runtime симулятора iPhone. Минимальная версия устройства — iOS 15, как в исходном проекте.
-2. Распакуйте [ZIP iOS-песочницы](https://github.com/Raistaid/Zasvet/raw/refs/heads/releases/downloads/zasvet-ios.zip). В папке `zasvet-ios` находятся `ios-sandbox` и `game`; оставьте их рядом.
+2. Распакуйте ZIP iOS-песочницы из [Releases](https://github.com/Raistaid/Zasvet/releases/latest). В папке `zasvet-ios` находятся `ios-sandbox` и `game`; оставьте их рядом.
 3. Откройте `ios-sandbox/HackathonSandbox.xcodeproj`, выберите схему `HackathonSandbox` и симулятор iPhone, нажмите Run.
 4. Нажмите **«Играть в „Засвет“»**. Кнопка журнала вверху показывает события игры и действия оболочки.
 

@@ -5,7 +5,7 @@ Android-проект на основе [песочницы хакатона Сб
 ## Запуск
 
 1. Установите Android Studio с поддержкой Android Gradle Plugin 9.2.1, JDK 21 и Android SDK 36.1. Минимальная версия устройства — Android 8.0 (API 26).
-2. Откройте папку `android-sandbox` как проект. Папка `game` должна находиться рядом с ней. В [Android ZIP](https://github.com/Raistaid/Zasvet/raw/refs/heads/releases/downloads/zasvet-android.zip) обе папки уже лежат внутри `zasvet-android`.
+2. Откройте папку `android-sandbox` как проект. Папка `game` должна находиться рядом с ней. В Android ZIP из [Releases](https://github.com/Raistaid/Zasvet/releases/latest) обе папки уже лежат внутри `zasvet-android`.
 3. Дождитесь синхронизации Gradle и запустите конфигурацию `app` на устройстве или эмуляторе.
 4. Нажмите **«Играть в „Засвет“»**. Кнопка журнала вверху показывает сообщения игры и действия оболочки.
 
