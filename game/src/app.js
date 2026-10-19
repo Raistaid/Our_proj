@@ -42,7 +42,7 @@ const ui = mountUI({
   // Settings panel (role 2): mixer volumes and button sounds go straight to the audio module.
   onSettings: function (next) { audio.configure(next); render(); },
   onButtonTap: function () { audio.click(); },
-  onShare: share,
+  onHome: goHome,
   onClose: close,
   onReload: function () { window.location.reload(); }
 });
@@ -132,7 +132,7 @@ function startLevel(index) {
   screen = 'playing';
   feedback = { kind: 'info', text: currentLevel().mode === 'transfer' ?
     'Этот кадр — полностью твой 😎 Подсказка откроется после первой проверки.' :
-    'Закрой личные слова и цифры. Обычные записки оставь видимыми 😉' };
+    'Закрой каждый секрет. Обычные записки оставь видимыми 😉' };
   render();
 }
 function startSession() {
@@ -254,7 +254,7 @@ async function refreshPoster() {
       feed: content.feed || null, stats: statsSummary() });
     if (nonce !== exportNonce || screen !== 'result') return;
     posterDataUrl = image;
-    resultStatus = 'Можно показать коллаж. Все личные данные на нём закрыты.';
+    resultStatus = 'Все личные данные закрыты. Можно вернуться на главный экран или сыграть ещё раз.';
   } catch (error) {
     if (nonce !== exportNonce || screen !== 'result') return;
     resultStatus = 'Картинка не собралась. Попробуй ещё один заход.';
@@ -262,16 +262,11 @@ async function refreshPoster() {
   }
   render();
 }
-function share() {
-  if (screen !== 'result' || !posterDataUrl ||
-      !evaluateLevel(currentLevel(), state.placements).passed) return;
-  const sent = bridge.sharePoster('Серьёзный носок на посту. Личное осталось за кадром!', posterDataUrl);
-  resultStatus = sent ? 'Коллаж готов к отправке. Выбирай, кому его показать.' :
-    'Пока не получилось передать коллаж. Попробуй ещё раз.';
-  render();
-}
 function close() {
   bridge.closeGame();
+  goHome();
+}
+function goHome() {
   if (!content || !assets) return;
   if (input) input.cancel();
   exportNonce += 1;

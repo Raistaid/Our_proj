@@ -1,4 +1,97 @@
 import { DEFAULT_FEED, pick, fanComments, strangerComment, agentTitle } from './feed.js';
+// --- БЛИЦ-ТАЙМЕР И ИНТЕРАКТИВНЫЙ ВОРИШКА ---
+const BLITZ_SECONDS = 20;
+let blitzInterval = null;
+let blitzLeft = BLITZ_SECONDS;
+let currentTimedLevel = -1;
+let totalSeconds = 0;
+let blitzWins = 0;
+let lastStickersCount = 0;
+let annoyedTimer = null;
+let bonkTimer = null;
+let bonkBound = false;
+
+function updateBlitzDisplay(el, frame) {
+  if (!el) return;
+  if (blitzLeft > 0) {
+    el.textContent = '⚡ Блиц: ' + blitzLeft + ' с';
+    el.dataset.state = blitzLeft <= 5 ? 'hurry' : 'active';
+    if (frame) frame.classList.toggle('thief-hurry', blitzLeft <= 5);
+  } else {
+    el.textContent = '⏱ В своём темпе';
+    el.dataset.state = 'calm';
+    if (frame) frame.classList.remove('thief-hurry');
+  }
+}
+
+function handleBlitzTimer(vm) {
+  const el = document.getElementById('blitz-timer');
+  const frame = document.getElementById('board-frame');
+  if (frame && !bonkBound && frame.addEventListener) {
+    bonkBound = true;
+    frame.addEventListener('click', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.thief-spy')) {
+        frame.classList.add('thief-bonked');
+        clearTimeout(bonkTimer);
+        bonkTimer = setTimeout(function () { frame.classList.remove('thief-bonked'); }, 1600);
+      }
+    });
+  }
+  if (!el) return;
+
+  if (vm.screen === 'playing') {
+    if (currentTimedLevel !== vm.levelIndex) {
+      currentTimedLevel = vm.levelIndex;
+      blitzLeft = BLITZ_SECONDS;
+      lastStickersCount = 0;
+      if (frame) {
+        frame.classList.remove('thief-annoyed', 'thief-gloat', 'thief-bonked', 'thief-hurry');
+      }
+      if (blitzInterval) clearInterval(blitzInterval);
+      updateBlitzDisplay(el, frame);
+      blitzInterval = setInterval(function () {
+        totalSeconds += 1;
+        if (blitzLeft > 0) blitzLeft -= 1;
+        updateBlitzDisplay(el, frame);
+      }, 1000);
+      if (blitzInterval && typeof blitzInterval.unref === 'function') blitzInterval.unref();
+    }
+    if (frame) {
+      const isWarning = vm.feedback && vm.feedback.kind === 'warning' &&
+        vm.post && vm.post.missingKinds && vm.post.missingKinds.length > 0;
+      frame.classList.toggle('thief-gloat', Boolean(isWarning));
+      if (vm.usedStickers > lastStickersCount) {
+        frame.classList.add('thief-annoyed');
+        clearTimeout(annoyedTimer);
+        annoyedTimer = setTimeout(function () { frame.classList.remove('thief-annoyed'); }, 1300);
+      }
+      lastStickersCount = vm.usedStickers;
+    }
+  } else if (vm.screen === 'levelPassed') {
+    if (blitzInterval) {
+      clearInterval(blitzInterval);
+      blitzInterval = null;
+      if (blitzLeft > 0) blitzWins += 1;
+    }
+    if (frame) frame.classList.remove('thief-hurry', 'thief-annoyed', 'thief-gloat');
+    el.textContent = blitzLeft > 0 ? '⚡ Блиц! +50 ♥' : '✓ Кадр защищён';
+    el.dataset.state = blitzLeft > 0 ? 'bonus' : 'calm';
+  } else {
+    if (blitzInterval) { clearInterval(blitzInterval); blitzInterval = null; }
+    currentTimedLevel = -1;
+    if (vm.screen === 'result') {
+      const summaryEl = document.getElementById('blitz-summary');
+      if (summaryEl) {
+        summaryEl.textContent = '⚡ Блиц-кадров: ' + blitzWins + ' из ' + (vm.levelCount || 5) +
+          ' · Время защиты: ' + Math.max(1, totalSeconds) + ' с';
+      }
+    }
+    if (vm.screen === 'start') {
+      totalSeconds = 0;
+      blitzWins = 0;
+    }
+  }
+}
 import { stickerIntersectsRect } from './sticker-shapes.js';
 
 const SYMBOLS = { info: '✳', warning: '!', success: '✓' };
@@ -78,7 +171,7 @@ export function mountUI(callbacks) {
   let resultKey = '';
   const actions = { start: 'onStart', close: 'onClose', sound: 'onSoundToggle',
     undo: 'onUndo', hint: 'onHint', check: 'onCheck', next: 'onNext',
-    replay: 'onReplay', share: 'onShare', reload: 'onReload' };
+    replay: 'onReplay', home: 'onHome', reload: 'onReload' };
   const panel = document.getElementById('settings-panel');
   const gear = root.querySelector('[data-action=settings]');
   let lastAudio = { music: 0.6, effects: 0.5, clicks: false };
@@ -114,6 +207,7 @@ export function mountUI(callbacks) {
   function setText(id, value) { document.getElementById(id).textContent = value || ''; }
   function show(id, visible) { document.getElementById(id).hidden = !visible; }
   function updateUI(vm) {
+    handleBlitzTimer(vm);
     const playing = vm.screen === 'playing' || vm.screen === 'levelPassed';
     show('loading-screen', vm.screen === 'loading');
     show('start-screen', vm.screen === 'start');
@@ -217,6 +311,22 @@ export function mountUI(callbacks) {
       // Micro-reaction to a new placement: only the frame glows; the canvas, its size and input stay untouched.
       // The live layer shows the current scene's animations (scene file name: room, desk, phone…).
       frame.dataset.scene = String(vm.scene || '').split('/').pop().replace(/\.svg$/, '');
+      const phoneReplies = {
+        'bubble-look': '👀 Ищу СМС!',
+        'bubble-annoyed': 'Не прячь! 😠',
+        'bubble-gloat': 'Вижу! 😈',
+        'bubble-hurry': 'Скриню! 📸',
+        'bubble-bonk': 'Ухожу! 🤕',
+        'bubble-sad': 'Облом! 🙈'
+      };
+      frame.querySelectorAll('.thief-1').forEach(function (pet) {
+        Object.keys(phoneReplies).forEach(function (name) {
+          const line = pet.querySelector('.' + name);
+          if (!line) return;
+          if (!line.dataset.defaultText) line.dataset.defaultText = line.textContent;
+          line.textContent = frame.dataset.scene === 'phone' ? phoneReplies[name] : line.dataset.defaultText;
+        });
+      });
       const fx = document.getElementById('scene-fx');
       // content.json → scenes: which live effects run, their speed, reactions and confetti.
       const setup = vm.scenes || {};
@@ -270,7 +380,6 @@ export function mountUI(callbacks) {
       if (vm.posterDataUrl && poster.getAttribute('src') !== vm.posterDataUrl) poster.src = vm.posterDataUrl;
       show('poster-image', Boolean(vm.posterDataUrl));
       show('poster-placeholder', !vm.posterDataUrl);
-      document.getElementById('share-button').disabled = !vm.canShare;
       setText('result-status', vm.resultStatus);
       const counts = vm.stats && vm.stats.stickerCounts || {};
       const total = Object.values(counts).reduce(function (sum, n) { return sum + n; }, 0);

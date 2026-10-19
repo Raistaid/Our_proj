@@ -261,3 +261,16 @@ test('Artwork keeps its preview geometry after placement, repeated renders and e
   }
   assert.deepEqual(frames, [], 'Rendering must not schedule later redraws with an obsolete state');
 });
+
+test('The backpack idea tag stays still while other tags can animate', function () {
+  const level = getRuntimeLevel(content, 0);
+  const note = level.keepZones.find(zone => zone.id === 'public_note');
+  assert.equal(note.animate, false);
+  const canvas = { width: 360, height: 480, getContext: () => new Proxy({
+    measureText: text => ({ width: text.length * 5 })
+  }, { get: (target, key) => key in target ? target[key] : function () {} }) };
+  const onlyTag = { ...level, keepZones: [note], secrets: [] };
+  assert.equal(renderBoard({ canvas, level: onlyTag, assets, animate: true }).animating, false);
+  const animated = { ...onlyTag, keepZones: [{ ...note, animate: true }] };
+  assert.equal(renderBoard({ canvas, level: animated, assets, animate: true }).animating, true);
+});

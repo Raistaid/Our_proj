@@ -17,4 +17,22 @@
   <path d="M51 139L76 102H155M212 103H284L307 137" fill="none" stroke="#ffe1b6" stroke-width="2" stroke-linecap="round" opacity=".6"/>
   <path d="M76 167H112M45 223V242M314 302V322M283 413H310" stroke="#a77e55" stroke-width="1.5" stroke-linecap="round" opacity=".35"/>
   <path d="M46 409V392M40 398L46 392L52 398M65 409V392M59 398L65 392L71 398" fill="none" stroke="#795a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Ordinary delivery details stay separate from the editable private labels. -->
+  <g font-family="system-ui,Arial,sans-serif" fill="#795a3a">
+    <text x="84" y="125" font-size="8" font-weight="800" transform="rotate(-3 84 125)">КОМИКС-ПОЧТА</text>
+    <text x="220" y="128" font-size="7" font-weight="700">ПОДАРОК ВНУТРИ</text>
+    <rect x="45" y="393" width="94" height="22" rx="3" fill="#fff9e9" stroke="#ad875e"/>
+    <g stroke="#453a30">
+      <path d="M51 397V406M55 397V406M61 397V406M65 397V406M71 397V406M78 397V406M82 397V406M89 397V406M94 397V406M103 397V406M108 397V406M116 397V406M121 397V406M131 397V406" stroke-width="1.5"/>
+      <path d="M58 397V406M75 397V406M98 397V406M112 397V406M126 397V406" stroke-width="2.5"/>
+    </g>
+    <text x="92" y="412" text-anchor="middle" font-size="4.5">УЧЕБНЫЙ ШТРИХКОД</text>
+    <text x="220" y="406" font-size="7" font-weight="700">МАССА 0,4 КГ</text>
+    <text x="220" y="416" font-size="6">Упаковано с заботой ♡</text>
+    <g transform="translate(298 209) rotate(7)">
+      <rect x="-17" y="-15" width="34" height="32" rx="3" fill="none" stroke="#977145" stroke-width="1.2"/>
+      <path d="M-9-6Q0-18 9-6Z M0-6V9Q0 13-4 10" fill="none" stroke="#977145" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+    <text x="294" y="238" text-anchor="middle" font-size="5">БЕРЕЧЬ ОТ ВОДЫ</text>
+  </g>
 </svg>

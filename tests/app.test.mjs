@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { applyLayout } from '../game/src/content.js';
+import { applyLayout, getRuntimeLevel } from '../game/src/content.js';
 import { hintOutline } from '../game/src/hint-outline.js';
 
 // This harness exercises the real app, UI, input, renderer, export and bridge.
@@ -293,7 +293,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
   // variant: which replay layout the app shows (0 = original, 1 = first replay…).
   async function playSession(exerciseMistakes, variant = 0) {
     for (let index = 0; index < content.levels.length; index += 1) {
-      const level = applyLayout(content.levels[index], variant);
+      const level = getRuntimeLevel(content, index, variant);
       assert.equal(root.dataset.screen, 'playing');
       assert.equal(byId('level-title').textContent, level.title);
       assertPaletteMatches();
@@ -447,7 +447,7 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
         'a passed frame cannot be changed');
       click('next');
     }
-    await settleUntil(() => root.dataset.screen === 'result' && !byId('share-button').disabled);
+    await settleUntil(() => root.dataset.screen === 'result' && !byId('poster-image').hidden);
     const poster = document.canvases.at(-1);
     assert.notEqual(poster, board);
     assert.equal(poster.width, 720);
@@ -469,17 +469,18 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
   assert.equal(firstPoster.calls.some(call => call.name === 'drawImage' && call.args[0] === delayedImage), false);
   const canvasCount = document.canvases.length;
   delayedImage.onload();
-  assert.equal(byId('share-button').disabled, true, 'sharing waits for an updated poster');
-  await settleUntil(() => !byId('share-button').disabled);
+  assert.equal(byId('share-button').disabled, false, 'home is available while the poster updates');
+  await settleUntil(() => byId('poster-image').src !== firstPosterUrl);
   assert.equal(document.canvases.length, canvasCount + 1, 'late image rebuilds the poster');
   assert.notEqual(byId('poster-image').src, firstPosterUrl);
   assert.equal(document.canvases.at(-1).calls.some(call =>
     call.name === 'drawImage' && call.args[0] === delayedImage), true);
   assert.equal(count('COMPLETED_EVENT'), 1, 'poster refresh must not award completion again');
   assert.equal(count('FINISH_EVENT'), 1, 'poster refresh must not send FINISH_EVENT again');
-  click('share');
-  assert.equal(count('SHARING_EVENT'), 1);
-  assert.equal(messages.find(message => message.type === 'SHARING_EVENT').image, byId('poster-image').src);
+  click('home');
+  assert.equal(root.dataset.screen, 'start');
+  assert.equal(count('SHARING_EVENT'), 0);
+  assert.equal(count('CLOSE_EVENT'), 0);
 
   click('replay');
   // A replay moves the notes, so it has to be read again rather than remembered.
@@ -491,8 +492,9 @@ test('real app: sticker movement/removal, hints, undo, all frames, poster, shari
   assert.equal(count('COMPLETED_EVENT'), 1, 'replay must not award completion again');
   assert.equal(count('FINISH_EVENT'), 1, 'replay must not send FINISH_EVENT again');
   assert.equal(count('VIBRATION_EVENT'), content.levels.length * 2);
-  click('share');
-  assert.equal(count('SHARING_EVENT'), 2);
+  click('home');
+  assert.equal(root.dataset.screen, 'start');
+  assert.equal(count('SHARING_EVENT'), 0);
   click('close');
   assert.equal(count('CLOSE_EVENT'), 1);
   assert.equal(root.dataset.screen, 'start');

@@ -9,7 +9,7 @@ if (!/^\d+$/.test(portText) || Number(portText) < 1 || Number(portText) > 65535)
   process.exit(1);
 }
 const port = Number(portText);
-const host = '127.0.0.1';
+const host = process.env.HOST || '127.0.0.1';
 const gameRoot = await realpath(fileURLToPath(new URL('../game/', import.meta.url)));
 const types = {
   '.html': 'text/html; charset=utf-8',

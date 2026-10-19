@@ -205,7 +205,7 @@ function drawNotes(ctx, level, now) {
   zones.forEach(function (zone, i) {
     const form = noteForm(level, zone);
     const p = pixels(zone.rect);
-    const t = now === null ? null : now - i * STAGGER;
+    const t = now === null || zone.animate === false ? null : now - i * STAGGER;
     ctx.save();
     ctx.translate(p[0] + p[2] / 2, p[1] + p[3] / 2);
     ctx.rotate(noteRotation(zone));

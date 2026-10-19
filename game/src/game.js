@@ -95,7 +95,17 @@ export function evaluateLevel(level, placements) {
   const valid = list.filter(function (p) { return p && validRect(p.rect); })
     .map(function (p) { return { ...p, shape: stickerShape(level, p.stickerId) }; });
   const covered = level.secrets.filter(function (s) {
-    return sensitiveRegions(level, s).every(function (rect) { return stickersCoverRect(valid, rect); });
+    const regions = sensitiveRegions(level, s);
+    const required = level.requiredTextFraction ?? 1;
+    if (required === 1) return regions.every(function (rect) { return stickersCoverRect(valid, rect); });
+    let totalArea = 0;
+    let coveredArea = 0;
+    regions.forEach(function (rect) {
+      const area = rect[2] * rect[3];
+      totalArea += area;
+      coveredArea += area * stickerCoverageRatio(valid, rect);
+    });
+    return totalArea > 0 && coveredArea / totalArea + 1e-8 >= required;
   }).map(function (s) { return s.id; });
   const missing = level.secrets.filter(function (s) {
     return covered.indexOf(s.id) === -1;

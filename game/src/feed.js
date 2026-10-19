@@ -22,8 +22,17 @@ export function fanComments(feed, levelIndex, stickerIds, count, scene) {
   const regular = texts.filter(Boolean).map(function (text, i) {
     return { who: pick(f.names || DEFAULT_FEED.names, levelIndex * 2 + i), text: text };
   });
-  const fixed = f.sceneComments && f.sceneComments[scene] || [];
-  return fixed.concat(regular.filter(comment => !fixed.some(item => item.who === comment.who))).slice(0, count);
+  const fixed = f.sceneComments && scene && f.sceneComments[scene] || [];
+  
+  // Собираем комментарии без использования стрелочных функций для полной совместимости
+  const filteredRegular = regular.filter(function (comment) {
+    return !fixed.some(function (item) { return item.who === comment.who; });
+  });
+  const combined = fixed.concat(filteredRegular);
+  
+  return combined.length > 0 ? combined.slice(0, Math.max(1, count || 2)) : [
+    { who: '@kot_v_shapke', text: 'Классный кадр!' }
+  ];
 }
 
 export function strangerComment(feed, missingKinds) {

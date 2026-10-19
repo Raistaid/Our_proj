@@ -33,8 +33,8 @@
     <path d="M39 78Q44 84 49 78" fill="none" stroke="#65557f" stroke-width="1.3" stroke-linecap="round"/>
     <circle cx="40.5" cy="75" r="1" fill="#65557f"/><circle cx="47.5" cy="75" r="1" fill="#65557f"/>
     <circle cx="51" cy="84" r="3" fill="#91b98b" stroke="#fff" stroke-width="1.2"/>
-    <text x="61" y="75" font-family="system-ui,Arial,sans-serif" font-size="10" font-weight="800" fill="#302b3f">Чат о комиксе</text>
-    <text x="61" y="86" font-family="system-ui,Arial,sans-serif" font-size="7" font-weight="600" fill="#82758f">в сети · обсуждаем идеи</text>
+    <text x="61" y="75" font-family="system-ui,Arial,sans-serif" font-size="10" font-weight="800" fill="#302b3f">Маша · комикс-клуб</text>
+    <text x="61" y="86" font-family="system-ui,Arial,sans-serif" font-size="7" font-weight="600" fill="#82758f">в сети</text>
     <path d="M293 73H300V80H293Z M300 75L304 72V81L300 78" fill="none" stroke="#9384aa" stroke-width="1.2" stroke-linejoin="round"/>
     <circle cx="319" cy="74" r="1.2" fill="#9384aa"/><circle cx="319" cy="78" r="1.2" fill="#9384aa"/><circle cx="319" cy="82" r="1.2" fill="#9384aa"/>
     <!-- A quiet sketchbook pattern between the messages. -->
